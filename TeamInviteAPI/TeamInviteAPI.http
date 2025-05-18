@@ -1,0 +1,6 @@
+@TeamInviteAPI_HostAddress = http://localhost:5118
+
+GET {{TeamInviteAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
