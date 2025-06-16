@@ -1,5 +1,16 @@
 
-namespace ReactApp2.Server
+using AccountAPI.DataContext;
+using AccountAPI.Interfaces.RepoInterface;
+using AccountAPI.Interfaces.ServiceInterface;
+using AccountAPI.Repos;
+using AccountAPI.Services;
+using AccountAPI.Storage;
+using gRPCIntercommunicationService;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using System.Threading.Channels;
+
+namespace AccountAPI.Server
 {
     public class Program
     {
@@ -7,18 +18,35 @@ namespace ReactApp2.Server
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGrpc();
+
+            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddSingleton<StreamStorage>();
+
+            builder.Services.AddSingleton(Channel.CreateUnbounded<StreamAccountResponse>());
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
+            
+
+            builder.Services.AddDbContext<AccountDataContext>(options =>
+            {
+                string? connection = builder.Configuration.GetConnectionString("AccountAPIConnection");
+                options.UseSqlServer(connection);
+            });
 
             var app = builder.Build();
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
+          
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -30,10 +58,9 @@ namespace ReactApp2.Server
 
             app.UseAuthorization();
 
+            app.MapGrpcService<AccountService>();
 
             app.MapControllers();
-
-            app.MapFallbackToFile("/index.html");
 
             app.Run();
         }

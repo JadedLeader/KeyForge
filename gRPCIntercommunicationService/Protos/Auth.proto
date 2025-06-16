@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCIntercommunicationService.Protos";
+
+
+service Auth
+{ 
+
+	rpc CreateAuthAccount(CreateAuthAccountRequest) returns (CreateAuthAccountResponse);
+	rpc RefreshLongLivedToken(RefreshLongLivedTokenRequest) returns(RefreshLongLivedTokenResponse);
+	rpc RefreshShortLivedToken(RefreshShortLivedTokenRequest) returns(RefreshShortLivedTokenResponse);
+	
+}
+
+message CreateAuthAccountRequest
+{ 
+	string AccountId = 1;
+}
+
+message CreateAuthAccountResponse
+{ 
+	string AccountId = 1; 
+	bool Successful = 2;
+	string ShortLivedToken = 3; 
+	string LongLivedToken = 4;
+}
+
+message RefreshLongLivedTokenRequest
+{ 
+	string AccountId = 1;
+}
+
+message RefreshLongLivedTokenResponse
+{ 
+	string AccountId = 1; 
+	string RefreshedToken = 2;
+	bool Successful = 3;
+}
+
+message RefreshShortLivedTokenRequest
+{ 
+	string AccountId = 1; 
+	
+}
+
+message RefreshShortLivedTokenResponse
+{ 
+	string AccountId = 1; 
+	string RefreshedToken = 2;
+	bool Successful = 3;
+}
+
+

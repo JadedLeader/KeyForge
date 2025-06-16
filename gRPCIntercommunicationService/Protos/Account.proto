@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCIntercommunicationService";
+
+service Account
+{ 
+	rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+
+	rpc StreamAccount(StreamAccountRequest) returns (stream StreamAccountResponse);
+}
+
+message CreateAccountRequest
+{ 
+	string Username = 1; 
+	string Password = 2; 
+	string Email = 3; 
+	AuthorisationRoles AuthRole = 4;
+}
+
+message CreateAccountResponse
+{ 
+	string Username = 1; 
+	string Password = 2;
+	bool Successful = 3;
+}
+
+message StreamAccountRequest
+{ 
+	 
+}
+
+message StreamAccountResponse
+{ 
+	string AccountId = 1;
+	string Username = 2;
+	string Password = 3; 
+	string Email = 4; 
+	AuthorisationRoles AuthRole = 5; 
+	string AccountCreated = 6;
+}
+
+enum AuthorisationRoles
+{ 
+	User = 0;
+	Admin = 1;
+}
