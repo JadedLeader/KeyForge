@@ -2,8 +2,10 @@
 using AuthAPI.DataContext;
 using AuthAPI.DataModel;
 using AuthAPI.Interfaces.RepoInterface;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Formats.Asn1;
 
 namespace AuthAPI.Repos
 {
@@ -101,6 +103,41 @@ namespace AuthAPI.Repos
             authDataModel.LongLivedKey = refreshedLongLivedToken;
 
             _dataContext.Update(authDataModel);
+
+            await _dataContext.SaveChangesAsync();
+
+            return authDataModel;
+        }
+
+        public async Task<AuthDataModel> UpdateShortLivedToken(AuthDataModel authDataModel, string refreshedShortLivedToken)
+        { 
+            authDataModel.ShortLivedKey = refreshedShortLivedToken;
+
+            _dataContext.Update(authDataModel);
+
+            await _dataContext.SaveChangesAsync();
+            
+            return authDataModel;
+        }
+
+        public async Task<AuthDataModel> RevokeLongLivedToken(AuthDataModel authDataModel)
+        {
+            authDataModel.ShortLivedKey = "";
+            authDataModel.LongLivedKey = "";
+
+            _dataContext.Update(authDataModel);
+
+            await _dataContext.SaveChangesAsync();
+
+            return authDataModel;
+        }
+
+        public async Task<AuthDataModel> UpdateExistingAuthKeys(AuthDataModel authDataModel, string longLivedKey, string shortLivedKey)
+        {
+            authDataModel.ShortLivedKey = shortLivedKey; 
+            authDataModel.LongLivedKey = longLivedKey;
+
+            _dataContext.Update(authDataModel); 
 
             await _dataContext.SaveChangesAsync();
 

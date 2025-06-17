@@ -20,5 +20,11 @@ namespace AuthAPI.Interfaces.RepoInterface
 
         public Task<AuthDataModel> UpdateLongLivedToken(AuthDataModel authDataModel, string refreshedLongLivedToken);
 
+        public Task<AuthDataModel> UpdateShortLivedToken(AuthDataModel authDataModel, string refreshedShortLivedToken);
+
+        public Task<AuthDataModel> RevokeLongLivedToken(AuthDataModel authDataModel);
+
+        public Task<AuthDataModel> UpdateExistingAuthKeys(AuthDataModel authDataModel, string longLivedKey, string shortLivedKey);
+
     }
 }

@@ -8,5 +8,9 @@ namespace AuthAPI.Interfaces.ServicesInterface
 
         public Task<RefreshLongLivedTokenResponse> RefreshLongLivedToken(RefreshLongLivedTokenRequest request);
 
+        public Task<RefreshShortLivedTokenResponse> RefreshShortLivedToken(RefreshShortLivedTokenRequest request);
+
+        public Task<RevokeLongLivedTokenResponse> RevokeLongLivedToken(RevokeLongLivedTokenRequest request);
+
     }
 }

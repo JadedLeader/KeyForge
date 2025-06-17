@@ -3,9 +3,9 @@
     public interface ITokenGeneratorService
     {
 
-        public string GenerateShortLivedToken(string username);
+        public string GenerateShortLivedToken(string accountId);
 
-        public string GenerateLongLivedToken(string username);
+        public string GenerateLongLivedToken(string accountId);
 
     }
 }

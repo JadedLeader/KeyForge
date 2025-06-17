@@ -9,6 +9,7 @@ service Auth
 	rpc CreateAuthAccount(CreateAuthAccountRequest) returns (CreateAuthAccountResponse);
 	rpc RefreshLongLivedToken(RefreshLongLivedTokenRequest) returns(RefreshLongLivedTokenResponse);
 	rpc RefreshShortLivedToken(RefreshShortLivedTokenRequest) returns(RefreshShortLivedTokenResponse);
+	rpc RevokeLongLivedToken(RevokeLongLivedTokenRequest) returns(RevokeLongLivedTokenResponse);
 	
 }
 
@@ -48,6 +49,17 @@ message RefreshShortLivedTokenResponse
 	string AccountId = 1; 
 	string RefreshedToken = 2;
 	bool Successful = 3;
+}
+
+message RevokeLongLivedTokenRequest
+{ 
+	string accountId = 1; 
+}
+
+message RevokeLongLivedTokenResponse
+{ 
+	string accountId = 1; 
+	bool Successful = 2;
 }
 
 
