@@ -61,19 +61,22 @@ namespace AuthAPI.Services
 
                 await _authRepo.AddAuthToTable(creatingAuthModel);
 
+                serverResponse.AccountId = creatingAuthModel.AccountId.ToString();
+                serverResponse.ShortLivedToken = shortLivedToken;
+                serverResponse.LongLivedToken = longLivedToken;
+                serverResponse.Successful = true;
+
             }
             else if(existingAccount.AccountId != Guid.Empty && existingAuth.AccountId != Guid.Empty)
             {
-                Log.Information($"{existingAccount.AccountId} generated short lived token: {shortLivedToken}");
-                Log.Information($"{existingAccount.AccountId} generated long lived token: {longLivedToken}");
+                Log.Error($"Keys have been revoked by an admin");
 
-                await _authRepo.UpdateExistingAuthKeys(existingAuth, longLivedToken, shortLivedToken);
+                serverResponse.AccountId = ""; 
+                serverResponse.Successful = false;
+                serverResponse.ShortLivedToken = "";
+                serverResponse.LongLivedToken = "";
+                serverResponse.Details = "Keys revoked by an admin";
             }
-
-            serverResponse.AccountId = creatingAuthModel.AccountId.ToString();
-            serverResponse.ShortLivedToken = shortLivedToken;
-            serverResponse.LongLivedToken = longLivedToken;
-            serverResponse.Successful = true;
 
             return serverResponse;
 

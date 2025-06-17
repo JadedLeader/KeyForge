@@ -24,6 +24,7 @@ message CreateAuthAccountResponse
 	bool Successful = 2;
 	string ShortLivedToken = 3; 
 	string LongLivedToken = 4;
+	string Details = 5;
 }
 
 message RefreshLongLivedTokenRequest
