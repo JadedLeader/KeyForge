@@ -1,7 +1,9 @@
 ﻿using AccountAPI.Interfaces.ServiceInterface;
 using Grpc.Core;
 using gRPCIntercommunicationService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace AccountAPI.Controllers
 {
@@ -17,15 +19,15 @@ namespace AccountAPI.Controllers
             _accountService = accountService;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> CreateAccounts([FromBody] CreateAccountRequest request)
         {
-            CreateAccountResponse serviceResponse =
-                await _accountService.CreateAccount(request);
+            CreateAccountResponse serviceResponse = await _accountService.CreateAccount(request);
 
             if (serviceResponse.Successful == false)
             {
-                return StatusCode(500);
+                return BadRequest(serviceResponse);
             }
 
             return Ok(serviceResponse);
@@ -33,10 +35,20 @@ namespace AccountAPI.Controllers
             
         }
 
+        [AllowAnonymous]
         [HttpDelete]
-        public async Task<IActionResult> DeleteAccount()
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest deleteAccountRequest)
         {
-            throw new NotImplementedException();
+            DeleteAccountResponse deleteAccount = await _accountService.RemoveAccount(deleteAccountRequest);
+
+            if (deleteAccount.Successful == false)
+            {
+                Log.Error($"{this.GetType().Namespace} An error occurred when trying to delete an account");
+
+                return BadRequest(deleteAccount); 
+            }
+
+            return Ok(deleteAccount);
         }
     }
 }

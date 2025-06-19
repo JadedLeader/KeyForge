@@ -87,6 +87,12 @@ namespace AuthAPI.Controllers
             throw new NotImplementedException();
         }
 
+        [HttpPut]
+        public async Task<IActionResult> ReinstateAuthKeys()
+        {
+            throw new NotImplementedException();
+        }
+
 
     }
 }

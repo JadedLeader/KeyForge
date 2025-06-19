@@ -43,6 +43,36 @@ namespace AuthAPI.Repos
             return accountViaId;
         }
 
+        /// <summary>
+        /// This is a slightly more complex method where records must first be checked for within the Auth table, removed, then removed in the account table 
+        /// This is due to records persisting within the auth table even if they're removed within the account table
+        /// It can be presumed that if there's an existing account ID within the auth table that the same ID still currently exists within the account table
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task RemoveAccountFromTablesViaId(Guid id)
+        {
+
+            AuthDataModel checkingForExistingAuth = await CheckForExistingAuth(id); 
+
+            AccountDataModel checkingForExistingAccount = await CheckForExistingAccount(id);
+
+            if(checkingForExistingAuth.AccountId == Guid.Empty && checkingForExistingAccount.AccountId == Guid.Empty)
+            {
+                Log.Information($"No accounts can be found in either tables of these records that require deletion");
+            }
+            else if(checkingForExistingAccount.AccountId != Guid.Empty && checkingForExistingAuth.AccountId == Guid.Empty)
+            {
+                Log.Information($"Account with ID {id} has been found for deletion within both tables"); 
+
+                _dataContext.Account.Remove(checkingForExistingAccount);
+
+                await _dataContext.SaveChangesAsync() ;
+            }
+
+            
+        }
+
         public async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
         {
             AccountDataModel? existingAccount = await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();

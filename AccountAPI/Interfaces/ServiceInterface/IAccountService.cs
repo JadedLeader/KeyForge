@@ -7,5 +7,7 @@ namespace AccountAPI.Interfaces.ServiceInterface
 
         public Task<CreateAccountResponse> CreateAccount(CreateAccountRequest request);
 
+        public Task<DeleteAccountResponse> RemoveAccount(DeleteAccountRequest request);
+
     }
 }

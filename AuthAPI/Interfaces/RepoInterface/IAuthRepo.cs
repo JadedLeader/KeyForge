@@ -26,5 +26,7 @@ namespace AuthAPI.Interfaces.RepoInterface
 
         public Task<AuthDataModel> UpdateExistingAuthKeys(AuthDataModel authDataModel, string longLivedKey, string shortLivedKey);
 
+        public Task RemoveAccountFromTablesViaId(Guid id);
+
     }
 }

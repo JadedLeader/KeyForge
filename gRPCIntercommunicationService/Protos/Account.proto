@@ -6,7 +6,11 @@ service Account
 { 
 	rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
 
+	rpc RemoveAccount(DeleteAccountRequest) returns (DeleteAccountResponse);
+
 	rpc StreamAccount(StreamAccountRequest) returns (stream StreamAccountResponse);
+
+	rpc StreamAccountDeletions(StreamAccountDeleteRequest) returns (stream StreamAccountDeleteResponse);
 }
 
 message CreateAccountRequest
@@ -24,6 +28,18 @@ message CreateAccountResponse
 	bool Successful = 3;
 }
 
+message DeleteAccountRequest
+{ 
+	string AccountId = 1; 
+}
+
+message DeleteAccountResponse
+{ 
+	string AccountId = 1; 
+	string Username = 2; 
+	bool Successful = 3; 
+}
+
 message StreamAccountRequest
 { 
 	 
@@ -37,6 +53,16 @@ message StreamAccountResponse
 	string Email = 4; 
 	AuthorisationRoles AuthRole = 5; 
 	string AccountCreated = 6;
+}
+
+message StreamAccountDeleteRequest
+{ 
+
+}
+
+message StreamAccountDeleteResponse
+{ 
+	string AccountId = 1; 
 }
 
 enum AuthorisationRoles

@@ -4,13 +4,13 @@ using AuthAPI.Interfaces.RepoInterface;
 using Serilog;
 using Grpc.Core;
 using gRPCIntercommunicationService;
+using System.Threading;
 
 namespace AuthAPI.BackgroundConsumer
 {
-    public class AccountBackgroundConsumer :  IHostedService
+    public class AccountBackgroundConsumer :  BackgroundService
     {
-
-        private List<AccountDataModel> _accountsLocalStore = new();
+        private readonly HashSet<Guid> _seenIds = new();
 
         private readonly Account.AccountClient _accountClient;
 
@@ -22,17 +22,18 @@ namespace AuthAPI.BackgroundConsumer
             _scopeFactory = scopeFactory;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Log.Information($"account background consumer loaded");
 
-                await ConsumeAccountChannelStream(cancellationToken);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                StreamAccountRequest request = new StreamAccountRequest();
 
-                using IServiceScope scope = _scopeFactory.CreateScope();
+                using var call = _accountClient.StreamAccount(request, null, null, stoppingToken);
 
-                IAuthRepo authRepo = scope.ServiceProvider.GetRequiredService<IAuthRepo>();
-
-                await AddAccountToAccountTable(authRepo);
-           
+                await ConsumeAccountChannelStream(stoppingToken, call);
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -40,32 +41,24 @@ namespace AuthAPI.BackgroundConsumer
             throw new NotImplementedException();
         }
 
-        private async Task ConsumeAccountChannelStream(CancellationToken cancellationToken)
+        private async Task ConsumeAccountChannelStream(CancellationToken cancellationToken, AsyncServerStreamingCall<StreamAccountResponse> call)
         {
-            StreamAccountRequest request = new StreamAccountRequest();
-
-            using var call = _accountClient.StreamAccount(request, null, null, cancellationToken);
-
-            var responseStream = call.ResponseStream;
-
+            
             Log.Information($"Nothing in the queue, looping");
 
-            while(await responseStream.MoveNext())
-            {
+            await foreach (var resp in call.ResponseStream.ReadAllAsync(cancellationToken))
+            { 
+                Log.Information($"current item in response stream {resp}");
 
-                StreamAccountResponse accountDetails = responseStream.Current;
+                AccountDataModel mapToAccountModel = StreamResponseToAccountModel(resp);
 
-                Log.Information($"current item in response stream {accountDetails}");
-
-                AccountDataModel mapToAccountModel = StreamResponseToAccountModel(accountDetails);
-
-                if(_accountsLocalStore.Contains(mapToAccountModel))
+                if(_seenIds.Add(mapToAccountModel.AccountId))
                 {
-                   Log.Warning($"Local collection contains element account ID {mapToAccountModel.AccountId} skipping");
-                }
-                else if(!_accountsLocalStore.Contains(mapToAccountModel))
-                {
-                    _accountsLocalStore.Add(mapToAccountModel);
+                    using IServiceScope scope = _scopeFactory.CreateScope();
+
+                    IAuthRepo authRepo = scope.ServiceProvider.GetRequiredService<IAuthRepo>();
+
+                    await authRepo.AddAccountToTable(mapToAccountModel);
                 }
             }
         }
@@ -84,24 +77,6 @@ namespace AuthAPI.BackgroundConsumer
 
             return newAccountDataModel;
         }
-
-        private async Task AddAccountToAccountTable(IAuthRepo authRepo)
-        {
-            if(_accountsLocalStore.Count == 0)
-            {
-                Log.Warning($"No existing entries within the local data structure for account models");
-            }
-            else
-            {
-                foreach (AccountDataModel localAccount in _accountsLocalStore)
-                {
-                    await authRepo.AddAccountToTable(localAccount);
-                }
-
-            }
-
-        }
-
        
     }
 }

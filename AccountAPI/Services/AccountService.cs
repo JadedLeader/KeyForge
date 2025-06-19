@@ -15,8 +15,6 @@ namespace AccountAPI.Services
 
         private readonly IAccountRepo _accountRepo;
 
-        private readonly List<StreamAccountResponse> _streamAccountResponse = new();
-
         private readonly StreamStorage _streamStorage;
 
         public AccountService(IAccountRepo accountRepo, Channel<StreamAccountResponse> streamAccountResponseChannel, StreamStorage streamStorage)
@@ -84,7 +82,58 @@ namespace AccountAPI.Services
             }
         }
 
-       
+        public async Task<DeleteAccountResponse> RemoveAccount(DeleteAccountRequest request)
+        {
+            AccountDataModel checkForExistingAccount = await _accountRepo.CheckForExistingAccount(Guid.Parse(request.AccountId));
+
+            DeleteAccountResponse serverResponse = new DeleteAccountResponse();
+
+            if (checkForExistingAccount.AccountId == Guid.Empty)
+            {
+                Log.Error($"No Account with ID {request.AccountId} could be found"); 
+
+                serverResponse.AccountId = request.AccountId;
+                serverResponse.Username = "";
+                serverResponse.Successful = false; 
+                
+                return serverResponse;
+            }
+
+            _streamStorage.AddToAccountDeletionStream(checkForExistingAccount.AccountId);
+
+            await _accountRepo.DeleteAccount(checkForExistingAccount);
+
+            serverResponse.AccountId = checkForExistingAccount.AccountId.ToString();
+            serverResponse.Username = checkForExistingAccount.Username;
+            serverResponse.Successful = true;
+
+            return serverResponse;
+        }
+
+
+        public override async Task StreamAccountDeletions(StreamAccountDeleteRequest request, IServerStreamWriter<StreamAccountDeleteResponse> responseStream, ServerCallContext context)
+        {
+            if (_streamStorage.AccountDeletionStreamTotal() == 0)
+            {
+                Log.Error($"Account deletion stream is currently zero");
+            }
+
+            Log.Information($"New account deletion request received");
+
+            foreach(Guid accountDeletionId in _streamStorage.ReturnAccountDeletionList())
+            {
+                StreamAccountDeleteResponse newDeleteResponse = new StreamAccountDeleteResponse
+                {
+                    AccountId = accountDeletionId.ToString(),
+                };
+
+                Log.Information($"Sending deletion request for account with ID {newDeleteResponse.AccountId}");
+
+                await responseStream.WriteAsync(newDeleteResponse);
+            }
+        }
+
+
         /// <summary>
         /// 
         /// </summary>

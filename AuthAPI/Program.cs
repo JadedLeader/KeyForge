@@ -76,6 +76,7 @@ namespace AuthAPI
                
 
             builder.Services.AddHostedService<AccountBackgroundConsumer>();
+            builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
 
             var app = builder.Build();
 

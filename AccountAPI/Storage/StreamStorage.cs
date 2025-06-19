@@ -7,6 +7,8 @@ namespace AccountAPI.Storage
 
         private readonly List<StreamAccountResponse> _accountCreationStream = new List<StreamAccountResponse>(); 
 
+        private readonly List<Guid> _accountDeletionStream = new List<Guid>();
+
         public StreamStorage()
         {
             
@@ -15,6 +17,11 @@ namespace AccountAPI.Storage
         public void AddToAccountCreationStream(StreamAccountResponse streamAccountResponse)
         {
             _accountCreationStream.Add(streamAccountResponse);
+        }
+
+        public void AddToAccountDeletionStream(Guid accountIdForDeletion)
+        {
+            _accountDeletionStream.Add(accountIdForDeletion);
         }
 
         public void RemoveFromAccountCreationStream(StreamAccountResponse accountResponse)
@@ -27,9 +34,19 @@ namespace AccountAPI.Storage
             return _accountCreationStream.Count;
         }
 
+        public int AccountDeletionStreamTotal()
+        {
+            return _accountDeletionStream.Count;
+        }
+
         public List<StreamAccountResponse> ReturnAccountCreationStream()
         {
             return _accountCreationStream;
+        }
+
+        public List<Guid> ReturnAccountDeletionList()
+        {
+            return _accountDeletionStream;  
         }
 
 
