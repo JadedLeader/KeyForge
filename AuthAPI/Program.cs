@@ -65,7 +65,8 @@ namespace AuthAPI
                     ValidateAudience = true,
                     ValidAudiences = new[]
                     {
-                        "https://localhost:7003/*", 
+                        "https://localhost:7003/*",
+                        "https://localhost:7010/*",
                     },
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,

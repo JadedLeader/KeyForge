@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Formats.Asn1;
+using System.Reflection.Metadata.Ecma335;
 
 namespace AuthAPI.Repos
 {
@@ -172,6 +173,46 @@ namespace AuthAPI.Repos
             await _dataContext.SaveChangesAsync();
 
             return authDataModel;
+        }
+
+        public async Task<AccountDataModel> CheckForExistingAccountViaUsername(string username)
+        {
+            AccountDataModel? accountDataModel = await _dataContext.Account.Where(ac => ac.Username == username)
+                .Select(account =>
+                new AccountDataModel
+                {
+                    AccountId = account.AccountId, 
+                    Username = account.Username,
+                    Password = account.Password,
+                    
+                }).FirstOrDefaultAsync();
+                
+
+            if(accountDataModel == null)
+            {
+                return new AccountDataModel(); 
+            }
+
+            return accountDataModel;
+        }
+
+        public async Task<AccountDataModel> RetrieveRoleFromAccount(Guid accountId)
+        {
+            AccountDataModel? retrievingRole = await _dataContext.Account.Where(ac => ac.AccountId == accountId)
+                .Select(account =>
+                new AccountDataModel
+                {
+                    AuthorisationLevel = account.AuthorisationLevel,
+                }).FirstOrDefaultAsync();
+
+            if(retrievingRole == null)
+            {
+                return new AccountDataModel();
+            }
+
+            return retrievingRole;
+
+       
         }
 
    

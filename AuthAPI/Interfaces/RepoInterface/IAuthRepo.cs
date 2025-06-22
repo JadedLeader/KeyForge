@@ -28,5 +28,9 @@ namespace AuthAPI.Interfaces.RepoInterface
 
         public Task RemoveAccountFromTablesViaId(Guid id);
 
+        public Task<AccountDataModel> CheckForExistingAccountViaUsername(string username);
+
+        public Task<AccountDataModel> RetrieveRoleFromAccount(Guid accountId);
+
     }
 }

@@ -10,6 +10,8 @@ service Auth
 	rpc RefreshLongLivedToken(RefreshLongLivedTokenRequest) returns(RefreshLongLivedTokenResponse);
 	rpc RefreshShortLivedToken(RefreshShortLivedTokenRequest) returns(RefreshShortLivedTokenResponse);
 	rpc RevokeLongLivedToken(RevokeLongLivedTokenRequest) returns(RevokeLongLivedTokenResponse);
+	rpc Login(LoginRequest) returns (LoginResponse);
+	rpc ReinstantiateAuthKey(ReinstateAuthKeyRequest) returns (ReinstateAuthKeyResponse);
 	
 }
 
@@ -63,4 +65,28 @@ message RevokeLongLivedTokenResponse
 	bool Successful = 2;
 }
 
+message LoginRequest
+{ 
+	string Username = 1; 
+	string Password = 2;
+}
 
+message LoginResponse
+{ 
+	string Username = 1; 
+	string AccountId = 2; 
+	bool Successful = 3; 
+}
+
+message ReinstateAuthKeyRequest
+{ 
+	string AccountId = 1;
+}
+
+message ReinstateAuthKeyResponse
+{ 
+	string AccountId = 1; 
+	string ShortLivedKey = 2;
+	string LongLivedKey = 3; 
+	bool Successful = 4;
+}

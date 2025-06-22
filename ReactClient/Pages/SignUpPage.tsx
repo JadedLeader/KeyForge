@@ -17,7 +17,7 @@ export function SignUpPage() {
     const [goToSignIn, SetGoToSignIn] = useState(false);
 
     if (goToSignIn) { 
-        return <Navigate to="/SignInPage" />;
+        return <Navigate to="/signin" />;
     }
 
 
@@ -45,7 +45,6 @@ export function SignUpPage() {
             
         }
 
-
         SetGoToSignIn(true);
 
     };
@@ -59,7 +58,6 @@ export function SignUpPage() {
         };
 
         return newUser;
-
     }
 
     async function ReachCreateAccountEndpoint(signingUpUser: SignUpUser) : Promise<any> {
@@ -87,25 +85,71 @@ export function SignUpPage() {
 
     return (
 
-        <div className="container">
-            <h1>Forge Your Keys</h1>
-            <form onSubmit={OnSignUpFormSubmit}>
-                <label>Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter username" required value={username} onChange={handleUsernameChange} />
+        <>
+            <video
+                className="bgvideo"
+                autoPlay
+                muted
+                loop
+                playsInline
+                
+            >
+                <source src="/smoke.mp4" type="video/mp4" />
+            </video>
 
-                <label>Email</label>
-                <input type="email" id="email" name="email" placeholder="you@example.com" required value={email} onChange={handleEmailChange} />
+            <div className="container">
 
-                <label>Password</label>
-                <input type="password" id="password" name="password" placeholder="Create a strong password" required value={password} onChange={ handlePasswordChange} />
+                <div className="header">
+                   
+                    <img src="/forgeIcon.webp" alt="" className="forge-icon" />
+                   
+                    <h2>Forge Your Keys</h2>
 
-                <button type="submit" className="btn">Sign Up</button>
-            </form>
-            <div className="footer">
-                Already registered? <a href="/login">Log in</a>
+                </div>
+
+                <form onSubmit={OnSignUpFormSubmit}>
+                    <label>Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter username"
+                        required
+                        value={username}
+                        onChange={handleUsernameChange}
+                    />
+
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        required
+                        value={email}
+                        onChange={handleEmailChange}
+                    />
+
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Create a strong password"
+                        required
+                        value={password}
+                        onChange={handlePasswordChange}
+                    />
+
+                    <button type="submit" className="btn">
+                        Sign Up
+                    </button>
+                </form>
+                <div className="footer">
+                    Already registered? <a href="/signin">log in</a>
+                </div>
             </div>
-        </div>
-
+        </>
   );
 }
 

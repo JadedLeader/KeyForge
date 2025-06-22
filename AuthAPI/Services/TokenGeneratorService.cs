@@ -19,21 +19,21 @@ namespace AuthAPI.Services
         }
 
       
-        public string GenerateShortLivedToken(string accountId)
+        public string GenerateShortLivedToken(string accountId, string role)
         {
-            string token = GenerateJwtToken(accountId, 1);
+            string token = GenerateJwtToken(accountId, 1, role);
 
             return token;
         }
 
-        public string GenerateLongLivedToken(string accountId)
+        public string GenerateLongLivedToken(string accountId, string role)
         {
-            string longLivedToken = GenerateJwtToken(accountId, 30);
+            string longLivedToken = GenerateJwtToken(accountId, 30, role);
 
             return longLivedToken;
         }
 
-        private string GenerateJwtToken(string accountId, double daysToAdd)
+        private string GenerateJwtToken(string accountId, double daysToAdd, string role)
         {
 
             string? issuer = _configuration["JWT:Issuer"];
@@ -44,13 +44,14 @@ namespace AuthAPI.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(JwtRegisteredClaimNames.NameId, accountId)
+                    new Claim(JwtRegisteredClaimNames.NameId, accountId),
+                    new Claim("Role", role)
                 }),
-                Expires = DateTime.Now.AddDays(daysToAdd), 
+                Expires = DateTime.Now.AddDays(daysToAdd),
                 Issuer = issuer,
                 Audience = audience,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)), SecurityAlgorithms.HmacSha256),
-               
+
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

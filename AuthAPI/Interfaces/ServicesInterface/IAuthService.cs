@@ -12,5 +12,9 @@ namespace AuthAPI.Interfaces.ServicesInterface
 
         public Task<RevokeLongLivedTokenResponse> RevokeLongLivedToken(RevokeLongLivedTokenRequest request);
 
+        public Task<LoginResponse> Login(LoginRequest request);
+
+        public Task<ReinstateAuthKeyResponse> ReinstantiateAuthKey(ReinstateAuthKeyRequest request);
+
     }
 }

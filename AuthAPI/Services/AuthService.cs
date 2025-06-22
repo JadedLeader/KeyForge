@@ -3,12 +3,10 @@ using AuthAPI.DataModel;
 using AuthAPI.Interfaces.RepoInterface;
 using AuthAPI.Interfaces.ServicesInterface;
 using Grpc.Core;
+using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Serilog;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO.Pipes;
 
 namespace AuthAPI.Services 
 {
@@ -38,8 +36,8 @@ namespace AuthAPI.Services
 
             CreateAuthAccountResponse serverResponse = new CreateAuthAccountResponse();
 
-            string shortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAccount.AccountId.ToString());
-            string longLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAccount.AccountId.ToString());
+            string shortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAccount.AccountId.ToString(), existingAccount.AuthorisationLevel.ToString());
+            string longLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAccount.AccountId.ToString(), existingAccount.AuthorisationLevel.ToString());
 
             AuthDataModel creatingAuthModel = CreateAuthToAuthModel(request, existingAccount, shortLivedToken, longLivedToken);
 
@@ -92,6 +90,8 @@ namespace AuthAPI.Services
             
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
+            string? retrieveRoleFromCurrentToken = ReturnRoleFromToken(existingAuth.LongLivedKey);
+
             RefreshLongLivedTokenResponse serverResponse = new RefreshLongLivedTokenResponse();
 
             if(existingAuth.AuthKey == Guid.Empty || existingAuth.AccountId == Guid.Empty)
@@ -105,7 +105,7 @@ namespace AuthAPI.Services
                 return serverResponse;
             }
 
-            string refreshedLongLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAuth.AccountId.ToString());
+            string refreshedLongLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
             AuthDataModel updatedAuthModel = await _authRepo.UpdateLongLivedToken(existingAuth, refreshedLongLivedToken);
 
@@ -126,6 +126,8 @@ namespace AuthAPI.Services
         {
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
+            string? retrieveRoleFromCurrentToken = ReturnRoleFromToken(existingAuth.LongLivedKey);
+
             RefreshShortLivedTokenResponse serverResponse = new RefreshShortLivedTokenResponse();
 
             string? currentLongLivedKey = existingAuth.LongLivedKey;
@@ -145,7 +147,7 @@ namespace AuthAPI.Services
             bool isLongKeyValid = IsLongLivedKeyValid(currentLongLivedKey);
 
 
-            string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString());
+            string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
             AuthDataModel authRecord = await _authRepo.UpdateShortLivedToken(existingAuth, refreshedShortLivedToken); 
 
@@ -185,6 +187,88 @@ namespace AuthAPI.Services
             serverResponse.AccountId = existingAuth.AccountId.ToString();
             serverResponse.Successful = true;
 
+            return serverResponse;
+        }
+
+        /// <summary>
+        /// Incredibly simple login, checks for basic equality between the username and password
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<LoginResponse> Login(LoginRequest request)
+        {
+            
+            AccountDataModel retrievingAccount = await _authRepo.CheckForExistingAccountViaUsername(request.Username);
+
+            LoginResponse serverResponse = new LoginResponse(); 
+
+            if(retrievingAccount.AccountId == Guid.Empty)
+            {
+                Log.Warning($"No account exists with username {request.Username}");
+
+                serverResponse.Username = request.Username;
+                serverResponse.AccountId = "";
+                serverResponse.Successful = false;
+
+                return serverResponse;
+            }
+
+            bool validatingUsernameMatch = ValidatingUsernameMatch(request.Username, retrievingAccount.Username);
+            bool validatingPassMatch = ValidatingPasswordMatch(request.Password, retrievingAccount.Password);
+
+            if (!validatingPassMatch || !validatingUsernameMatch)
+            {
+                serverResponse.Username = request.Username;
+                serverResponse.AccountId = ""; 
+                serverResponse.Successful = false;
+
+                return serverResponse;
+            }
+
+            serverResponse.Username = retrievingAccount.Username;
+            serverResponse.AccountId = retrievingAccount.AccountId.ToString();
+            serverResponse.Successful = true;
+
+            return serverResponse;
+
+
+
+        }
+
+        public async Task<ReinstateAuthKeyResponse> ReinstantiateAuthKey(ReinstateAuthKeyRequest request)
+        {
+
+            AuthDataModel checkingForExistingKeys = await _authRepo.CheckForExistingAuth(Guid.Parse(request.AccountId));
+
+            AccountDataModel? getRole = await _authRepo.RetrieveRoleFromAccount(checkingForExistingKeys.AccountId);
+
+            ReinstateAuthKeyResponse serverResponse = new ReinstateAuthKeyResponse();
+
+            if (checkingForExistingKeys.AccountId == Guid.Empty)
+            {
+                Log.Information($"No account can be found to re-instate keys for");
+
+                serverResponse.AccountId = request.AccountId;
+                serverResponse.ShortLivedKey = "";
+                serverResponse.LongLivedKey = "";
+                serverResponse.Successful = false;
+
+                return serverResponse;
+
+            }
+
+
+            string generateShortLivedKey = _tokenGeneratorService.GenerateShortLivedToken(checkingForExistingKeys.AccountId.ToString(), getRole.ToString());
+
+            string generateLongLivedKey = _tokenGeneratorService.GenerateLongLivedToken(checkingForExistingKeys.Account.ToString(), getRole.ToString());
+
+            await _authRepo.UpdateExistingAuthKeys(checkingForExistingKeys, generateLongLivedKey, generateShortLivedKey);
+
+            serverResponse.AccountId = checkingForExistingKeys.AccountId.ToString();
+            serverResponse.ShortLivedKey = generateShortLivedKey;
+            serverResponse.LongLivedKey= generateLongLivedKey;
+            serverResponse.Successful = true;
+         
             return serverResponse;
         }
 
@@ -247,6 +331,54 @@ namespace AuthAPI.Services
             
             return true;
         }
+
+        private string ReturnRoleFromToken(string token)
+        {
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler(); 
+
+            if(token == string.Empty)
+            {
+                return "";
+            }
+
+            JwtSecurityToken jwt = handler.ReadJwtToken(token);
+
+            string? roleClaim = jwt.Claims.FirstOrDefault(c => c.Type == "Role").Value;
+
+            if(roleClaim == string.Empty)
+            {
+                Log.Warning($"No role claim could be found for claim 'Role' ");
+            }
+
+            return roleClaim;
+
+        }
+
+        private bool ValidatingPasswordMatch(string password, string hashedPassword)
+        {
+
+            bool match = BCrypt.Net.BCrypt.EnhancedVerify(password, hashedPassword);
+
+            if(!match)
+            {
+                return false;
+            }
+
+
+            return true;
+        }
+
+        private bool ValidatingUsernameMatch(string username, string usernameFromDb)
+        {
+            if(username != usernameFromDb)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        
 
 
 

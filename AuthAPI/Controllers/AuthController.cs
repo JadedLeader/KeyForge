@@ -82,15 +82,36 @@ namespace AuthAPI.Controllers
         }
 
         [HttpGet] 
-        public async Task<IActionResult> Login()
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            throw new NotImplementedException();
+            LoginResponse newLogin = await _authService.Login(loginRequest);
+
+            if(newLogin.Successful == false)
+            {
+                Log.Error($"{this.GetType().Namespace} An error occurred when logging in to the account");
+
+                return BadRequest(newLogin); 
+
+            }
+
+            return Ok(newLogin);
+
+
         }
 
         [HttpPut]
-        public async Task<IActionResult> ReinstateAuthKeys()
+        public async Task<IActionResult> ReinstateAuthKeys([FromBody] ReinstateAuthKeyRequest reinstateAuthKeyRequest)
         {
-            throw new NotImplementedException();
+            ReinstateAuthKeyResponse reinstateAuthKey = await _authService.ReinstantiateAuthKey(reinstateAuthKeyRequest);
+
+            if(reinstateAuthKey.Successful == false)
+            {
+
+                Log.Error($"{this.GetType().Namespace} An error occurred when trying to reinstantiate the keys");
+                return BadRequest(reinstateAuthKey);
+            }
+
+            return Ok(reinstateAuthKey);
         }
 
 
