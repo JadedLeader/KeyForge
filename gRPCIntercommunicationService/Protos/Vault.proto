@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCIntercommunicationService.Protos";
+
+
+service Vault{ 
+
+}
+
+message CreateVaultRequest{ 
+
+}
+
+message CreateVaultResponse
+{ 
+
+}

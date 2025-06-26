@@ -2,6 +2,8 @@
 using AuthAPI.DataModel;
 using AuthAPI.Interfaces.RepoInterface;
 using AuthAPI.Interfaces.ServicesInterface;
+using AuthAPI.TransporationStorage;
+using Azure;
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
@@ -17,10 +19,13 @@ namespace AuthAPI.Services
 
         private readonly IAuthRepo _authRepo;
 
-        public AuthService(ITokenGeneratorService tokenGeneratorService, IAuthRepo authRepo)
+        private readonly AuthTransportationStorage _transportationStorage;
+
+        public AuthService(ITokenGeneratorService tokenGeneratorService, IAuthRepo authRepo, AuthTransportationStorage transportationStorage)
         {
             _tokenGeneratorService = tokenGeneratorService;
             _authRepo = authRepo;
+            _transportationStorage = transportationStorage;
         }
 
         /// <summary>
@@ -59,6 +64,10 @@ namespace AuthAPI.Services
 
                 await _authRepo.AddAuthToTable(creatingAuthModel);
 
+                StreamAuthCreationsToVaultsResponse mapToStorage = MapAuthModelToStreamAuthcreations(creatingAuthModel);
+
+                _transportationStorage.AddToStreamAuthCreationsList(mapToStorage);
+
                 serverResponse.AccountId = creatingAuthModel.AccountId.ToString();
                 serverResponse.ShortLivedToken = shortLivedToken;
                 serverResponse.LongLivedToken = longLivedToken;
@@ -67,13 +76,13 @@ namespace AuthAPI.Services
             }
             else if(existingAccount.AccountId != Guid.Empty && existingAuth.AccountId != Guid.Empty)
             {
-                Log.Error($"Keys have been revoked by an admin");
+                Log.Information($"Account exists and already has allocated auth tokens");
 
-                serverResponse.AccountId = ""; 
-                serverResponse.Successful = false;
-                serverResponse.ShortLivedToken = "";
-                serverResponse.LongLivedToken = "";
-                serverResponse.Details = "Keys revoked by an admin";
+                serverResponse.AccountId = existingAccount.AccountId.ToString(); 
+                serverResponse.Successful = true;
+                serverResponse.ShortLivedToken = existingAuth.ShortLivedKey;
+                serverResponse.LongLivedToken = existingAuth.LongLivedKey;
+                serverResponse.Details = "Keys already allocated";
             }
 
             return serverResponse;
@@ -106,6 +115,10 @@ namespace AuthAPI.Services
             }
 
             string refreshedLongLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
+
+            StreamAuthUpdatesToVaultsResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), null, refreshedLongLivedToken, UpdateType.LongLivedUpdate);
+
+            _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
             AuthDataModel updatedAuthModel = await _authRepo.UpdateLongLivedToken(existingAuth, refreshedLongLivedToken);
 
@@ -143,11 +156,13 @@ namespace AuthAPI.Services
                 return serverResponse;
             }
 
-
             bool isLongKeyValid = IsLongLivedKeyValid(currentLongLivedKey);
 
-
             string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
+
+            StreamAuthUpdatesToVaultsResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
+
+            _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
             AuthDataModel authRecord = await _authRepo.UpdateShortLivedToken(existingAuth, refreshedShortLivedToken); 
 
@@ -257,7 +272,6 @@ namespace AuthAPI.Services
 
             }
 
-
             string generateShortLivedKey = _tokenGeneratorService.GenerateShortLivedToken(checkingForExistingKeys.AccountId.ToString(), getRole.ToString());
 
             string generateLongLivedKey = _tokenGeneratorService.GenerateLongLivedToken(checkingForExistingKeys.Account.ToString(), getRole.ToString());
@@ -270,6 +284,51 @@ namespace AuthAPI.Services
             serverResponse.Successful = true;
          
             return serverResponse;
+        }
+
+        public async Task<SilentShortLivedTokenRefreshResponse> SilentTokenCycle(SilentShortLivedTokenRefreshRequest request, string longLivedToken)
+        {
+
+            SilentShortLivedTokenRefreshResponse serverResponse = new SilentShortLivedTokenRefreshResponse();
+
+            string? accountIdFromToken = ReturnAccountIdFromToken(longLivedToken);
+            string? accountRoleFromToken = ReturnRoleFromToken(longLivedToken);
+
+            if(accountIdFromToken == string.Empty || accountRoleFromToken == string.Empty)
+            {
+                serverResponse.RefreshedShortLivedToken = "";
+                serverResponse.Successful = false; 
+
+                return serverResponse;
+            }
+
+            string? refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(accountIdFromToken, accountRoleFromToken);
+
+            StreamAuthUpdatesToVaultsResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
+
+            _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
+
+            AuthDataModel authAccount = await _authRepo.CheckForExistingAuthViaAccountId(Guid.Parse(accountIdFromToken));
+
+            if (authAccount.AuthKey == Guid.Empty)
+            {
+                Log.Information($"No account can be found with the provided account ID");
+
+                serverResponse.RefreshedShortLivedToken = "";
+                serverResponse.Successful = false; 
+
+                return serverResponse;
+            }
+
+            await _authRepo.UpdateShortLivedToken(authAccount, refreshedShortLivedToken);
+
+            serverResponse.RefreshedShortLivedToken = refreshedShortLivedToken;
+            serverResponse.Successful = true;
+
+            return serverResponse;
+
+
+
         }
 
         private async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
@@ -354,6 +413,28 @@ namespace AuthAPI.Services
 
         }
 
+        private string ReturnAccountIdFromToken(string token)
+        {
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler(); 
+
+            if(token == string.Empty)
+            {
+                return "";
+            }
+
+            JwtSecurityToken jwt = handler.ReadJwtToken(token);
+
+            string? accountIdClaim = jwt.Claims.FirstOrDefault(ac => ac.Type == "nameid").Value;
+
+            if(accountIdClaim == string.Empty)
+            {
+                Log.Warning($"No account ID claim can be found within the token");
+            }
+
+            return accountIdClaim;
+            
+        }
+
         private bool ValidatingPasswordMatch(string password, string hashedPassword)
         {
 
@@ -376,6 +457,32 @@ namespace AuthAPI.Services
             }
 
             return true;
+        }
+
+        private StreamAuthCreationsToVaultsResponse MapAuthModelToStreamAuthcreations(AuthDataModel authModel)
+        {
+            StreamAuthCreationsToVaultsResponse newVaultResponse = new StreamAuthCreationsToVaultsResponse
+            {
+                AuthKey = authModel.AuthKey.ToString(),
+                AccountId = authModel.AccountId.ToString(),
+                ShortLivedKey = authModel.ShortLivedKey,
+                LongLivedKey = authModel.LongLivedKey
+            };
+
+            return newVaultResponse;
+        }
+
+        private StreamAuthUpdatesToVaultsResponse MapToStreamAuthUpdates(string accountId, string? shortLivedKey, string? longLivedKey, UpdateType updateType)
+        {
+            StreamAuthUpdatesToVaultsResponse streamAuthUpdate = new StreamAuthUpdatesToVaultsResponse
+            {
+                AccountId = accountId,
+                ShortLivedKey = shortLivedKey,
+                LongLivedKey = longLivedKey,
+                UpdateType = updateType
+            };
+
+            return streamAuthUpdate;
         }
 
         

@@ -52,7 +52,7 @@ export default defineConfig({
                 secure: false
             }, 
             '^/Auth/.*': { 
-                targetAuth, 
+                target: targetAuth, 
                 secure: false
             }
         },

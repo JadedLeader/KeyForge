@@ -24,9 +24,21 @@ interface BuildTokenGenerationResponse {
     accountId: string;
     shortLivedToken: string; 
     longLivedToken: string;
+    successful: bool;
+    details: string;
 
 }
 
+interface RefreshShortLivedTokenRequest { 
+    accountId: string;
+}
+
+interface RefreshShortLivedTokenResponse { 
+
+    accountId: string; 
+    successful: bool; 
+    refreshedToken: string;
+}
 
 
 export function SignInPage() {
@@ -36,6 +48,18 @@ export function SignInPage() {
     const [accountId, setAccountId] = useState("");
     const [shortLivedToken, setShortLivedToken] = useState(""); 
     const [longLivedToken, setLongLivedToken] = useState("");
+    const [NavToHomePage, setNavToHomePage] = useState(false); 
+
+
+   if (NavToHomePage) { 
+
+        console.log("Navigating to home page");
+
+        return <Navigate to="/homepage" />;
+    } 
+
+
+   
 
     const HandleUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => { 
         setUsername(e.target.value);
@@ -45,23 +69,42 @@ export function SignInPage() {
         setPassword(e.target.value);
     }
 
-    const OnLoginSubmit = async (e: React.FormEvent<SubmitEvent>) => { 
+    const OnLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => { 
 
         e.preventDefault();
 
         const buildUserLogin = BuildUserLogin();
 
-
         const loginResponse = await FetchLoginEndpoint(buildUserLogin);
 
         setAccountId(loginResponse.accountId);
 
-        const buildAuthGenerationRequest = BuildAuth();
+        const buildAuthGenerationRequest = BuildAuth(loginResponse.accountId);
 
         const authResponse = await FetchAuthEndpoint(buildAuthGenerationRequest);
 
-        setShortLivedToken(authResponse.shortLivedToken); 
+        setShortLivedToken(authResponse.shortLivedToken);
         setLongLivedToken(authResponse.longLivedToken);
+
+        if (authResponse.accountId != null && authResponse.successful == true) { 
+
+            const buildRefreshAuthTokenRequest = BuildShortLivedTokenRequest(loginResponse.accountId);
+
+            const refreshedTokenResponse = await FetchShortLivedTokenRefresh(buildRefreshAuthTokenRequest);
+
+            console.log(refreshedTokenResponse.refreshedToken);
+
+            setShortLivedToken(refreshedTokenResponse.refreshedToken);
+
+            setNavToHomePage(true);
+
+        }
+
+        console.log(username); 
+        console.log(password); 
+        console.log(accountId); 
+        console.log(authResponse.shortLivedToken); 
+        console.log(authResponse.longLivedToken);
 
     }
 
@@ -78,7 +121,7 @@ export function SignInPage() {
 
     }
 
-    function BuildAuth(): BuildTokenGenerationRequest { 
+    function BuildAuth(accountId: string): BuildTokenGenerationRequest { 
 
 
         const newTokenGeneration: BuildTokenGenerationRequest = {
@@ -89,10 +132,10 @@ export function SignInPage() {
     }
 
 
-    async function FetchLoginEndpoint(loginRequest : UserLogin) : Promise<UserLoginResponse> { 
+    async function FetchLoginEndpoint(loginRequest : UserLoginRequest) : Promise<UserLoginResponse> { 
 
-        const fetchLogin = await fetch("/Auth/Login", {
-            method: "GET",
+        const fetchLogin = await fetch("/Auth/UserLogin", {
+            method: "POST",
             headers: {
                 'Content-type': "application/json"
             },
@@ -107,6 +150,9 @@ export function SignInPage() {
         }
 
         const responseData = await fetchLogin.json() as UserLoginResponse;
+
+        console.log("retrieved account login response"); 
+        console.log("Account ID", responseData.accountId);
 
         return responseData;
 
@@ -138,12 +184,105 @@ export function SignInPage() {
 
     }
 
+    function BuildShortLivedTokenRequest(accountId: string): RefreshShortLivedTokenRequest { 
+
+        const shortLivedtokenRequest: RefreshShortLivedTokenRequest = {
+            accountId: accountId,
+        }; 
+
+        return shortLivedtokenRequest;
+
+    }
+
+    async function FetchShortLivedTokenRefresh(shortLivedTokenRequest: RefreshShortLivedTokenRequest): Promise<RefreshShortLivedTokenResponse>{ 
+
+
+        const fetchShortLivedTokenEndpoint = await fetch("/Auth/UpdateShortLivedKey", {
+            method: "PUT",
+            headers: {
+                'Content-type': "application/json"
+            },
+            body: JSON.stringify(shortLivedTokenRequest),
+        }); 
+
+        if (!fetchShortLivedTokenEndpoint.ok) { 
+
+            const errorText = await fetchShortLivedTokenEndpoint.text(); 
+
+            throw new Error(errorText);
+            
+        }
+
+        const responseData = await fetchShortLivedTokenEndpoint.json() as RefreshShortLivedTokenResponse;
+
+        return responseData;
+
+    }
+
+
 
 
     return (
 
+        <>
 
-        <p>Hello world!</p>
+            <video
+                className="bgvideo"
+                autoPlay
+                muted
+                loop
+                playsInline
+
+            >
+                <source src="/smoke.mp4" type="video/mp4" />
+            </video>
+
+            <div className="container">
+
+                <div className="header">
+
+                    <img src="/forgeIcon.webp" alt="" className="forge-icon" />
+
+                    <h2>Login</h2>
+
+                </div>
+
+                <form onSubmit={OnLoginSubmit}>
+                    <label>Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter username"
+                        required
+                        value={username}
+                        onChange={HandleUsernameChanged}
+                    />
+
+                    
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                        value={password}
+                        onChange={HandlePasswordChanged}
+                    />
+
+                    <button type="submit" className="btn">
+                        Log in
+                    </button>
+
+                    <div className="footer">
+                        No Account? <a href="/signup">Sign Up</a>
+                    </div>
+
+                </form>
+            </div>
+
+        </>
 
 
 

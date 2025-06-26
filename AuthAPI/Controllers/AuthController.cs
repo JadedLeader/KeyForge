@@ -18,12 +18,22 @@ namespace AuthAPI.Controllers
             _authService = authService;
         }
 
-
+      
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> CreateInitialKey([FromBody] CreateAuthAccountRequest createAuthAccountRequest)
         {
             CreateAuthAccountResponse? creatingInitialAuth = await _authService.CreateAuthAccount(createAuthAccountRequest);
+
+            Response.Cookies.Append("LongLivedToken", creatingInitialAuth.LongLivedToken, 
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.UtcNow.AddDays(30)
+                }
+            );
 
             if(creatingInitialAuth.Successful == false)
             {
@@ -81,8 +91,8 @@ namespace AuthAPI.Controllers
             return Ok(revokedTokens);
         }
 
-        [HttpGet] 
-        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+        [HttpPost] 
+        public async Task<IActionResult> UserLogin([FromBody] LoginRequest loginRequest)
         {
             LoginResponse newLogin = await _authService.Login(loginRequest);
 
@@ -112,6 +122,28 @@ namespace AuthAPI.Controllers
             }
 
             return Ok(reinstateAuthKey);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> SilentShortLivedTokenRefresh([FromBody] SilentShortLivedTokenRefreshRequest silentTokenCycleRequest)
+        {
+            if(Request.Cookies.TryGetValue("LongLivedToken", out string? cookieValue))
+            {
+                SilentShortLivedTokenRefreshResponse silentRefresh = await _authService.SilentTokenCycle(silentTokenCycleRequest, cookieValue);
+
+                if(silentRefresh.Successful == false)
+                {
+                    return BadRequest(silentRefresh);
+                }
+
+                Response.Cookies.Append("ShortLivedToken", silentRefresh.RefreshedShortLivedToken);
+
+                return Ok(silentRefresh);
+            }
+
+            return Unauthorized();
+             
         }
 
 

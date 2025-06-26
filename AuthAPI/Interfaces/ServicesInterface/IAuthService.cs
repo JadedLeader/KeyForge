@@ -16,5 +16,7 @@ namespace AuthAPI.Interfaces.ServicesInterface
 
         public Task<ReinstateAuthKeyResponse> ReinstantiateAuthKey(ReinstateAuthKeyRequest request);
 
+        public Task<SilentShortLivedTokenRefreshResponse> SilentTokenCycle(SilentShortLivedTokenRefreshRequest request, string longLivedToken);
+
     }
 }

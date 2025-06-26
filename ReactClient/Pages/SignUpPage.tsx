@@ -145,6 +145,7 @@ export function SignUpPage() {
                         Sign Up
                     </button>
                 </form>
+
                 <div className="footer">
                     Already registered? <a href="/signin">log in</a>
                 </div>

@@ -32,5 +32,7 @@ namespace AuthAPI.Interfaces.RepoInterface
 
         public Task<AccountDataModel> RetrieveRoleFromAccount(Guid accountId);
 
+        public Task<AuthDataModel> CheckForExistingAuthViaAccountId(Guid accountId);
+
     }
 }

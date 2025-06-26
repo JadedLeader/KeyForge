@@ -215,6 +215,18 @@ namespace AuthAPI.Repos
        
         }
 
+        public async Task<AuthDataModel> CheckForExistingAuthViaAccountId(Guid accountId)
+        {
+            AuthDataModel? existingAuth = await _dataContext.Auth.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+
+            if(existingAuth == null)
+            {
+                return new AuthDataModel();
+            }
+
+            return existingAuth;
+        }
+
    
     }
 }

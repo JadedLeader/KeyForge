@@ -1,4 +1,11 @@
 
+using AccountAPI.DataModel;
+using gRPCIntercommunicationService;
+using gRPCIntercommunicationService.Protos;
+using Microsoft.EntityFrameworkCore;
+using VaultAPI.BackgroundConsumers;
+using VaultAPI.DataContext;
+
 namespace VaultAPI
 {
     public class Program
@@ -14,7 +21,29 @@ namespace VaultAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddHostedService<AddAccountBackgroundConsumer>();
+            builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
+            builder.Services.AddHostedService<AddAuthBackgroundConsumer>();
+            builder.Services.AddHostedService<UpdateAuthBackgroundConsumer>();
+
+            builder.Services.AddGrpcClient<Account.AccountClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7003");
+            });
+
+            builder.Services.AddGrpcClient<Auth.AuthClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7010");
+            });
+
+            builder.Services.AddDbContext<VaultDataContext>(options =>
+            {
+                string? vaultConnectionString = builder.Configuration.GetConnectionString("VaultApiConnectionString");
+                options.UseSqlServer(vaultConnectionString);
+            }); 
+
             var app = builder.Build();
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
