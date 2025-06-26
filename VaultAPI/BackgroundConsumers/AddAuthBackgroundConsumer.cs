@@ -19,4 +19,4 @@ namespace VaultAPI.BackgroundConsumers
         }
     }
 }
-}
+

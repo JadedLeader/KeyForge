@@ -1,10 +1,13 @@
 
 using AccountAPI.DataModel;
+using AuthAPI.DataModel;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore;
 using VaultAPI.BackgroundConsumers;
 using VaultAPI.DataContext;
+using VaultAPI.DataModel;
+using VaultAPI.Repos.GenericRepository;
 
 namespace VaultAPI
 {
@@ -25,6 +28,10 @@ namespace VaultAPI
             builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
             builder.Services.AddHostedService<AddAuthBackgroundConsumer>();
             builder.Services.AddHostedService<UpdateAuthBackgroundConsumer>();
+
+            builder.Services.AddScoped<GenericRepository<AccountDataModel>>();
+            builder.Services.AddScoped<GenericRepository<AuthDataModel>>();
+            builder.Services.AddScoped<GenericRepository<VaultDataModel>>();
 
             builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {
