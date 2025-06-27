@@ -1,6 +1,5 @@
-﻿using AccountAPI.DataModel;
+﻿using AuthAPI.DataModel;
 using AuthAPI.DataContext;
-using AuthAPI.DataModel;
 using AuthAPI.Interfaces.RepoInterface;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.EntityFrameworkCore;

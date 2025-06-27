@@ -1,5 +1,5 @@
 ﻿
-using AccountAPI.DataModel;
+using AuthAPI.DataModel;
 using AuthAPI.Interfaces.RepoInterface;
 using Serilog;
 using Grpc.Core;

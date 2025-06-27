@@ -1,5 +1,5 @@
-﻿using AccountAPI.DataModel;
-using AuthAPI.DataModel;
+﻿using AuthAPI.DataModel;
+
 
 namespace AuthAPI.Interfaces.RepoInterface
 {

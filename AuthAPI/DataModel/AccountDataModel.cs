@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace AccountAPI.DataModel
+namespace AuthAPI.DataModel
 {
     public class AccountDataModel
     {

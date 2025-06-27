@@ -1,5 +1,4 @@
-﻿using AccountAPI.DataModel;
-using AuthAPI.DataModel;
+﻿using AuthAPI.DataModel;
 using AuthAPI.Interfaces.RepoInterface;
 using AuthAPI.Interfaces.ServicesInterface;
 using AuthAPI.TransporationStorage;
@@ -64,7 +63,7 @@ namespace AuthAPI.Services
 
                 await _authRepo.AddAuthToTable(creatingAuthModel);
 
-                StreamAuthCreationsToVaultsResponse mapToStorage = MapAuthModelToStreamAuthcreations(creatingAuthModel);
+                StreamAuthCreationsResponse mapToStorage = MapAuthModelToStreamAuthcreations(creatingAuthModel, existingAccount);
 
                 _transportationStorage.AddToStreamAuthCreationsList(mapToStorage);
 
@@ -116,7 +115,7 @@ namespace AuthAPI.Services
 
             string refreshedLongLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesToVaultsResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), null, refreshedLongLivedToken, UpdateType.LongLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), null, refreshedLongLivedToken, UpdateType.LongLivedUpdate);
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
@@ -160,7 +159,7 @@ namespace AuthAPI.Services
 
             string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesToVaultsResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
@@ -304,7 +303,7 @@ namespace AuthAPI.Services
 
             string? refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(accountIdFromToken, accountRoleFromToken);
 
-            StreamAuthUpdatesToVaultsResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
@@ -459,22 +458,32 @@ namespace AuthAPI.Services
             return true;
         }
 
-        private StreamAuthCreationsToVaultsResponse MapAuthModelToStreamAuthcreations(AuthDataModel authModel)
+        private StreamAuthCreationsResponse MapAuthModelToStreamAuthcreations(AuthDataModel authModel, AccountDataModel account)
         {
-            StreamAuthCreationsToVaultsResponse newVaultResponse = new StreamAuthCreationsToVaultsResponse
+          
+            StreamAuthCreationsResponse newVaultResponse = new StreamAuthCreationsResponse
             {
                 AuthKey = authModel.AuthKey.ToString(),
                 AccountId = authModel.AccountId.ToString(),
                 ShortLivedKey = authModel.ShortLivedKey,
-                LongLivedKey = authModel.LongLivedKey
+                LongLivedKey = authModel.LongLivedKey, 
+                Account = new gRPCIntercommunicationService.Protos.Account
+                {
+                    AccountId = account.AccountId.ToString(),
+                    Username = account.Username, 
+                    Password = account.Password,
+                    Email = account.Email,
+                    AccountCreated = account.AccountCreated.ToString(),
+                    Authroles = (gRPCIntercommunicationService.Protos.AuthRoles)account.AuthorisationLevel,
+                }
             };
 
             return newVaultResponse;
         }
 
-        private StreamAuthUpdatesToVaultsResponse MapToStreamAuthUpdates(string accountId, string? shortLivedKey, string? longLivedKey, UpdateType updateType)
+        private StreamAuthUpdatesResponse MapToStreamAuthUpdates(string accountId, string? shortLivedKey, string? longLivedKey, UpdateType updateType)
         {
-            StreamAuthUpdatesToVaultsResponse streamAuthUpdate = new StreamAuthUpdatesToVaultsResponse
+            StreamAuthUpdatesResponse streamAuthUpdate = new StreamAuthUpdatesResponse
             {
                 AccountId = accountId,
                 ShortLivedKey = shortLivedKey,

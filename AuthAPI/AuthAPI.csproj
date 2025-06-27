@@ -31,6 +31,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\gRPCIntercommunicationService\gRPCIntercommunicationService.csproj" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Account.proto" GrpcServices="Client" />
 		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Auth.proto" GrpcServices="Server" />

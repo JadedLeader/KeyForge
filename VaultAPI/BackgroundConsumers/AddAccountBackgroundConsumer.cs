@@ -1,4 +1,5 @@
 ﻿
+using AccountAPI.DataModel;
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using VaultAPI.Repos;
@@ -20,9 +21,12 @@ namespace VaultAPI.BackgroundConsumers
             _accountRepo = accountRepo;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            throw new NotImplementedException();
+            while(!stoppingToken.IsCancellationRequested)
+            {
+                await GetAccounts();
+            }
         }
 
 
@@ -37,11 +41,34 @@ namespace VaultAPI.BackgroundConsumers
 
             await foreach(var item in responseStream)
             {
-                
+
+                if(_addAccountResponse.Add(item))
+                {
+                    AccountDataModel accountModelToAdd = MapStreamAccountToDataModel(item);
+
+                    await _accountRepo.AddAsync(accountModelToAdd); 
+                }
+
             }
 
 
             throw new NotImplementedException();
+        }
+
+        private AccountDataModel MapStreamAccountToDataModel(StreamAccountResponse accountResponse)
+        {
+            AccountDataModel newAccountDataModel = new AccountDataModel
+            {
+                AccountId = Guid.Parse(accountResponse.AccountId),
+                Username = accountResponse.Username,
+                Password = accountResponse.Password,
+                Email = accountResponse.Email,
+                AccountCreated = DateTime.Parse(accountResponse.AccountCreated),
+                AuthorisationLevel = (AuthRoles)accountResponse.AuthRole,
+
+            }; 
+
+            return newAccountDataModel;
         }
     }
 }

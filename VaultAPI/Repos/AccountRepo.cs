@@ -35,7 +35,7 @@ namespace VaultAPI.Repos
 
             if (account == null)
             {
-                
+                return new AccountDataModel();
             }
 
             await DeleteAsync(account);

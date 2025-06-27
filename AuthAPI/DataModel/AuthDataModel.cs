@@ -1,4 +1,4 @@
-﻿using AccountAPI.DataModel;
+﻿using AuthAPI.DataModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

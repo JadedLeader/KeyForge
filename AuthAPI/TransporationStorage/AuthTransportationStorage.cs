@@ -5,27 +5,27 @@ namespace AuthAPI.TransporationStorage
     public class AuthTransportationStorage
     {
 
-        private List<StreamAuthCreationsToVaultsResponse> StreamAuthCreations = new();
+        private List<StreamAuthCreationsResponse> StreamAuthCreations = new();
 
-        private List<StreamAuthUpdatesToVaultsResponse> StreamAuthUpdates = new();
+        private List<StreamAuthUpdatesResponse> StreamAuthUpdates = new();
 
 
-        public void AddToStreamAuthCreationsList(StreamAuthCreationsToVaultsResponse authCreation)
+        public void AddToStreamAuthCreationsList(StreamAuthCreationsResponse authCreation)
         {
             StreamAuthCreations.Add(authCreation);
         }
 
-        public void AddToStreamAuthUpdatesList(StreamAuthUpdatesToVaultsResponse authUpdates)
+        public void AddToStreamAuthUpdatesList(StreamAuthUpdatesResponse authUpdates)
         {
             StreamAuthUpdates.Add(authUpdates);
         }
 
-        public List<StreamAuthCreationsToVaultsResponse> ReturnStreamAuthCreationsList()
+        public List<StreamAuthCreationsResponse> ReturnStreamAuthCreationsList()
         {
             return StreamAuthCreations;
         }
 
-        public List<StreamAuthUpdatesToVaultsResponse> ReturnStreamAuthUpdatesList()
+        public List<StreamAuthUpdatesResponse> ReturnStreamAuthUpdatesList()
         {
             return StreamAuthUpdates;
         }

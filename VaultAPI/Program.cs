@@ -33,7 +33,7 @@ namespace VaultAPI
             builder.Services.AddScoped<GenericRepository<AuthDataModel>>();
             builder.Services.AddScoped<GenericRepository<VaultDataModel>>();
 
-            builder.Services.AddGrpcClient<Account.AccountClient>(options =>
+            builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7003");
             });

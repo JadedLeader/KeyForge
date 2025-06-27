@@ -16,8 +16,8 @@ service Auth
 	rpc ReinstantiateAuthKey(ReinstateAuthKeyRequest) returns (ReinstateAuthKeyResponse);
 	rpc SilentTokenCycle(SilentShortLivedTokenRefreshRequest) returns (SilentShortLivedTokenRefreshResponse);
 
-	rpc StreamAuthCreationsToVaultApi(StreamAuthCreationsToVaultsRequest) returns (stream StreamAuthCreationsToVaultsResponse);
-	rpc StreamAuthKeyUpdatesToVaultApi(StreamAuthUpdatesToVaultsRequest) returns (stream StreamAuthUpdatesToVaultsResponse);
+	rpc StreamAuthCreations(StreamAuthCreationsRequest) returns (stream StreamAuthCreationsResponse);
+	rpc StreamAuthKeyUpdates(StreamAuthUpdatesRequest) returns (stream StreamAuthUpdatesResponse);
 	
 }
 
@@ -108,25 +108,26 @@ message SilentShortLivedTokenRefreshResponse
 	bool Successful = 2;
 }
 
-message StreamAuthCreationsToVaultsRequest
+message StreamAuthCreationsRequest
 { 
 
 }
 
-message StreamAuthCreationsToVaultsResponse
+message StreamAuthCreationsResponse
 { 
 	string AuthKey = 1; 
 	string AccountId = 2; 
 	string ShortLivedKey = 3; 
 	string LongLivedKey = 4;
+	Account Account = 5;
 }
 
-message StreamAuthUpdatesToVaultsRequest
+message StreamAuthUpdatesRequest
 { 
 
 }
 
-message StreamAuthUpdatesToVaultsResponse
+message StreamAuthUpdatesResponse
 { 
 	string AccountId = 1;
 	optional string ShortLivedKey = 2; 
@@ -138,4 +139,19 @@ enum UpdateType
 { 
 	ShortLivedUpdate = 0;
 	LongLivedUpdate = 1;
+}
+
+message Account { 
+	string AccountId = 1; 
+	string Username = 2; 
+	string Password = 3; 
+	string Email = 4; 
+	AuthRoles Authroles = 5;
+	string AccountCreated = 6;
+
+}
+
+enum AuthRoles { 
+	User = 0; 
+	Admin = 1;
 }

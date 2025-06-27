@@ -1,5 +1,4 @@
-﻿using AccountAPI.DataModel;
-using AuthAPI.DataModel;
+﻿using AuthAPI.DataModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthAPI.DataContext
