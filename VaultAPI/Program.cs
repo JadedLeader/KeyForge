@@ -1,13 +1,13 @@
 
-using AccountAPI.DataModel;
-using AuthAPI.DataModel;
+using VaultAPI.DataModel;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore;
 using VaultAPI.BackgroundConsumers;
 using VaultAPI.DataContext;
-using VaultAPI.DataModel;
+using VaultAPI.Repos;
 using VaultAPI.Repos.GenericRepository;
+using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI
 {
@@ -32,6 +32,10 @@ namespace VaultAPI
             builder.Services.AddScoped<GenericRepository<AccountDataModel>>();
             builder.Services.AddScoped<GenericRepository<AuthDataModel>>();
             builder.Services.AddScoped<GenericRepository<VaultDataModel>>();
+
+            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+            builder.Services.AddScoped<IAuthRepo, AuthRepo>();
+            builder.Services.AddScoped<IVaultRepo, VaultRepo>();
 
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {

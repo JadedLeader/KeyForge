@@ -1,8 +1,9 @@
 ﻿
-using AccountAPI.DataModel;
+using VaultAPI.DataModel;
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using VaultAPI.Repos;
+using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI.BackgroundConsumers
 {
@@ -11,26 +12,31 @@ namespace VaultAPI.BackgroundConsumers
 
         private readonly Account.AccountClient _accountClient;
 
-        private readonly AccountRepo _accountRepo;
+        private HashSet<Guid> _addAccountResponse = new HashSet<Guid>();
 
-        private HashSet<StreamAccountResponse> _addAccountResponse = new HashSet<StreamAccountResponse>();
+        private readonly IServiceScopeFactory _serviceScope;
 
-        public AddAccountBackgroundConsumer(Account.AccountClient accountClient, AccountRepo accountRepo)
+        public AddAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory serviceScope)
         {
             _accountClient = accountClient;
-            _accountRepo = accountRepo;
+            _serviceScope  = serviceScope;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
+            using IServiceScope createScope = _serviceScope.CreateScope();
+
+            IAccountRepo getAccountRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAccountRepo>();
+
             while(!stoppingToken.IsCancellationRequested)
             {
-                await GetAccounts();
+                await GetAccounts(getAccountRepoLifetime);
             }
         }
 
 
-        private async Task GetAccounts()
+        private async Task GetAccounts(IAccountRepo accountRepo)
         {
 
             StreamAccountRequest streamAccountsRequest = new StreamAccountRequest();    
@@ -42,17 +48,15 @@ namespace VaultAPI.BackgroundConsumers
             await foreach(var item in responseStream)
             {
 
-                if(_addAccountResponse.Add(item))
+                if(_addAccountResponse.Add(Guid.Parse(item.AccountId)))
                 {
                     AccountDataModel accountModelToAdd = MapStreamAccountToDataModel(item);
 
-                    await _accountRepo.AddAsync(accountModelToAdd); 
+                    await accountRepo.AddAsync(accountModelToAdd); 
                 }
 
             }
 
-
-            throw new NotImplementedException();
         }
 
         private AccountDataModel MapStreamAccountToDataModel(StreamAccountResponse accountResponse)

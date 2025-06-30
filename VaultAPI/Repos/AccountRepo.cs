@@ -1,15 +1,16 @@
-﻿using AccountAPI.DataModel;
+﻿using VaultAPI.DataModel;
 using Microsoft.EntityFrameworkCore;
 using VaultAPI.DataContext;
 using VaultAPI.Repos.GenericRepository;
+using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI.Repos
 {
-    public class AccountRepo : GenericRepository<AccountDataModel>
+    public class AccountRepo : GenericRepository<AccountDataModel>, IAccountRepo
     {
 
         private readonly VaultDataContext _dataContext;
-        public AccountRepo(VaultDataContext dataContext) : base(dataContext) 
+        public AccountRepo(VaultDataContext dataContext) : base(dataContext)
         {
             _dataContext = dataContext;
         }
@@ -31,7 +32,7 @@ namespace VaultAPI.Repos
 
         public async Task<AccountDataModel> DeleteAccountViaAccountId(Guid accountId)
         {
-            AccountDataModel? account =  await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+            AccountDataModel? account = await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
 
             if (account == null)
             {

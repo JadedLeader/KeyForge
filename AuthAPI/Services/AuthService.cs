@@ -63,7 +63,7 @@ namespace AuthAPI.Services
 
                 await _authRepo.AddAuthToTable(creatingAuthModel);
 
-                StreamAuthCreationsResponse mapToStorage = MapAuthModelToStreamAuthcreations(creatingAuthModel, existingAccount);
+                StreamAuthCreationsResponse mapToStorage = MapAuthModelToStreamAuthcreations(creatingAuthModel);
 
                 _transportationStorage.AddToStreamAuthCreationsList(mapToStorage);
 
@@ -330,6 +330,33 @@ namespace AuthAPI.Services
 
         }
 
+        public override async Task StreamAuthCreations(StreamAuthCreationsRequest request, IServerStreamWriter<StreamAuthCreationsResponse> responseStream, ServerCallContext context)
+        {
+            foreach (var item in _transportationStorage.ReturnStreamAuthCreationsList())
+            {
+                Log.Information($"Sending auth item with auth key {item.AuthKey}");
+
+                await responseStream.WriteAsync(item);
+            }
+        }
+
+        public override async Task StreamAuthKeyUpdates(StreamAuthUpdatesRequest request, IServerStreamWriter<StreamAuthUpdatesResponse> responseStream, ServerCallContext context)
+        {
+            foreach (var item in _transportationStorage.ReturnStreamAuthUpdatesList())
+            {
+                if (item.UpdateType == UpdateType.ShortLivedUpdate)
+                {
+                    Log.Information($"Sending auth update of type {item.UpdateType} with new token of {item.ShortLivedKey}");
+                }
+                else if (item.UpdateType == UpdateType.LongLivedUpdate)
+                {
+                    Log.Information($"Sending auth update of type {item.UpdateType} with new token of {item.LongLivedKey}");
+                }
+
+                await responseStream.WriteAsync(item);
+            }
+        }
+
         private async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
         {
             AccountDataModel account = await _authRepo.CheckForExistingAccount(accountId);
@@ -458,7 +485,7 @@ namespace AuthAPI.Services
             return true;
         }
 
-        private StreamAuthCreationsResponse MapAuthModelToStreamAuthcreations(AuthDataModel authModel, AccountDataModel account)
+        private StreamAuthCreationsResponse MapAuthModelToStreamAuthcreations(AuthDataModel authModel)
         {
           
             StreamAuthCreationsResponse newVaultResponse = new StreamAuthCreationsResponse
@@ -467,15 +494,7 @@ namespace AuthAPI.Services
                 AccountId = authModel.AccountId.ToString(),
                 ShortLivedKey = authModel.ShortLivedKey,
                 LongLivedKey = authModel.LongLivedKey, 
-                Account = new gRPCIntercommunicationService.Protos.Account
-                {
-                    AccountId = account.AccountId.ToString(),
-                    Username = account.Username, 
-                    Password = account.Password,
-                    Email = account.Email,
-                    AccountCreated = account.AccountCreated.ToString(),
-                    Authroles = (gRPCIntercommunicationService.Protos.AuthRoles)account.AuthorisationLevel,
-                }
+              
             };
 
             return newVaultResponse;
@@ -485,6 +504,7 @@ namespace AuthAPI.Services
         {
             StreamAuthUpdatesResponse streamAuthUpdate = new StreamAuthUpdatesResponse
             {
+                UpdateId = Guid.NewGuid().ToString(),
                 AccountId = accountId,
                 ShortLivedKey = shortLivedKey,
                 LongLivedKey = longLivedKey,

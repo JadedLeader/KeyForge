@@ -1,10 +1,8 @@
-﻿
-using AccountAPI.DataModel;
-using AuthAPI.DataModel;
+﻿using VaultAPI.DataModel;
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
-using VaultAPI.Repos;
+using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI.BackgroundConsumers
 {
@@ -13,25 +11,30 @@ namespace VaultAPI.BackgroundConsumers
 
         private readonly Auth.AuthClient _authClient;
 
-        private readonly AuthRepo _authRepo;
+        private readonly IServiceScopeFactory _serviceScope;
 
-        private HashSet<StreamAuthCreationsResponse> _authCreations = new HashSet<StreamAuthCreationsResponse>();
+        private HashSet<Guid> _authCreations = new HashSet<Guid>();
 
-        public AddAuthBackgroundConsumer(Auth.AuthClient authClient, AuthRepo authRepo)
+        public AddAuthBackgroundConsumer(Auth.AuthClient authClient, IServiceScopeFactory serviceScope)
         {
             _authClient = authClient;
-            _authRepo = authRepo;
+            _serviceScope = serviceScope;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
+            using IServiceScope createScope = _serviceScope.CreateScope();
+
+            IAuthRepo getAuthRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAuthRepo>();
+
             while(!stoppingToken.IsCancellationRequested)
             {
-                await AddAuths();
+                await AddAuths(getAuthRepoLifetime);
             }
         }
 
 
-        private async Task AddAuths()
+        private async Task AddAuths(IAuthRepo authRepo)
         {
 
             StreamAuthCreationsRequest streamAuthCreations = new StreamAuthCreationsRequest();
@@ -43,12 +46,12 @@ namespace VaultAPI.BackgroundConsumers
             await foreach(StreamAuthCreationsResponse authCreationResponse in responseStream)
             {
 
-                if(_authCreations.Add(authCreationResponse))
+                if(_authCreations.Add(Guid.Parse(authCreationResponse.AuthKey)))
                 {
 
                     AuthDataModel addAuthModelToDb = MapStreamAuthCreationToAuthModel(authCreationResponse);
 
-                    await _authRepo.AddAsync(addAuthModelToDb);
+                    await authRepo.AddAsync(addAuthModelToDb);
                 }
 
             }
@@ -64,16 +67,6 @@ namespace VaultAPI.BackgroundConsumers
                 AccountId = Guid.Parse(streamAuthCreation.AccountId),
                 ShortLivedKey = streamAuthCreation.ShortLivedKey,
                 LongLivedKey = streamAuthCreation.LongLivedKey,
-                Account = new AccountDataModel
-                {
-                    AccountId = Guid.Parse(streamAuthCreation.Account.AccountId),
-                    Username = streamAuthCreation.Account.Username, 
-                    Password = streamAuthCreation.Account.Password,
-                    Email = streamAuthCreation.Account.Email,
-                    AccountCreated = DateTime.Parse(streamAuthCreation.Account.AccountCreated), 
-                    AuthorisationLevel = (AccountAPI.DataModel.AuthRoles)streamAuthCreation.Account.Authroles
-
-                }
 
             };
 

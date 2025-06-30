@@ -1,8 +1,7 @@
-﻿
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace AccountAPI.DataModel
+namespace VaultAPI.DataModel
 {
     public class AccountDataModel
     {

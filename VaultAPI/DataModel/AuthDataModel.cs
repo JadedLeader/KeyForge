@@ -1,8 +1,8 @@
-﻿using AccountAPI.DataModel;
+﻿
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AuthAPI.DataModel
+namespace VaultAPI.DataModel
 {
     public class AuthDataModel
     {

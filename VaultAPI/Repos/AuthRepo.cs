@@ -1,17 +1,21 @@
-﻿using AuthAPI.DataModel;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using Serilog;
+using System.Diagnostics;
 using VaultAPI.DataContext;
+using VaultAPI.Interfaces.RepoInterfaces;
 using VaultAPI.Repos.GenericRepository;
+using VaultAPI.DataModel;
 
 namespace VaultAPI.Repos
 {
-    public class AuthRepo : GenericRepository<AuthDataModel>
+    public class AuthRepo : GenericRepository<AuthDataModel>, IAuthRepo
     {
 
         private readonly VaultDataContext _dataContext;
-        public AuthRepo(VaultDataContext dataContext) : base(dataContext) 
+        public AuthRepo(VaultDataContext dataContext) : base(dataContext)
         {
-            _dataContext = dataContext; 
+            _dataContext = dataContext;
         }
 
         public override Task<AuthDataModel> AddAsync(AuthDataModel databaseModel)
@@ -27,6 +31,53 @@ namespace VaultAPI.Repos
         public override Task<AuthDataModel> UpdateAsync(AuthDataModel databaseModel)
         {
             return base.UpdateAsync(databaseModel);
+        }
+
+        public async Task UpdateShortLivedKey(Guid accountId, string newShortLivedKey)
+        {
+            AuthDataModel? authAccount = await FindAuthAccountViaId(accountId);
+
+            if (authAccount == null)
+            {
+                Log.Warning($"{this.GetType().Namespace} Cannot find auth account relationg to this ID");
+
+                return;
+            }
+
+            authAccount.ShortLivedKey = newShortLivedKey;
+
+            await UpdateAsync(authAccount);
+
+        }
+
+        public async Task UpdateLongLivedKey(Guid accountId, string newLongLivedKey)
+        {
+            AuthDataModel? authAccount = await FindAuthAccountViaId(accountId);
+
+            if (authAccount.AccountId == Guid.Empty)
+            {
+                Log.Warning($"No auth record can be found");
+
+                return;
+            }
+
+            authAccount.LongLivedKey = newLongLivedKey;
+
+            await UpdateAsync(authAccount);
+        }
+
+        public async Task<AuthDataModel> FindAuthAccountViaId(Guid accountId)
+        {
+            AuthDataModel? authAccount = await _dataContext.Auth.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+
+            if (authAccount == null)
+            {
+                Log.Warning($"{this.GetType().Namespace} Cannot find auth account relationg to this ID");
+
+                return new AuthDataModel();
+            }
+
+            return authAccount;
         }
 
 

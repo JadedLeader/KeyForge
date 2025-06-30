@@ -1,8 +1,9 @@
 ﻿
-using AccountAPI.DataModel;
+using VaultAPI.DataModel;
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using VaultAPI.Repos;
+using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI.BackgroundConsumers
 {
@@ -11,26 +12,36 @@ namespace VaultAPI.BackgroundConsumers
 
         private readonly Account.AccountClient _accountClient;
 
-        private readonly AccountRepo _accountRepo;
+        private IServiceScopeFactory _serviceScope;
 
         private HashSet<Guid> _accountIds = new HashSet<Guid>();
 
-        public DeleteAccountBackgroundConsumer(Account.AccountClient accountClient, AccountRepo accountRepo)
+        public DeleteAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory serviceScope)
         {
             _accountClient = accountClient;
-            _accountRepo = accountRepo;
+            _serviceScope = serviceScope;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            
+            using IServiceScope createScope = _serviceScope.CreateScope();
+
+            IAccountRepo? getAccountRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAccountRepo>();
+
+            if (getAccountRepoLifetime == null)
+            {
+                throw new Exception($"{this.GetType().Namespace} Could not find the designated lifetime for the account repo");
+            }
+
             while(!stoppingToken.IsCancellationRequested)
             {
-                await DeleteAccounts();
+                await DeleteAccounts(getAccountRepoLifetime);
             }
         }
 
 
-        private async Task DeleteAccounts()
+        private async Task DeleteAccounts(IAccountRepo accountRepo)
         {
 
             StreamAccountDeleteRequest streamAccountDeletions = new StreamAccountDeleteRequest();   
@@ -43,7 +54,7 @@ namespace VaultAPI.BackgroundConsumers
             {
                 if (_accountIds.Add(Guid.Parse(deletion.AccountId)))
                 {
-                    await _accountRepo.DeleteAccountViaAccountId(Guid.Parse(deletion.AccountId));
+                    await accountRepo.DeleteAccountViaAccountId(Guid.Parse(deletion.AccountId));
                 }
             }
         }

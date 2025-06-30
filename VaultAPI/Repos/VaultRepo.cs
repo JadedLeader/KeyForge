@@ -1,14 +1,15 @@
 ﻿using VaultAPI.DataContext;
 using VaultAPI.DataModel;
+using VaultAPI.Interfaces.RepoInterfaces;
 using VaultAPI.Repos.GenericRepository;
 
 namespace VaultAPI.Repos
 {
-    public class VaultRepo : GenericRepository<VaultDataModel>
+    public class VaultRepo : GenericRepository<VaultDataModel>, IVaultRepo
     {
 
         private readonly VaultDataContext _dataContext;
-        public VaultRepo(VaultDataContext dataContext) : base(dataContext) 
+        public VaultRepo(VaultDataContext dataContext) : base(dataContext)
         {
             _dataContext = dataContext;
         }

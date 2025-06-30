@@ -119,7 +119,6 @@ message StreamAuthCreationsResponse
 	string AccountId = 2; 
 	string ShortLivedKey = 3; 
 	string LongLivedKey = 4;
-	Account Account = 5;
 }
 
 message StreamAuthUpdatesRequest
@@ -129,26 +128,17 @@ message StreamAuthUpdatesRequest
 
 message StreamAuthUpdatesResponse
 { 
-	string AccountId = 1;
-	optional string ShortLivedKey = 2; 
-	optional string LongLivedKey = 3;
-	UpdateType UpdateType = 4;
+	string updateId = 1;
+	string AccountId = 2;
+	optional string ShortLivedKey = 3; 
+	optional string LongLivedKey = 4;
+	UpdateType UpdateType = 5;
 }
 
 enum UpdateType
 { 
 	ShortLivedUpdate = 0;
 	LongLivedUpdate = 1;
-}
-
-message Account { 
-	string AccountId = 1; 
-	string Username = 2; 
-	string Password = 3; 
-	string Email = 4; 
-	AuthRoles Authroles = 5;
-	string AccountCreated = 6;
-
 }
 
 enum AuthRoles { 

@@ -1,7 +1,6 @@
-﻿using AccountAPI.DataModel;
-using AuthAPI.DataModel;
+﻿using VaultAPI.DataModel;
 using Microsoft.EntityFrameworkCore;
-using VaultAPI.DataModel;
+
 
 namespace VaultAPI.DataContext
 {

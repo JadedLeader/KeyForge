@@ -16,7 +16,9 @@ namespace AuthAPI.Services
             _authTransporationStorage = authTransportationStorage;  
         }
 
-        public override async Task StreamAuthCreations(StreamAuthCreationsRequest request, IServerStreamWriter<StreamAuthCreationsResponse> responseStream, ServerCallContext context)
+        
+
+       /* public override async Task StreamAuthCreations(StreamAuthCreationsRequest request, IServerStreamWriter<StreamAuthCreationsResponse> responseStream, ServerCallContext context)
         {
             foreach(var item in _authTransporationStorage.ReturnStreamAuthCreationsList())
             {
@@ -25,6 +27,8 @@ namespace AuthAPI.Services
                 await responseStream.WriteAsync(item);
             }
         }
+
+        public override 
 
         public override async Task StreamAuthKeyUpdates(StreamAuthUpdatesRequest request, IServerStreamWriter<StreamAuthUpdatesResponse> responseStream, ServerCallContext context)
         {
@@ -41,7 +45,7 @@ namespace AuthAPI.Services
 
                 await responseStream.WriteAsync(item);
             }
-        } 
+        }  */
 
 
 
