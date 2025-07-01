@@ -1,7 +1,7 @@
 ﻿using VaultAPI.DataModel;
 using Microsoft.EntityFrameworkCore;
 using VaultAPI.DataContext;
-using VaultAPI.Repos.GenericRepository;
+using KeyForgedShared.Generics;
 using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI.Repos

@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using AuthAPI.Interfaces.ServicesInterface;
 using AuthAPI.TransporationStorage;
+using KeyForgedShared.Interfaces;
+using KeyForgedShared.Helpers;
 
 namespace AuthAPI
 {
@@ -30,9 +32,10 @@ namespace AuthAPI
             builder.Services.AddScoped<IAuthRepo, AuthRepo>();
             builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IAuthTransportationService, AuthTransporationService>();
-
+            
             builder.Services.AddSingleton<AuthTransportationStorage>();
+
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()

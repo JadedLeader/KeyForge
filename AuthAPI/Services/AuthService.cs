@@ -8,6 +8,8 @@ using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
 using Serilog;
 using System.IdentityModel.Tokens.Jwt;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
 
 namespace AuthAPI.Services 
 {
@@ -20,11 +22,14 @@ namespace AuthAPI.Services
 
         private readonly AuthTransportationStorage _transportationStorage;
 
-        public AuthService(ITokenGeneratorService tokenGeneratorService, IAuthRepo authRepo, AuthTransportationStorage transportationStorage)
+        private readonly IJwtHelper _jwtHelper;
+
+        public AuthService(ITokenGeneratorService tokenGeneratorService, IAuthRepo authRepo, AuthTransportationStorage transportationStorage, IJwtHelper jwtHelper)
         {
             _tokenGeneratorService = tokenGeneratorService;
             _authRepo = authRepo;
             _transportationStorage = transportationStorage;
+            _jwtHelper = jwtHelper;
         }
 
         /// <summary>
@@ -98,7 +103,7 @@ namespace AuthAPI.Services
             
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
-            string? retrieveRoleFromCurrentToken = ReturnRoleFromToken(existingAuth.LongLivedKey);
+            string? retrieveRoleFromCurrentToken = _jwtHelper.ReturnRoleFromToken(existingAuth.LongLivedKey);
 
             RefreshLongLivedTokenResponse serverResponse = new RefreshLongLivedTokenResponse();
 
@@ -138,7 +143,7 @@ namespace AuthAPI.Services
         {
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
-            string? retrieveRoleFromCurrentToken = ReturnRoleFromToken(existingAuth.LongLivedKey);
+            string? retrieveRoleFromCurrentToken = _jwtHelper.ReturnRoleFromToken(existingAuth.LongLivedKey);
 
             RefreshShortLivedTokenResponse serverResponse = new RefreshShortLivedTokenResponse();
 
@@ -155,7 +160,7 @@ namespace AuthAPI.Services
                 return serverResponse;
             }
 
-            bool isLongKeyValid = IsLongLivedKeyValid(currentLongLivedKey);
+            bool isLongKeyValid = _jwtHelper.IsLongLivedKeyValid(currentLongLivedKey);
 
             string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
@@ -290,8 +295,8 @@ namespace AuthAPI.Services
 
             SilentShortLivedTokenRefreshResponse serverResponse = new SilentShortLivedTokenRefreshResponse();
 
-            string? accountIdFromToken = ReturnAccountIdFromToken(longLivedToken);
-            string? accountRoleFromToken = ReturnRoleFromToken(longLivedToken);
+            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(longLivedToken);
+            string? accountRoleFromToken = _jwtHelper.ReturnRoleFromToken(longLivedToken);
 
             if(accountIdFromToken == string.Empty || accountRoleFromToken == string.Empty)
             {
@@ -394,71 +399,6 @@ namespace AuthAPI.Services
             }; 
 
             return authModel;
-        }
-
-        private bool IsLongLivedKeyValid(string currentLongLivedKey)
-        {
-            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();    
-
-            if(currentLongLivedKey == string.Empty)
-            {
-                return false;
-            }
-
-            var longLivedKey = handler.ReadToken(currentLongLivedKey);
-
-            DateTime validToDate = longLivedKey.ValidTo;
-
-            if(validToDate < DateTime.Now)
-            {
-                return false; 
-            }
-            
-            return true;
-        }
-
-        private string ReturnRoleFromToken(string token)
-        {
-            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler(); 
-
-            if(token == string.Empty)
-            {
-                return "";
-            }
-
-            JwtSecurityToken jwt = handler.ReadJwtToken(token);
-
-            string? roleClaim = jwt.Claims.FirstOrDefault(c => c.Type == "Role").Value;
-
-            if(roleClaim == string.Empty)
-            {
-                Log.Warning($"No role claim could be found for claim 'Role' ");
-            }
-
-            return roleClaim;
-
-        }
-
-        private string ReturnAccountIdFromToken(string token)
-        {
-            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler(); 
-
-            if(token == string.Empty)
-            {
-                return "";
-            }
-
-            JwtSecurityToken jwt = handler.ReadJwtToken(token);
-
-            string? accountIdClaim = jwt.Claims.FirstOrDefault(ac => ac.Type == "nameid").Value;
-
-            if(accountIdClaim == string.Empty)
-            {
-                Log.Warning($"No account ID claim can be found within the token");
-            }
-
-            return accountIdClaim;
-            
         }
 
         private bool ValidatingPasswordMatch(string password, string hashedPassword)

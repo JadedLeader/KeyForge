@@ -18,7 +18,6 @@ namespace AuthAPI.Services
             _configuration = configuration;
         }
 
-      
         public string GenerateShortLivedToken(string accountId, string role)
         {
             string token = GenerateJwtToken(accountId, 1, role);

@@ -1,7 +1,7 @@
 ﻿using VaultAPI.DataContext;
 using VaultAPI.DataModel;
 using VaultAPI.Interfaces.RepoInterfaces;
-using VaultAPI.Repos.GenericRepository;
+using KeyForgedShared.Generics;
 
 namespace VaultAPI.Repos
 {

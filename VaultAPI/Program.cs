@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VaultAPI.BackgroundConsumers;
 using VaultAPI.DataContext;
 using VaultAPI.Repos;
-using VaultAPI.Repos.GenericRepository;
+using KeyForgedShared.Generics;
 using VaultAPI.Interfaces.RepoInterfaces;
 
 namespace VaultAPI
@@ -51,7 +51,10 @@ namespace VaultAPI
             {
                 string? vaultConnectionString = builder.Configuration.GetConnectionString("VaultApiConnectionString");
                 options.UseSqlServer(vaultConnectionString);
-            }); 
+            });
+
+            //this line helps inject the dependency of the DbContext for the GenericRepository located in KeyForgedShared
+            builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<VaultDataContext>());
 
             var app = builder.Build();
 

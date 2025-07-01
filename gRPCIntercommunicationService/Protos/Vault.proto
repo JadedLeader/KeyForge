@@ -5,13 +5,18 @@ option csharp_namespace = "gRPCIntercommunicationService.Protos";
 
 service Vault{ 
 
+	rpc CreateVault(CreateVaultRequest) returns (CreateVaultResponse);
+
 }
 
 message CreateVaultRequest{ 
 
 }
 
-message CreateVaultResponse
-{ 
+message CreateVaultResponse{ 
+
+	string AccountId = 1; 
+	string VaultName = 2; 
+	bool Sucessfull = 3; 
 
 }

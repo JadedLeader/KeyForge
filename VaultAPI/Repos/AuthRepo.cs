@@ -4,7 +4,7 @@ using Serilog;
 using System.Diagnostics;
 using VaultAPI.DataContext;
 using VaultAPI.Interfaces.RepoInterfaces;
-using VaultAPI.Repos.GenericRepository;
+using KeyForgedShared.Generics;
 using VaultAPI.DataModel;
 
 namespace VaultAPI.Repos
