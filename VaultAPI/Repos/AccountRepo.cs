@@ -44,6 +44,18 @@ namespace VaultAPI.Repos
             return account;
         }
 
+        public async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
+        {
+            AccountDataModel? getAccount = await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+
+            if(getAccount == null)
+            {
+                return new AccountDataModel();
+            }
+
+            return getAccount;
+        }
+
 
 
 

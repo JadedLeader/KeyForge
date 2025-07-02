@@ -6,17 +6,50 @@ option csharp_namespace = "gRPCIntercommunicationService.Protos";
 service Vault{ 
 
 	rpc CreateVault(CreateVaultRequest) returns (CreateVaultResponse);
-
+	rpc DeleteVault(DeleteVaultRequest) returns (DeleteVaultResponse);
+	rpc UpdateVaultName(UpdateVaultNameRequest) returns(UpdateVaultNameResponse);
 }
 
 message CreateVaultRequest{ 
-
+	string VaultName = 1; 
+	string VaultType = 2;
+	
 }
 
 message CreateVaultResponse{ 
 
 	string AccountId = 1; 
-	string VaultName = 2; 
-	bool Sucessfull = 3; 
+	string VaultId = 2;
+	string VaultName = 3; 
+	VaultType VaultType = 4;
+	bool Sucessfull = 5; 
 
+}
+
+message DeleteVaultRequest { 
+	string VaultId = 1;
+}
+
+message DeleteVaultResponse { 
+	string VaultId = 1; 
+	string AccountId = 2; 
+	bool Successfull = 3;
+}
+
+message UpdateVaultNameRequest
+{ 
+	string VaultId = 1;
+	string VaultName = 2;
+}
+
+message UpdateVaultNameResponse
+{ 
+	string VaultId = 1;
+	string UpdatedVaultName = 2; 
+	bool Successfull = 3;
+}
+
+enum VaultType{ 
+	Team = 0; 
+	Personal = 1;
 }

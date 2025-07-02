@@ -2,6 +2,7 @@
 using VaultAPI.DataModel;
 using VaultAPI.Interfaces.RepoInterfaces;
 using KeyForgedShared.Generics;
+using Microsoft.EntityFrameworkCore;
 
 namespace VaultAPI.Repos
 {
@@ -27,6 +28,27 @@ namespace VaultAPI.Repos
         public override Task<VaultDataModel> DeleteAsync(VaultDataModel databaseModel)
         {
             return base.DeleteAsync(databaseModel);
+        }
+
+        public async Task<VaultDataModel> GetVaultViaVaultId(Guid vaultId)
+        {
+            VaultDataModel? vault = await _dataContext.Vault.Where(v => v.VaultId == vaultId).FirstOrDefaultAsync();
+
+            if(vault == null)
+            {
+                return new VaultDataModel();
+            }
+
+            return vault;
+
+        }
+
+        public async Task UpdateVaultName(VaultDataModel vaultDataModel, string newVaultName)
+        {
+            vaultDataModel.VaultName = newVaultName;
+
+            await UpdateAsync(vaultDataModel);
+
         }
 
 

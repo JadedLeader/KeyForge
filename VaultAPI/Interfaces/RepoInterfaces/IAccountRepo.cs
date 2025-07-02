@@ -8,5 +8,6 @@ namespace VaultAPI.Interfaces.RepoInterfaces
         Task<AccountDataModel> DeleteAccountViaAccountId(Guid accountId);
         Task<AccountDataModel> DeleteAsync(AccountDataModel databaseModel);
         Task<AccountDataModel> UpdateAsync(AccountDataModel databaseModel);
+        Task<AccountDataModel> CheckForExistingAccount(Guid accountId);
     }
 }

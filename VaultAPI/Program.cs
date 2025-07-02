@@ -8,6 +8,10 @@ using VaultAPI.DataContext;
 using VaultAPI.Repos;
 using KeyForgedShared.Generics;
 using VaultAPI.Interfaces.RepoInterfaces;
+using KeyForgedShared.Interfaces;
+using KeyForgedShared.Helpers;
+using VaultAPI.Interfaces.ServiceInterfaces;
+using VaultAPI.Services;
 
 namespace VaultAPI
 {
@@ -36,6 +40,9 @@ namespace VaultAPI
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
             builder.Services.AddScoped<IAuthRepo, AuthRepo>();
             builder.Services.AddScoped<IVaultRepo, VaultRepo>();
+
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
+            builder.Services.AddScoped<IVaultService, VaultService>();
 
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {

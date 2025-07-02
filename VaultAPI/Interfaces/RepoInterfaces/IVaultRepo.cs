@@ -7,5 +7,7 @@ namespace VaultAPI.Interfaces.RepoInterfaces
         Task<VaultDataModel> AddAsync(VaultDataModel databaseModel);
         Task<VaultDataModel> DeleteAsync(VaultDataModel databaseModel);
         Task<VaultDataModel> UpdateAsync(VaultDataModel databaseModel);
+        Task<VaultDataModel> GetVaultViaVaultId(Guid vaultId);
+        Task UpdateVaultName(VaultDataModel vaultDataModel, string newVaultName);
     }
 }
