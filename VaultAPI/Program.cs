@@ -12,6 +12,9 @@ using KeyForgedShared.Interfaces;
 using KeyForgedShared.Helpers;
 using VaultAPI.Interfaces.ServiceInterfaces;
 using VaultAPI.Services;
+using VaultAPI.Storage;
+using VaultAPI.Interfaces.MappingInterfaces;
+using VaultAPI.Mappings;
 
 namespace VaultAPI
 {
@@ -43,6 +46,9 @@ namespace VaultAPI
 
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
             builder.Services.AddScoped<IVaultService, VaultService>();
+
+            builder.Services.AddSingleton<VaultActionsStorage>();
+            builder.Services.AddScoped<ITypeMappings, TypeMappings>();
 
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {

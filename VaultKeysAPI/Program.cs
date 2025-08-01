@@ -1,3 +1,5 @@
+using gRPCIntercommunicationService.Protos;
+using Microsoft.Extensions.Options;
 
 namespace KeysAPI
 {
@@ -14,6 +16,21 @@ namespace KeysAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7003");
+            });
+
+            builder.Services.AddGrpcClient<Auth.AuthClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7010");
+            });
+
+            builder.Services.AddGrpcClient<Vault.VaultClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7149");
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -22,6 +39,8 @@ namespace KeysAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            
 
             app.UseHttpsRedirection();
 

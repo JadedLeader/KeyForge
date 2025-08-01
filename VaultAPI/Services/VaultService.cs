@@ -3,9 +3,11 @@ using gRPCIntercommunicationService.Protos;
 using KeyForgedShared.Interfaces;
 using Serilog;
 using VaultAPI.DataModel;
+using VaultAPI.Interfaces.MappingInterfaces;
 using VaultAPI.Interfaces.RepoInterfaces;
 using VaultAPI.Interfaces.ServiceInterfaces;
 using VaultAPI.Repos;
+using VaultAPI.Storage;
 
 namespace VaultAPI.Services
 {
@@ -17,11 +19,17 @@ namespace VaultAPI.Services
         private readonly IAccountRepo _accountRepo;
 
         private readonly IVaultRepo _vaultRepo;
-        public VaultService(IJwtHelper jwtHelper, IAccountRepo accountRepo, IVaultRepo vaultRepo)
+
+        private readonly VaultActionsStorage _vaultActionsStorage;
+
+        private readonly ITypeMappings _typeMappings;
+        public VaultService(IJwtHelper jwtHelper, IAccountRepo accountRepo, IVaultRepo vaultRepo, VaultActionsStorage vaultActionsStorage, ITypeMappings typeMappings)
         {
             _jwtHelper = jwtHelper;
             _accountRepo = accountRepo;
             _vaultRepo = vaultRepo;
+            _vaultActionsStorage = vaultActionsStorage;
+            _typeMappings = typeMappings;
         }
 
         public async Task<CreateVaultResponse> CreateVault(CreateVaultRequest request, string shortLivedToken)
@@ -62,7 +70,7 @@ namespace VaultAPI.Services
 
             var vaultType = (VaultAPI.DataModel.VaultType) Enum.Parse(typeof(VaultAPI.DataModel.VaultType), request.VaultType);
 
-            VaultDataModel createNewVault = CreateVaultDataModel(Guid.Parse(accountIdFromToken), request.VaultName, vaultType, doesAccountExist);
+            VaultDataModel createNewVault = _typeMappings.CreateVaultDataModel(Guid.Parse(accountIdFromToken), request.VaultName, vaultType, doesAccountExist);
 
             await _vaultRepo.AddAsync(createNewVault);
 
@@ -71,6 +79,10 @@ namespace VaultAPI.Services
             serverResponse.VaultType = (gRPCIntercommunicationService.Protos.VaultType)createNewVault.VaultType;
             serverResponse.VaultId = createNewVault.VaultId.ToString();
             serverResponse.Sucessfull = true;
+
+            StreamVaultCreationsResponse newVaultCreationResponse = _typeMappings.MapVaultModelToStreamVault(createNewVault);
+
+            _vaultActionsStorage.AddToVaultCreations(newVaultCreationResponse);
 
             return serverResponse;
 
@@ -116,6 +128,10 @@ namespace VaultAPI.Services
             serverResponse.AccountId = checkForExistingVault.AccountId.ToString();
             serverResponse.Successfull = true;
 
+            StreamVaultDeletionsResponse newDeleteVaultResponse = _typeMappings.MapVaultToStreamVaultDeletions(checkForExistingVault);
+
+            _vaultActionsStorage.AddToVaultDeletions(newDeleteVaultResponse);
+
             return serverResponse;
 
         }
@@ -156,32 +172,15 @@ namespace VaultAPI.Services
             serverResponse.UpdatedVaultName = existingVault.VaultName;
             serverResponse.Successfull = true;
 
+            StreamVaultUpdateResponse newStreamVaultUpdate =  _typeMappings.MapVaultToStreamVaultUpdates(existingVault);
+            
+            _vaultActionsStorage.AddToVaultUpdates(newStreamVaultUpdate);
+            
+
             return serverResponse;
 
-
-
         }
 
-        private VaultDataModel CreateVaultDataModel(Guid accountId, string vaultName, VaultAPI.DataModel.VaultType vaultType, AccountDataModel account)
-        {
-            VaultDataModel newVault = new VaultDataModel
-            {
-                VaultId = Guid.NewGuid(),
-                AccountId = accountId,
-                VaultName = vaultName,
-                VaultType = vaultType,
-                VaultCreatedAt = DateTime.Now,
-                Account = account,
-            };
-
-            return newVault;
-
-
-        }
-
-
-
-
-
+     
     }
 }

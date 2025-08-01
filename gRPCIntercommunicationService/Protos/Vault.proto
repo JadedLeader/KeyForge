@@ -8,6 +8,10 @@ service Vault{
 	rpc CreateVault(CreateVaultRequest) returns (CreateVaultResponse);
 	rpc DeleteVault(DeleteVaultRequest) returns (DeleteVaultResponse);
 	rpc UpdateVaultName(UpdateVaultNameRequest) returns(UpdateVaultNameResponse);
+
+	rpc StreamVaultCreations(StreamVaultCreationsRequest) returns (stream StreamVaultCreationsResponse);
+	rpc StreamVaultDeletions(StreamVaultDeletionsRequest) returns (stream StreamVaultDeletionsResponse);
+	rpc StreamVaultUpdates(StreamVaultUpdateRequest) returns (stream StreamVaultUpdateResponse);
 }
 
 message CreateVaultRequest{ 
@@ -49,7 +53,43 @@ message UpdateVaultNameResponse
 	bool Successfull = 3;
 }
 
+message StreamVaultCreationsRequest
+{ 
+
+}
+
+message StreamVaultCreationsResponse
+{ 
+	string VaultId = 1; 
+	string AccountId = 2; 
+	string VaultName = 3; 
+	string VaultCreatedAt = 4; 
+	VaultType VaultType = 5; 
+}
+
+message StreamVaultDeletionsRequest
+{ 
+
+}
+
+message StreamVaultDeletionsResponse
+{ 
+	string VaultId = 1;
+}
+
+message StreamVaultUpdateRequest
+{ 
+
+}
+
+message StreamVaultUpdateResponse
+{ 
+	string UniqueVaultUpdateId = 1; 
+	string VaultId = 2; 
+	string AccountId = 3; 
+	string VaultName = 4;
+}
+
 enum VaultType{ 
-	Team = 0; 
-	Personal = 1;
+	Personal = 0; 
 }
