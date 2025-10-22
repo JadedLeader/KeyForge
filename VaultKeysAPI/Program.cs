@@ -1,5 +1,8 @@
 using gRPCIntercommunicationService.Protos;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using VaultKeysAPI.DataContext;
+using VaultKeysAPI.DataModel;
 
 namespace KeysAPI
 {
@@ -30,6 +33,15 @@ namespace KeysAPI
             {
                 options.Address = new Uri("https://localhost:7149");
             });
+
+            builder.Services.AddDbContext<VaultKeysDataContext>(options =>
+            {
+                string? connectionString = builder.Configuration.GetConnectionString("VaultKeysApiConnectionString");
+
+                options.UseSqlServer(connectionString);
+
+            });
+
 
             var app = builder.Build();
 

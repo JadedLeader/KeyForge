@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>083cf35c-a359-474f-9374-eb9dcf28e1a2</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,13 +34,12 @@
 	
 
   <ItemGroup>
-    <Folder Include="DataContext\" />
-    <Folder Include="Repos\" />
     <Folder Include="Storage\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\gRPCIntercommunicationService\gRPCIntercommunicationService.csproj" />
+    <ProjectReference Include="..\KeyForgedShared\KeyForgedShared.csproj" />
   </ItemGroup>
 
 </Project>
