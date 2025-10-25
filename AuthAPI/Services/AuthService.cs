@@ -164,7 +164,7 @@ namespace AuthAPI.Services
 
             string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, currentLongLivedKey, UpdateType.ShortLivedUpdate);
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
@@ -308,7 +308,7 @@ namespace AuthAPI.Services
 
             string? refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(accountIdFromToken, accountRoleFromToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, null, UpdateType.ShortLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, longLivedToken, UpdateType.ShortLivedUpdate);
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
