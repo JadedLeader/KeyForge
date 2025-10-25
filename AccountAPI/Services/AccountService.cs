@@ -1,4 +1,4 @@
-﻿using AccountAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 using AccountAPI.Interfaces.RepoInterface;
 using AccountAPI.Interfaces.ServiceInterface;
 using Grpc.Core;

@@ -2,7 +2,10 @@ using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using VaultKeysAPI.DataContext;
-using VaultKeysAPI.DataModel;
+using KeyForgedShared.SharedDataModels; 
+using VaultKeysAPI.Interfaces;
+using VaultKeysAPI.Repos;
+using VaultKeysAPI.Services;
 
 namespace KeysAPI
 {
@@ -41,6 +44,12 @@ namespace KeysAPI
                 options.UseSqlServer(connectionString);
 
             });
+
+            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+            builder.Services.AddScoped<IAuthRepo, AuthRepo>();
+            builder.Services.AddScoped<IVaultRepo, VaultRepo>();
+            builder.Services.AddScoped<IVaultKeysRepo, VaultKeysRepo>();
+            builder.Services.AddScoped<VaultKeysService>();
 
 
             var app = builder.Build();

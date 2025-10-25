@@ -2,7 +2,7 @@
 using gRPCIntercommunicationService.Protos;
 using KeyForgedShared.Interfaces;
 using Serilog;
-using VaultAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using VaultAPI.Interfaces.MappingInterfaces;
 using VaultAPI.Interfaces.RepoInterfaces;
 using VaultAPI.Interfaces.ServiceInterfaces;
@@ -68,7 +68,7 @@ namespace VaultAPI.Services
                 return serverResponse;
             }
 
-            var vaultType = (VaultAPI.DataModel.VaultType) Enum.Parse(typeof(VaultAPI.DataModel.VaultType), request.VaultType);
+            var vaultType = (KeyForgedShared.SharedDataModels.VaultType) Enum.Parse(typeof(KeyForgedShared.SharedDataModels.VaultType), request.VaultType);
 
             VaultDataModel createNewVault = _typeMappings.CreateVaultDataModel(Guid.Parse(accountIdFromToken), request.VaultName, vaultType, doesAccountExist);
 

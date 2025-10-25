@@ -1,4 +1,4 @@
-﻿using AccountAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 
 namespace AccountAPI.Interfaces.RepoInterface
 {

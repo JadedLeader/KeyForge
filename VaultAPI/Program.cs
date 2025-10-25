@@ -1,5 +1,5 @@
 
-using VaultAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore;

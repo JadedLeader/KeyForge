@@ -1,5 +1,5 @@
 ﻿using VaultAPI.DataContext;
-using VaultAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using VaultAPI.Interfaces.RepoInterfaces;
 using KeyForgedShared.Generics;
 using Microsoft.EntityFrameworkCore;

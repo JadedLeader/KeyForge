@@ -1,4 +1,4 @@
-﻿using AccountAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccountAPI.DataContext

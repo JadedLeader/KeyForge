@@ -2,6 +2,7 @@
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using Microsoft.Identity.Client;
+using VaultKeysAPI.Interfaces;
 
 namespace VaultKeysAPI.BackgroundConsumers
 {
@@ -24,7 +25,7 @@ namespace VaultKeysAPI.BackgroundConsumers
             throw new NotImplementedException();
         }
 
-        private async Task AddAccountsFromStreamAsync()
+        private async Task AddAccountsFromStreamAsync(IAccountRepo accountRepo)
         {
             StreamAccountRequest newStreamAccountRequest = new StreamAccountRequest();
 
@@ -34,16 +35,10 @@ namespace VaultKeysAPI.BackgroundConsumers
 
             await foreach(var account in accountsResponseStream)
             {
-                if (_addAccountResponse.Add(Guid.Parse(account.AccountId))){
-
-                    
-
-                }
+                
             }
 
             throw new NotImplementedException();
-            
-
         }
     }
 }

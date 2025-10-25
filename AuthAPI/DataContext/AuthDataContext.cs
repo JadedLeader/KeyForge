@@ -1,4 +1,4 @@
-﻿using AuthAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthAPI.DataContext

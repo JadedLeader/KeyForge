@@ -1,4 +1,4 @@
-﻿using VaultAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore;
 
 

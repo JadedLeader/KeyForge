@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using VaultKeysAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 
 namespace VaultKeysAPI.DataContext
 {

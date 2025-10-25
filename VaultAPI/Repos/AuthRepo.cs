@@ -5,7 +5,7 @@ using System.Diagnostics;
 using VaultAPI.DataContext;
 using VaultAPI.Interfaces.RepoInterfaces;
 using KeyForgedShared.Generics;
-using VaultAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 
 namespace VaultAPI.Repos
 {

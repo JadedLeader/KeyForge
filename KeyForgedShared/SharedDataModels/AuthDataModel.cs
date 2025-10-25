@@ -1,8 +1,7 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace VaultKeysAPI.DataModel
+namespace KeyForgedShared.SharedDataModels
 {
     public class AuthDataModel
     {

@@ -1,6 +1,6 @@
 ﻿using KeyForgedShared.Generics;
 using VaultKeysAPI.DataContext;
-using VaultKeysAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using VaultKeysAPI.Interfaces;
 
 namespace VaultKeysAPI.Repos

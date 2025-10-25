@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\gRPCIntercommunicationService\gRPCIntercommunicationService.csproj" />
+    <ProjectReference Include="..\KeyForgedShared\KeyForgedShared.csproj" />
   </ItemGroup>
 	
 	<ItemGroup>

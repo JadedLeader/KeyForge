@@ -1,5 +1,5 @@
 ﻿using gRPCIntercommunicationService.Protos;
-using VaultAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using VaultAPI.Interfaces.MappingInterfaces;
 
 namespace VaultAPI.Mappings
@@ -22,7 +22,7 @@ namespace VaultAPI.Mappings
 
         }
 
-        public VaultDataModel CreateVaultDataModel(Guid accountId, string vaultName, VaultAPI.DataModel.VaultType vaultType, AccountDataModel account)
+        public VaultDataModel CreateVaultDataModel(Guid accountId, string vaultName, KeyForgedShared.SharedDataModels.VaultType vaultType, AccountDataModel account)
         {
             VaultDataModel newVault = new VaultDataModel
             {

@@ -1,5 +1,5 @@
 ﻿
-using VaultAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using Grpc.Core;
 using gRPCIntercommunicationService;
 using VaultAPI.Repos;

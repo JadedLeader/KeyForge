@@ -1,4 +1,4 @@
-﻿using AuthAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 
 
 namespace AuthAPI.Interfaces.RepoInterface

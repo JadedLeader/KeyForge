@@ -1,5 +1,5 @@
 ﻿using AccountAPI.DataContext;
-using AccountAPI.DataModel;
+using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore.Metadata;
 using AccountAPI.Interfaces.RepoInterface;
 using Microsoft.EntityFrameworkCore;

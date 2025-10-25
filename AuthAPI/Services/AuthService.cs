@@ -1,4 +1,4 @@
-﻿using AuthAPI.DataModel;
+﻿using KeyForgedShared.SharedDataModels;
 using AuthAPI.Interfaces.RepoInterface;
 using AuthAPI.Interfaces.ServicesInterface;
 using AuthAPI.TransporationStorage;

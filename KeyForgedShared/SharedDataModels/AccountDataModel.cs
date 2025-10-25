@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace VaultKeysAPI.DataModel
+namespace KeyForgedShared.SharedDataModels
 {
     public class AccountDataModel
     {
