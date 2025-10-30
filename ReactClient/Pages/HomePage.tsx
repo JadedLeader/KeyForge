@@ -1,5 +1,7 @@
-import {React, useState, useEffect } from "react";
-
+import { React, useState, useEffect } from "react";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import "./HomePage.css"; 
 
 interface SilentTokenCycleRequest { 
 
@@ -8,7 +10,7 @@ interface SilentTokenCycleRequest {
 
 interface SilentTokenCycleResponse { 
     refreshedToken: string; 
-    successful: bool;
+    successful: boolean;
 }
 
 
@@ -70,7 +72,12 @@ export function HomePage() {
 
 
   return (
-    <p>Welcome to the home page!</p>
+    
+
+      <div> 
+          <Button variant="outline">Button</Button>
+      </div>
+
     );
 
 

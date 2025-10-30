@@ -24,7 +24,7 @@ interface BuildTokenGenerationResponse {
     accountId: string;
     shortLivedToken: string; 
     longLivedToken: string;
-    successful: bool;
+    successful: boolean;
     details: string;
 
 }
@@ -36,7 +36,7 @@ interface RefreshShortLivedTokenRequest {
 interface RefreshShortLivedTokenResponse { 
 
     accountId: string; 
-    successful: bool; 
+    successful: boolean; 
     refreshedToken: string;
 }
 
