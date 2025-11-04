@@ -14,7 +14,7 @@ namespace KeyForgedShared.SharedDataModels
 
         public string ShortLivedKey { get; set; }
 
-        public string LongLivedKey { get; set; }
+        public string? LongLivedKey { get; set; }
 
         public AccountDataModel Account { get; set; }
 

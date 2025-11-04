@@ -6,5 +6,7 @@ namespace VaultKeysAPI.Interfaces
     {
         public Task<AccountDataModel> AddAsync(AccountDataModel databaseModel);
 
+        public Task<AccountDataModel> DeleteAccountViaAccountId(Guid accountId);
+
     }
 }

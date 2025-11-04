@@ -36,6 +36,9 @@ const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_H
 const targetAuth = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
     env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7010';
 
+const targetVault = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
+    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7149';
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -47,13 +50,20 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/Account/.*': {
+            '^/Account': {
                 target,
-                secure: false
+                secure: false, 
+                changeOrigin: true
             }, 
-            '^/Auth/.*': { 
+            '^/Auth': { 
                 target: targetAuth, 
-                secure: false
+                secure: false,
+                changeOrigin: true
+            }, 
+            '^/Vault': {
+                target: targetVault,
+                secure: false,
+                changeOrigin: true
             }
         },
         port: 5173,

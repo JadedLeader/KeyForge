@@ -38,10 +38,11 @@ namespace VaultAPI.BackgroundConsumers
 
         private async Task GetAccounts(IAccountRepo accountRepo)
         {
+            var callOptions = new CallOptions().WithWaitForReady();
 
             StreamAccountRequest streamAccountsRequest = new StreamAccountRequest();    
 
-            var streamAccountHandshake = _accountClient.StreamAccount(streamAccountsRequest);
+            var streamAccountHandshake = _accountClient.StreamAccount(streamAccountsRequest, callOptions);
 
             var responseStream = streamAccountHandshake.ResponseStream.ReadAllAsync();
 

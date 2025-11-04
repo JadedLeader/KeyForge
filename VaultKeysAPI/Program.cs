@@ -1,13 +1,15 @@
 using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.Generics;
+using KeyForgedShared.SharedDataModels; 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using VaultKeysAPI.BackgroundConsumers;
 using VaultKeysAPI.DataContext;
-using KeyForgedShared.SharedDataModels; 
 using VaultKeysAPI.Interfaces;
 using VaultKeysAPI.Repos;
 using VaultKeysAPI.Services;
 
-namespace KeysAPI
+namespace VaultKeysAPI
 {
     public class Program
     {
@@ -44,6 +46,15 @@ namespace KeysAPI
                 options.UseSqlServer(connectionString);
 
             });
+
+            
+
+            builder.Services.AddHostedService<AddAccountBackgroundConsumer>();
+            builder.Services.AddHostedService<AddAuthBackgroundConsumer>();
+            builder.Services.AddHostedService<AddVaultBackgroundConsumer>();
+            builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
+            builder.Services.AddHostedService<UpdateAuthBackgroundConsumer>(); 
+
 
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
             builder.Services.AddScoped<IAuthRepo, AuthRepo>();

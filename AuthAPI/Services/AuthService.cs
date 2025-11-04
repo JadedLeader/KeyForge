@@ -189,7 +189,7 @@ namespace AuthAPI.Services
 
             RevokeLongLivedTokenResponse serverResponse = new RevokeLongLivedTokenResponse();
 
-            if(existingAuth.AccountId == Guid.Empty)
+            if (existingAuth.AccountId == Guid.Empty || string.IsNullOrEmpty(existingAuth.LongLivedKey))
             {
                 Log.Error($"No valid auth has previously been setup or registered"); 
 
@@ -314,7 +314,7 @@ namespace AuthAPI.Services
 
             AuthDataModel authAccount = await _authRepo.CheckForExistingAuthViaAccountId(Guid.Parse(accountIdFromToken));
 
-            if (authAccount.AuthKey == Guid.Empty)
+            if (authAccount.AuthKey == Guid.Empty || string.IsNullOrEmpty(authAccount.LongLivedKey))
             {
                 Log.Information($"No account can be found with the provided account ID");
 

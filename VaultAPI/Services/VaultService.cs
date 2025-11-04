@@ -8,6 +8,8 @@ using VaultAPI.Interfaces.RepoInterfaces;
 using VaultAPI.Interfaces.ServiceInterfaces;
 using VaultAPI.Repos;
 using VaultAPI.Storage;
+using KeyForgedShared.DTO_s.VaultDTO_s;
+using KeyForgedShared.ReturnTypes.Vaults;
 
 namespace VaultAPI.Services
 {
@@ -32,10 +34,10 @@ namespace VaultAPI.Services
             _typeMappings = typeMappings;
         }
 
-        public async Task<CreateVaultResponse> CreateVault(CreateVaultRequest request, string shortLivedToken)
+        public async Task<CreateVaultReturn> CreateVault(CreateVaultDto request, string shortLivedToken)
         {
 
-            CreateVaultResponse serverResponse = new CreateVaultResponse();
+            CreateVaultReturn vaultReturn = new CreateVaultReturn();
 
             string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
 
@@ -46,12 +48,12 @@ namespace VaultAPI.Services
 
                 Log.Warning($"No account ID can be found within the JWT");
 
-                serverResponse.AccountId = string.Empty;
-                serverResponse.VaultId = string.Empty;
-                serverResponse.Sucessfull = false;
-                serverResponse.VaultName = string.Empty;
+                vaultReturn.AccountId = string.Empty;
+                vaultReturn.VaultId = string.Empty;
+                vaultReturn.Sucessful = false;
+                vaultReturn.VaultName = string.Empty;
 
-                return serverResponse;
+                return vaultReturn;
             }
 
             AccountDataModel? doesAccountExist = await _accountRepo.CheckForExistingAccount(parsedAccountId);
@@ -60,12 +62,12 @@ namespace VaultAPI.Services
             {
                 Log.Warning($"No account can be identified within the database based off the provided ID");
 
-                serverResponse.AccountId = accountIdFromToken;
-                serverResponse.VaultId= string.Empty;
-                serverResponse.VaultName = string.Empty;
-                serverResponse.Sucessfull = false;
+                vaultReturn.AccountId = accountIdFromToken;
+                vaultReturn.VaultId= string.Empty;
+                vaultReturn.VaultName = string.Empty;
+                vaultReturn.Sucessful = false;
 
-                return serverResponse;
+                return vaultReturn;
             }
 
             var vaultType = (KeyForgedShared.SharedDataModels.VaultType) Enum.Parse(typeof(KeyForgedShared.SharedDataModels.VaultType), request.VaultType);
@@ -74,24 +76,24 @@ namespace VaultAPI.Services
 
             await _vaultRepo.AddAsync(createNewVault);
 
-            serverResponse.AccountId = createNewVault.AccountId.ToString();
-            serverResponse.VaultName = createNewVault.VaultName;
-            serverResponse.VaultType = (gRPCIntercommunicationService.Protos.VaultType)createNewVault.VaultType;
-            serverResponse.VaultId = createNewVault.VaultId.ToString();
-            serverResponse.Sucessfull = true;
+            vaultReturn.AccountId = createNewVault.AccountId.ToString();
+            vaultReturn.VaultName = createNewVault.VaultName;
+            vaultReturn.VaultType = (KeyForgedShared.ReturnTypes.Vaults.VaultType)createNewVault.VaultType;
+            vaultReturn.VaultId = createNewVault.VaultId.ToString();
+            vaultReturn.Sucessful = true;
 
             StreamVaultCreationsResponse newVaultCreationResponse = _typeMappings.MapVaultModelToStreamVault(createNewVault);
 
             _vaultActionsStorage.AddToVaultCreations(newVaultCreationResponse);
 
-            return serverResponse;
+            return vaultReturn;
 
 
         }
 
-        public async Task<DeleteVaultResponse> DeleteVault(DeleteVaultRequest request, string shortLivedToken, string vaultIdCookie)
+        public async Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken, string vaultIdCookie)
         {
-            DeleteVaultResponse serverResponse = new DeleteVaultResponse();
+            DeleteVaultReturn serverResponse = new DeleteVaultReturn();
 
             string? getShortLivedToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
 
@@ -102,7 +104,7 @@ namespace VaultAPI.Services
 
                 serverResponse.AccountId = string.Empty; 
                 serverResponse.VaultId = string.Empty;
-                serverResponse.Successfull = false; 
+                serverResponse.Sucessful = false; 
 
                 return serverResponse;
             }
@@ -117,7 +119,7 @@ namespace VaultAPI.Services
 
                 serverResponse.AccountId = getShortLivedToken;
                 serverResponse.VaultId = string.Empty;
-                serverResponse.Successfull = false;
+                serverResponse.Sucessful = false;
 
                 return serverResponse;
             }
@@ -126,7 +128,7 @@ namespace VaultAPI.Services
 
             serverResponse.VaultId = checkForExistingVault.VaultId.ToString();
             serverResponse.AccountId = checkForExistingVault.AccountId.ToString();
-            serverResponse.Successfull = true;
+            serverResponse.Sucessful = true;
 
             StreamVaultDeletionsResponse newDeleteVaultResponse = _typeMappings.MapVaultToStreamVaultDeletions(checkForExistingVault);
 
@@ -136,9 +138,9 @@ namespace VaultAPI.Services
 
         }
 
-        public async Task<UpdateVaultNameResponse> UpdateVaultName(UpdateVaultNameRequest request, string shortLivedToken, string vaultIdCookie)
+        public async Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken, string vaultIdCookie)
         {
-            UpdateVaultNameResponse serverResponse = new UpdateVaultNameResponse();
+            UpdateVaultNameReturn serverResponse = new UpdateVaultNameReturn();
 
             string? getAccountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
 
@@ -148,7 +150,7 @@ namespace VaultAPI.Services
 
                 serverResponse.VaultId = string.Empty; 
                 serverResponse.UpdatedVaultName = string.Empty;
-                serverResponse.Successfull = false; 
+                serverResponse.Sucessful = false; 
 
                 return serverResponse;
             }
@@ -161,7 +163,7 @@ namespace VaultAPI.Services
 
                 serverResponse.VaultId = string.Empty;
                 serverResponse.UpdatedVaultName= string.Empty;
-                serverResponse.Successfull = false;
+                serverResponse.Sucessful = false;
 
                 return serverResponse;
             }
@@ -170,7 +172,7 @@ namespace VaultAPI.Services
 
             serverResponse.VaultId = existingVault.VaultId.ToString();
             serverResponse.UpdatedVaultName = existingVault.VaultName;
-            serverResponse.Successfull = true;
+            serverResponse.Sucessful = true;
 
             StreamVaultUpdateResponse newStreamVaultUpdate =  _typeMappings.MapVaultToStreamVaultUpdates(existingVault);
             
@@ -181,6 +183,29 @@ namespace VaultAPI.Services
 
         }
 
+        public override async Task StreamVaultCreations(StreamVaultCreationsRequest request, IServerStreamWriter<StreamVaultCreationsResponse> responseStream, ServerCallContext context)
+        {
+            foreach(var vaultCreation in _vaultActionsStorage.ReturnVaultCreations())
+            {
+                await responseStream.WriteAsync(vaultCreation);
+            }
+        }
+
+        public override async Task StreamVaultDeletions(StreamVaultDeletionsRequest request, IServerStreamWriter<StreamVaultDeletionsResponse> responseStream, ServerCallContext context)
+        {
+            foreach(var vaultDeletion in _vaultActionsStorage.ReturnVaultDeletions())
+            {
+                await responseStream.WriteAsync(vaultDeletion);
+            }
+        }
+
+        public override async Task StreamVaultUpdates(StreamVaultUpdateRequest request, IServerStreamWriter<StreamVaultUpdateResponse> responseStream, ServerCallContext context)
+        {
+            foreach(var vaultUpdate in _vaultActionsStorage.ReturnVaultUpdates())
+            {
+                await responseStream.WriteAsync(vaultUpdate);
+            }
+        }
      
     }
 }

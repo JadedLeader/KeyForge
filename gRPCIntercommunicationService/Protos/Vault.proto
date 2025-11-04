@@ -5,52 +5,9 @@ option csharp_namespace = "gRPCIntercommunicationService.Protos";
 
 service Vault{ 
 
-	rpc CreateVault(CreateVaultRequest) returns (CreateVaultResponse);
-	rpc DeleteVault(DeleteVaultRequest) returns (DeleteVaultResponse);
-	rpc UpdateVaultName(UpdateVaultNameRequest) returns(UpdateVaultNameResponse);
-
 	rpc StreamVaultCreations(StreamVaultCreationsRequest) returns (stream StreamVaultCreationsResponse);
 	rpc StreamVaultDeletions(StreamVaultDeletionsRequest) returns (stream StreamVaultDeletionsResponse);
 	rpc StreamVaultUpdates(StreamVaultUpdateRequest) returns (stream StreamVaultUpdateResponse);
-}
-
-message CreateVaultRequest{ 
-	string VaultName = 1; 
-	string VaultType = 2;
-	
-}
-
-message CreateVaultResponse{ 
-
-	string AccountId = 1; 
-	string VaultId = 2;
-	string VaultName = 3; 
-	VaultType VaultType = 4;
-	bool Sucessfull = 5; 
-
-}
-
-message DeleteVaultRequest { 
-	string VaultId = 1;
-}
-
-message DeleteVaultResponse { 
-	string VaultId = 1; 
-	string AccountId = 2; 
-	bool Successfull = 3;
-}
-
-message UpdateVaultNameRequest
-{ 
-	string VaultId = 1;
-	string VaultName = 2;
-}
-
-message UpdateVaultNameResponse
-{ 
-	string VaultId = 1;
-	string UpdatedVaultName = 2; 
-	bool Successfull = 3;
 }
 
 message StreamVaultCreationsRequest
@@ -90,6 +47,8 @@ message StreamVaultUpdateResponse
 	string VaultName = 4;
 }
 
+
 enum VaultType{ 
 	Personal = 0; 
+	Team = 1;
 }

@@ -1,4 +1,6 @@
 ﻿using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.DTO_s.VaultDTO_s;
+using KeyForgedShared.ReturnTypes.Vaults;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -21,13 +23,13 @@ namespace VaultAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateVault([FromBody]CreateVaultRequest createVaultRequest)
+        public async Task<IActionResult> CreateVault([FromBody]CreateVaultDto createVaultRequest)
         {
             if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
             {
-                CreateVaultResponse createNewVault = await _vaultService.CreateVault(createVaultRequest, cookie);
+                CreateVaultReturn createNewVault = await _vaultService.CreateVault(createVaultRequest, cookie);
 
-                if(createNewVault.Sucessfull == false)
+                if(createNewVault.Sucessful == false)
                 {
                     Log.Warning($"{this.GetType().Namespace} An error occurred when creating a vault");
 
@@ -45,7 +47,7 @@ namespace VaultAPI.Controllers
         }
 
         [HttpDelete] 
-        public async Task<IActionResult> DeleteVault([FromBody] DeleteVaultRequest deleteVaultRequest)
+        public async Task<IActionResult> DeleteVault([FromBody] DeleteVaultDto deleteVaultRequest)
         {
             bool shortLivedToken = Request.Cookies.TryGetValue("ShortLivedToken", out string? tokenCookie);
 
@@ -53,9 +55,9 @@ namespace VaultAPI.Controllers
 
             if(shortLivedToken && vaultId)
             {
-                DeleteVaultResponse deleteVault = await _vaultService.DeleteVault(deleteVaultRequest, tokenCookie, vaultIdCookie);
+                DeleteVaultReturn deleteVault = await _vaultService.DeleteVault(deleteVaultRequest, tokenCookie, vaultIdCookie);
 
-                if(deleteVault.Successfull == false)
+                if(deleteVault.Sucessful == false)
                 {
                     return BadRequest(deleteVault);
                 }
@@ -69,7 +71,7 @@ namespace VaultAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateVault([FromBody] UpdateVaultNameRequest updateVaultNameRequest)
+        public async Task<IActionResult> UpdateVault([FromBody] UpdateVaultNameDto updateVaultNameRequest)
         {
             bool shortLivedToken = Request.Cookies.TryGetValue("ShortLivedToken", out string? shortLivedTokenCookie);
 
@@ -77,9 +79,9 @@ namespace VaultAPI.Controllers
 
             if(shortLivedToken && vaultId)
             {
-                UpdateVaultNameResponse updateVaultName = await _vaultService.UpdateVaultName(updateVaultNameRequest, shortLivedTokenCookie, vaultIdCookie);
+                UpdateVaultNameReturn updateVaultName = await _vaultService.UpdateVaultName(updateVaultNameRequest, shortLivedTokenCookie, vaultIdCookie);
 
-                if(updateVaultName.Successfull == false)
+                if(updateVaultName.Sucessful == false)
                 {
                     return BadRequest(updateVaultName); 
                 }
@@ -89,8 +91,6 @@ namespace VaultAPI.Controllers
 
             return Unauthorized();
         }
-
-
 
     }
 }

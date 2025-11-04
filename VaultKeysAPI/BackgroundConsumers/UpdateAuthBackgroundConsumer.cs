@@ -2,10 +2,10 @@
 using Grpc.Core;
 using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using VaultAPI.Repos;
-using VaultAPI.Interfaces.RepoInterfaces;
+using VaultKeysAPI.Repos;
+using VaultKeysAPI.Interfaces;
 
-namespace VaultAPI.BackgroundConsumers
+namespace VaultKeysAPI.BackgroundConsumers
 {
     public class UpdateAuthBackgroundConsumer : BackgroundService
     {

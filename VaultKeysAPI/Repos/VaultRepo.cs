@@ -15,5 +15,10 @@ namespace VaultKeysAPI.Repos
             _vaultKeysDataContext = vaultKeysDataContext;
         }
 
+
+        public override Task<VaultDataModel> AddAsync(VaultDataModel databaseModel)
+        {
+            return base.AddAsync(databaseModel);
+        }
     }
 }

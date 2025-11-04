@@ -39,6 +39,15 @@ namespace AuthAPI.Services
             string? audience = _configuration["JWT:Audience"];
             string? key = _configuration["JWT:Key"];
 
+            if (string.IsNullOrEmpty(key))
+                throw new InvalidOperationException("JWT Key is missing in configuration");
+
+            if (string.IsNullOrEmpty(accountId))
+                throw new ArgumentNullException(nameof(accountId));
+
+            if (string.IsNullOrEmpty(role))
+                throw new ArgumentNullException(nameof(role));
+
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]

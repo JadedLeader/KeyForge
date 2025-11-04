@@ -2,10 +2,10 @@
 using KeyForgedShared.SharedDataModels;
 using Grpc.Core;
 using gRPCIntercommunicationService;
-using VaultAPI.Repos;
-using VaultAPI.Interfaces.RepoInterfaces;
+using VaultKeysAPI.Repos;
+using VaultKeysAPI.Interfaces;
 
-namespace VaultAPI.BackgroundConsumers
+namespace VaultKeysAPI.BackgroundConsumers
 {
     public class DeleteAccountBackgroundConsumer : BackgroundService
     {
@@ -43,7 +43,9 @@ namespace VaultAPI.BackgroundConsumers
 
         private async Task DeleteAccounts(IAccountRepo accountRepo)
         {
+
             var callOptions = new CallOptions().WithWaitForReady();
+
             StreamAccountDeleteRequest streamAccountDeletions = new StreamAccountDeleteRequest();   
 
             var handler = _accountClient.StreamAccountDeletions(streamAccountDeletions, callOptions); 

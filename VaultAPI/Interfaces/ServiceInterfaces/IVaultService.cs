@@ -1,13 +1,15 @@
 ﻿using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.DTO_s.VaultDTO_s;
+using KeyForgedShared.ReturnTypes.Vaults;
 
 namespace VaultAPI.Interfaces.ServiceInterfaces
 {
     public interface IVaultService
     {
-        Task<CreateVaultResponse> CreateVault(CreateVaultRequest request, string shortLivedToken);
+        Task<CreateVaultReturn> CreateVault(CreateVaultDto request, string shortLivedToken);
 
-        Task<DeleteVaultResponse> DeleteVault(DeleteVaultRequest request, string shortLivedToken, string vaultIdCookie);
+        Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken, string vaultIdCookie);
 
-        Task<UpdateVaultNameResponse> UpdateVaultName(UpdateVaultNameRequest request, string shortLivedToken, string vaultIdCookie);
+        Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken, string vaultIdCookie);
     }
 }

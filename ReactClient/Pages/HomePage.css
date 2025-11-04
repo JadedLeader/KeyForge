@@ -3,3 +3,69 @@
 body {
     @apply bg-stone-950 min-h-screen;
 }
+
+.popover-dark {
+    @apply bg-neutral-800 text-white border-gray-700 items-center justify-center;
+}
+
+.popover-center {
+    @apply fixed inset-0 flex items-center justify-center z-50;
+}
+
+.Textplaceholder::placeholder {
+    @apply text-white opacity-70;
+}
+
+.sidemenu-dark {
+    @apply bg-neutral-800 text-white;
+}
+
+.sidemenuDescription-dark{ 
+    @apply text-white;
+}
+
+
+.dialog-dark {
+    @apply bg-neutral-800 text-white rounded-lg shadow-lg p-6 sm:max-w-[525px] w-full;
+ 
+    outline: none;
+}
+
+.dialog-dark:focus {
+      @apply ring-0; 
+}
+
+    
+    .dialog-dark:focus-visible {
+        @apply ring-2 ring-neutral-700;
+    }
+
+  
+    .dialog-dark .dialog-header,
+    .dialog-dark .dialog-title,
+    .dialog-dark .dialog-description {
+        @apply text-white text-left ;
+    }
+
+    
+    .dialog-dark label {
+        @apply text-white;
+    }
+
+   
+    .dialog-dark input {
+        @apply bg-neutral-700 text-white placeholder-white/70 border border-gray-600 rounded p-2;
+    }
+
+   
+    .dialog-dark button {
+        @apply text-white;
+    }
+
+    .dialog-dark-form {
+        @apply m-0 p-0 border-0 outline-none;
+    }
+
+.dialog-footer {
+    @apply flex justify-between;
+}

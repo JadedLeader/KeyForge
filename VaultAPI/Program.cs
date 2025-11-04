@@ -30,6 +30,7 @@ namespace VaultAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGrpc();
 
             builder.Services.AddHostedService<AddAccountBackgroundConsumer>();
             builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
@@ -82,9 +83,9 @@ namespace VaultAPI
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
-
             app.MapControllers();
+
+            app.MapGrpcService<VaultService>();
 
             app.Run();
         }

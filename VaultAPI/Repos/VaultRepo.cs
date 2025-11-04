@@ -51,6 +51,13 @@ namespace VaultAPI.Repos
 
         }
 
+        public async Task<List<VaultDataModel>> GetVaultsViaAccountId(Guid accountId)
+        {
+            List<VaultDataModel> vaults = await _dataContext.Vault.Where(vi => vi.AccountId == accountId).ToListAsync();
+
+            return vaults;
+        }
+
 
 
     }

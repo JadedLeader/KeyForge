@@ -37,9 +37,10 @@ namespace VaultAPI.BackgroundConsumers
         private async Task AddAuths(IAuthRepo authRepo)
         {
 
+            var callOptions = new CallOptions().WithWaitForReady();
             StreamAuthCreationsRequest streamAuthCreations = new StreamAuthCreationsRequest();
 
-            var handler = _authClient.StreamAuthCreations(streamAuthCreations);
+            var handler = _authClient.StreamAuthCreations(streamAuthCreations, callOptions);
 
             var responseStream = handler.ResponseStream.ReadAllAsync();
 
@@ -67,6 +68,7 @@ namespace VaultAPI.BackgroundConsumers
                 AccountId = Guid.Parse(streamAuthCreation.AccountId),
                 ShortLivedKey = streamAuthCreation.ShortLivedKey,
                 LongLivedKey = streamAuthCreation.LongLivedKey,
+                
 
             };
 
