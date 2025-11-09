@@ -2,8 +2,9 @@
 using Grpc.Core;
 using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using VaultAPI.Repos;
+using Serilog;
 using VaultAPI.Interfaces.RepoInterfaces;
+using VaultAPI.Repos;
 
 namespace VaultAPI.BackgroundConsumers
 {
@@ -24,43 +25,56 @@ namespace VaultAPI.BackgroundConsumers
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             
-            using IServiceScope getScope = _serviceScope.CreateScope();
-
-            IAuthRepo getAuthRepoLifetime = getScope.ServiceProvider.GetRequiredService<IAuthRepo>();
-
             while(!stoppingToken.IsCancellationRequested)
             {
-                await UpdateAuths(getAuthRepoLifetime);
+                await UpdateAuths();
             }
         }
 
-
-        private async Task UpdateAuths(IAuthRepo authRepo)
+        private async Task UpdateAuths()
         {
-            var callOptions = new CallOptions().WithWaitForReady();
 
-            StreamAuthUpdatesRequest request = new StreamAuthUpdatesRequest();
-
-            var handler = _authClient.StreamAuthKeyUpdates(request, callOptions);
-
-            var responseStream = handler.ResponseStream.ReadAllAsync();
-
-            await foreach(StreamAuthUpdatesResponse authUpdate in responseStream)
+            try
             {
-                if(authUpdate.UpdateType == UpdateType.ShortLivedUpdate)
+                var callOptions = new CallOptions().WithWaitForReady();
+
+                StreamAuthUpdatesRequest request = new StreamAuthUpdatesRequest();
+
+                var handler = _authClient.StreamAuthKeyUpdates(request, callOptions);
+
+                var responseStream = handler.ResponseStream.ReadAllAsync();
+
+                await foreach (StreamAuthUpdatesResponse authUpdate in responseStream)
                 {
-                    if(_authUpdates.Add(authUpdate.UpdateId))
+                    using IServiceScope getScope = _serviceScope.CreateScope();
+
+                    IAuthRepo authRepo = getScope.ServiceProvider.GetRequiredService<IAuthRepo>();
+
+                    if (authUpdate.UpdateType == UpdateType.ShortLivedUpdate)
                     {
-                        await authRepo.UpdateShortLivedKey(Guid.Parse(authUpdate.AccountId), authUpdate.ShortLivedKey);
+                        if (_authUpdates.Add(authUpdate.UpdateId))
+                        {
+                            await authRepo.UpdateShortLivedKey(Guid.Parse(authUpdate.AccountId), authUpdate.ShortLivedKey);
+                        }
+                    }
+                    else if (authUpdate.UpdateType == UpdateType.LongLivedUpdate)
+                    {
+                        if (_authUpdates.Add(authUpdate.UpdateId))
+                        {
+                            await authRepo.UpdateLongLivedKey(Guid.Parse(authUpdate.AccountId), authUpdate.LongLivedKey);
+                        }
                     }
                 }
-                else if(authUpdate.UpdateType == UpdateType.LongLivedUpdate)
-                {
-                    if(_authUpdates.Add(authUpdate.UpdateId))
-                    {
-                        await authRepo.UpdateLongLivedKey(Guid.Parse(authUpdate.AccountId), authUpdate.LongLivedKey);
-                    }
-                }
+            }
+            catch (RpcException ex)
+            {
+                Log.Error(ex, "gRPC stream dropped — reconnecting...");
+                await Task.Delay(1000);  
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unhandled exception in UpdateAuth background consumer");
+                await Task.Delay(1000);
             }
         }
     }

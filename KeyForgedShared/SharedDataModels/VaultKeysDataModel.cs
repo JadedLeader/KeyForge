@@ -17,5 +17,7 @@ namespace KeyForgedShared.SharedDataModels
 
         public VaultDataModel Vault { get; set; }
 
+        public string DateTimeVaultKeyCreated { get; set; }
+
     }
 }

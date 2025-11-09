@@ -2,6 +2,7 @@
 using VaultKeysAPI.DataContext;
 using KeyForgedShared.SharedDataModels;
 using VaultKeysAPI.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace VaultKeysAPI.Repos
 {
@@ -16,9 +17,32 @@ namespace VaultKeysAPI.Repos
         }
 
 
-        public override Task<VaultDataModel> AddAsync(VaultDataModel databaseModel)
+        public override async Task<VaultDataModel> AddAsync(VaultDataModel databaseModel)
         {
-            return base.AddAsync(databaseModel);
+
+            bool entityExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == databaseModel.VaultId);
+
+            if (entityExists)
+            {
+                return databaseModel;
+            }
+
+            return await base.AddAsync(databaseModel);
         }
+
+        public async Task<VaultDataModel> GetVaultByUserId(Guid userId)
+        {
+
+            VaultDataModel? returningVault = await _vaultKeysDataContext.Vault.FirstOrDefaultAsync(x => x.AccountId == userId); 
+
+            if(returningVault == null)
+            {
+                return null;
+            }
+
+            return returningVault;
+
+        }
+
     }
 }

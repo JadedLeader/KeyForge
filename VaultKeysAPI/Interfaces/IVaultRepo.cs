@@ -7,5 +7,7 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultDataModel> AddAsync(VaultDataModel databaseModel);
 
+        public Task<VaultDataModel> GetVaultByUserId(Guid userId);
+
     }
 }

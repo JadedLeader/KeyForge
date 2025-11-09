@@ -54,7 +54,7 @@ namespace VaultAPI.Repos
         {
             AuthDataModel? authAccount = await FindAuthAccountViaId(accountId);
 
-            if (authAccount.AccountId == Guid.Empty)
+            if (authAccount == null)
             {
                 Log.Warning($"No auth record can be found");
 
@@ -74,7 +74,7 @@ namespace VaultAPI.Repos
             {
                 Log.Warning($"{this.GetType().Namespace} Cannot find auth account relationg to this ID");
 
-                return new AuthDataModel();
+                return null;
             }
 
             return authAccount;

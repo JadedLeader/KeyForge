@@ -15,9 +15,17 @@ namespace VaultKeysAPI.Repos
               _vaultKeysDataContext = vaultKeysDataContext;
         }
 
-        public override Task<AccountDataModel> AddAsync(AccountDataModel databaseModel)
+        public override async Task<AccountDataModel> AddAsync(AccountDataModel databaseModel)
         {
-            return base.AddAsync(databaseModel);
+
+            bool doesAccountExist = await _vaultKeysDataContext.Account.AnyAsync(u => u.AccountId == databaseModel.AccountId);
+
+            if (doesAccountExist)
+            {
+                return databaseModel;
+            } 
+
+            return await base.AddAsync(databaseModel);
         }
 
         public override Task<AccountDataModel> DeleteAsync(AccountDataModel databaseModel)

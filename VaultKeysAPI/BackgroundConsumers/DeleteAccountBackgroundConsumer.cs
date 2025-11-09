@@ -24,24 +24,16 @@ namespace VaultKeysAPI.BackgroundConsumers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            
-            using IServiceScope createScope = _serviceScope.CreateScope();
-
-            IAccountRepo? getAccountRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAccountRepo>();
-
-            if (getAccountRepoLifetime == null)
-            {
-                throw new Exception($"{this.GetType().Namespace} Could not find the designated lifetime for the account repo");
-            }
+           
 
             while(!stoppingToken.IsCancellationRequested)
             {
-                await DeleteAccounts(getAccountRepoLifetime);
+                await DeleteAccounts();
             }
         }
 
 
-        private async Task DeleteAccounts(IAccountRepo accountRepo)
+        private async Task DeleteAccounts()
         {
 
             var callOptions = new CallOptions().WithWaitForReady();
@@ -54,6 +46,10 @@ namespace VaultKeysAPI.BackgroundConsumers
 
             await foreach(StreamAccountDeleteResponse deletion in responseStream)
             {
+                using IServiceScope createScope = _serviceScope.CreateScope();
+
+                IAccountRepo? accountRepo = createScope.ServiceProvider.GetRequiredService<IAccountRepo>();
+
                 if (_accountIds.Add(Guid.Parse(deletion.AccountId)))
                 {
                     await accountRepo.DeleteAccountViaAccountId(Guid.Parse(deletion.AccountId));

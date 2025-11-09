@@ -23,17 +23,14 @@ namespace VaultKeysAPI.BackgroundConsumers
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            using IServiceScope createScope = _serviceScope.CreateScope();
-
-            IAccountRepo getAccountRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAccountRepo>();
-
+            
             while (!stoppingToken.IsCancellationRequested)
             {
-                await AddAccountsFromStreamAsync(getAccountRepoLifetime);
+                await AddAccountsFromStreamAsync();
             }
         }
 
-        private async Task AddAccountsFromStreamAsync(IAccountRepo accountRepo)
+        private async Task AddAccountsFromStreamAsync()
         {
             var callOptions = new CallOptions().WithWaitForReady();
 
@@ -45,6 +42,10 @@ namespace VaultKeysAPI.BackgroundConsumers
 
             await foreach(var account in accountsResponseStream)
             {
+                using var scope = _serviceScope.CreateScope();
+                var accountRepo = scope.ServiceProvider.GetRequiredService<IAccountRepo>();
+
+
                 if (!_addAccountResponse.Add(Guid.Parse(account.AccountId)))
                 {
                     AccountDataModel newAccountDataModel = MapStreamAccountToDataModel(account);

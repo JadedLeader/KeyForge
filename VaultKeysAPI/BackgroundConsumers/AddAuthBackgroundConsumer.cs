@@ -25,18 +25,14 @@ namespace VaultKeysAPI.BackgroundConsumers
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
 
-            using IServiceScope createScope = _serviceScope.CreateScope();
-
-            IAuthRepo getAuthRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAuthRepo>();
-
             while (!stoppingToken.IsCancellationRequested)
             {
-                await AddAuths(getAuthRepoLifetime);
+                await AddAuths();
             }
         }
 
 
-        private async Task AddAuths(IAuthRepo authRepo)
+        private async Task AddAuths()
         {
             try
             {
@@ -47,6 +43,11 @@ namespace VaultKeysAPI.BackgroundConsumers
 
                 await foreach (var authCreationResponse in responseStream)
                 {
+                    using IServiceScope createScope = _serviceScope.CreateScope();
+
+                    IAuthRepo authRepo = createScope.ServiceProvider.GetRequiredService<IAuthRepo>();
+
+
                     if (!Guid.TryParse(authCreationResponse.AuthKey, out var authKey) || authKey == Guid.Empty)
                     {
                         Log.Warning("Invalid AuthKey in stream: {AuthKey}", authCreationResponse.AuthKey);

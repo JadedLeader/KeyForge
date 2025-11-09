@@ -14,7 +14,7 @@ namespace KeyForgedShared.Generics
         }
 
         public virtual async Task<T> AddAsync(T databaseModel)
-        {
+        { 
             await _dbContext.Set<T>().AddAsync(databaseModel);
 
             await _dbContext.SaveChangesAsync();
@@ -39,6 +39,8 @@ namespace KeyForgedShared.Generics
 
             return databaseModel;
         }
+
+     
 
 
 

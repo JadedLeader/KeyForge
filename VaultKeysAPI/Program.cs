@@ -60,7 +60,7 @@ namespace VaultKeysAPI
             builder.Services.AddScoped<IAuthRepo, AuthRepo>();
             builder.Services.AddScoped<IVaultRepo, VaultRepo>();
             builder.Services.AddScoped<IVaultKeysRepo, VaultKeysRepo>();
-            builder.Services.AddScoped<VaultKeysService>();
+            builder.Services.AddScoped<IVaultKeysService, VaultKeysService>();
 
 
             var app = builder.Build();

@@ -23,18 +23,15 @@ namespace VaultKeysAPI.BackgroundConsumers
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            using IServiceScope createScope = _scopeFactory.CreateScope();
-
-            IVaultRepo getVaultRepoLifetime = createScope.ServiceProvider.GetRequiredService<IVaultRepo>();
+        { 
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                await ConsumeVaultCreations(getVaultRepoLifetime);
+                await ConsumeVaultCreations();
             }
         }
 
-        private async Task ConsumeVaultCreations(IVaultRepo vaultRepo)
+        private async Task ConsumeVaultCreations()
         {
             var callOptions = new CallOptions().WithWaitForReady();
 
@@ -46,6 +43,10 @@ namespace VaultKeysAPI.BackgroundConsumers
 
             await foreach(var vaultStreamResponse in vaultStreamResponses)
             {
+                using IServiceScope createScope = _scopeFactory.CreateScope();
+
+                IVaultRepo vaultRepo = createScope.ServiceProvider.GetRequiredService<IVaultRepo>();
+
                 if (!vaultHashset.Add(Guid.Parse(vaultStreamResponse.VaultId)))
                 {
                     VaultDataModel streamToVaultModel = MapVaultStreamToVaultModel(vaultStreamResponse);
