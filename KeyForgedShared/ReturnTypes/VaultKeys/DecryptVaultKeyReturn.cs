@@ -11,5 +11,7 @@ namespace KeyForgedShared.ReturnTypes.VaultKeys
 
         public string DecryptedVaultKey { get ; set; }
 
+        public bool Sucess { get; set; }
+
     }
 }

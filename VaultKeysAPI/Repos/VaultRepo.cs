@@ -44,5 +44,17 @@ namespace VaultKeysAPI.Repos
 
         }
 
+        public async Task<bool> HasVault(Guid userId, Guid vaultId)
+        {
+            bool userHasVaults = await _vaultKeysDataContext.Vault.AnyAsync(x => x.AccountId == userId && x.VaultId == vaultId);
+
+            if (!userHasVaults)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

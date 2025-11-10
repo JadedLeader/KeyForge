@@ -12,7 +12,7 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<UpdateVaultKeyReturn> UpdateVaultKey();
 
-        public Task<DecryptVaultKeyReturn> DecryptVaultKey(Guid keyToUnhash);
+        public Task<DecryptVaultKeyReturn> DecryptVaultKey(DecryptVaultKeyDto decryptVaultkey, string shortLivedToken);
 
 
 

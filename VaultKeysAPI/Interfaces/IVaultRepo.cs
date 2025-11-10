@@ -9,5 +9,7 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultDataModel> GetVaultByUserId(Guid userId);
 
+        public Task<bool> HasVault(Guid userId, Guid vaultId);
+
     }
 }

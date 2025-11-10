@@ -13,9 +13,5 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId);
 
-        public Task<string> ReturnEncryptedVaultKeyFromVaultKeyId(Guid vaultKeyId);
-
-
-
     }
 }

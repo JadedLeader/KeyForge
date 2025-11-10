@@ -126,11 +126,36 @@ namespace VaultKeysAPI.Services
             throw new NotImplementedException();
         }
 
-        public async Task<DecryptVaultKeyReturn> DecryptVaultKey(Guid vaultKeyId)
+        public async Task<DecryptVaultKeyReturn> DecryptVaultKey(DecryptVaultKeyDto decryptVaultkey, string shortLivedToken)
         {
             DecryptVaultKeyReturn decryptVaultKeyResponse = new DecryptVaultKeyReturn();
 
-            throw new NotImplementedException();
+            string? getAccountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(getAccountIdFromToken == null)
+            {
+                decryptVaultKeyResponse.Sucess = false;
+                decryptVaultKeyResponse.DecryptedVaultKey = "";
+
+                return decryptVaultKeyResponse;
+
+            }
+
+            bool userHasAccountAndVaults = await _vaultRepo.HasVault(Guid.Parse(getAccountIdFromToken), Guid.Parse(decryptVaultkey.VaultId));
+
+            if (!userHasAccountAndVaults)
+            {
+                decryptVaultKeyResponse.Sucess = false;
+                decryptVaultKeyResponse.DecryptedVaultKey = "";
+
+                return decryptVaultKeyResponse;
+            }
+
+            string decryptedVaultKey = DecryptKey(decryptVaultkey.EncryptedVaultKey);
+
+            decryptVaultKeyResponse.DecryptedVaultKey = decryptedVaultKey;
+
+            return decryptVaultKeyResponse;
         }
 
         public async Task ReturnAllVaultsForUser()
@@ -148,7 +173,7 @@ namespace VaultKeysAPI.Services
 
         }
 
-        private string DecryptVaultKey(string encryptedVaultKey)
+        private string DecryptKey(string encryptedVaultKey)
         {
             byte[] encryptedKey = Convert.FromBase64String(encryptedVaultKey); 
 

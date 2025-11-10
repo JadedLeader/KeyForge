@@ -61,17 +61,6 @@ namespace VaultKeysAPI.Repos
             throw new NotImplementedException();
         }
 
-        public async Task<string> ReturnEncryptedVaultKeyFromVaultKeyId(Guid vaultKeyId)
-        {
-            VaultKeysDataModel? vaultKey = await _vaultKeysDataContext.VaultKeys.FirstOrDefaultAsync(x => x.VaultKeyId == vaultKeyId);
-
-            if(vaultKey == null)
-            {
-                return null;
-            }
-
-            return vaultKey.HashedVaultKey;
-        }
 
   
 
