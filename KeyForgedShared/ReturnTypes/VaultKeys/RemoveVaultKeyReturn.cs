@@ -9,7 +9,7 @@ namespace KeyForgedShared.ReturnTypes.VaultKeys
     public class RemoveVaultKeyReturn
     {
 
-        public string VaultName { get; set; }
+        public string VaultId { get; set; }
 
         public string KeyName { get; set; }
 

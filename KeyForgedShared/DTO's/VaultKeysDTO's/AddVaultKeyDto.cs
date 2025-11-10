@@ -9,9 +9,9 @@ namespace KeyForgedShared.DTO_s.VaultKeysDTO_s
     public class AddVaultKeyDto
     {
 
-        public string VaultName { get; set; }   
+        public string KeyName { get; set; }   
 
-        public string PasswordToHash { get ; set; } 
+        public string PasswordToEncrypt { get ; set; } 
 
 
     }

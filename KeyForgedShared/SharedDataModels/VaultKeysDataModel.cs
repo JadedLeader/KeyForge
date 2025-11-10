@@ -13,6 +13,8 @@ namespace KeyForgedShared.SharedDataModels
         [ForeignKey("VaultId")]
         public Guid VaultId { get; set; } 
 
+        public string KeyName { get; set; }
+
         public string HashedVaultKey { get; set; }
 
         public VaultDataModel Vault { get; set; }

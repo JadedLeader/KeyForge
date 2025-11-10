@@ -6,14 +6,10 @@ using System.Threading.Tasks;
 
 namespace KeyForgedShared.ReturnTypes.VaultKeys
 {
-    public class UnhashVaultKeyReturn
+    public class DecryptVaultKeyReturn
     {
 
-        public string VaultName { get; set; }
-
-        public string KeyName { get; set; }
-
-        public string UnhashedKey { get; set; } 
+        public string DecryptedVaultKey { get ; set; }
 
     }
 }

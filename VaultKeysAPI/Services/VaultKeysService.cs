@@ -1,4 +1,5 @@
-﻿using KeyForgedShared.DTO_s.VaultKeysDTO_s;
+﻿using CryptoNet;
+using KeyForgedShared.DTO_s.VaultKeysDTO_s;
 using KeyForgedShared.Interfaces;
 using KeyForgedShared.ReturnTypes.VaultKeys;
 using KeyForgedShared.SharedDataModels;
@@ -17,12 +18,26 @@ namespace VaultKeysAPI.Services
         private readonly IJwtHelper _jwtHelper;
 
         private readonly VaultKeysMappings _vaultKeysMappings;
+
+        private readonly IConfiguration _configuration;
+
+        private readonly ICryptoNetAes _aes;
         
-        public VaultKeysService(IVaultKeysRepo vaultKeysRepo, IJwtHelper jwtHelper, IVaultRepo vaultRepo)
+        public VaultKeysService(IVaultKeysRepo vaultKeysRepo, IJwtHelper jwtHelper, IVaultRepo vaultRepo, IConfiguration config)
         {
             _vaultKeysRepo = vaultKeysRepo;
             _jwtHelper = jwtHelper;
             _vaultRepo = vaultRepo;
+            _configuration = config;
+
+            string? sharedKey = _configuration["Vault:AesKey"];
+
+            if (string.IsNullOrEmpty(sharedKey))
+            {
+                throw new Exception($"AES key not found");
+            }
+                
+            _aes = new CryptoNetAes(sharedKey);
         }
 
         public async Task<AddVaultKeyReturn> AddVaultKey(AddVaultKeyDto addVaultKey, string shortLivedToken)
@@ -55,9 +70,9 @@ namespace VaultKeysAPI.Services
                 return addVaultKeyResponse;
             }
 
-            string vaultHash = HashVaultKey(addVaultKey.PasswordToHash);
+            string vaultKeyEncrypted = EncryptVaultKey(addVaultKey.PasswordToEncrypt);
 
-            VaultKeysDataModel vaultKeys = _vaultKeysMappings.CreateVaultKeysDataModel(vaultHash, returningVault);
+            VaultKeysDataModel vaultKeys = _vaultKeysMappings.CreateVaultKeysDataModel(vaultKeyEncrypted, returningVault);
 
             await _vaultKeysRepo.AddAsync(vaultKeys);
 
@@ -65,7 +80,7 @@ namespace VaultKeysAPI.Services
             addVaultKeyResponse.TimeOfKeyCreation = vaultKeys.DateTimeVaultKeyCreated;
             addVaultKeyResponse.VaultName = returningVault.VaultName;
             addVaultKeyResponse.HashedKey = vaultKeys.HashedVaultKey;
-            addVaultKeyResponse.KeyName = string.Empty;
+            addVaultKeyResponse.KeyName = addVaultKey.KeyName;
 
             return addVaultKeyResponse;
 
@@ -73,7 +88,37 @@ namespace VaultKeysAPI.Services
 
         public async Task<RemoveVaultKeyReturn> RemoveVaultKey(RemoveVaultKeyDto removeVaultKey, string shortLivedToken)
         {
-            throw new NotImplementedException();
+            RemoveVaultKeyReturn removeVaultKeyResponse = new RemoveVaultKeyReturn();
+
+            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(accountIdFromToken == string.Empty)
+            {
+                removeVaultKeyResponse.Success = false;
+                removeVaultKeyResponse.VaultId = "";
+                removeVaultKeyResponse.KeyName = "";
+
+                return removeVaultKeyResponse;
+            }
+
+            VaultKeysDataModel removingVaultKey = await _vaultKeysRepo.RemoveVaultKeyViaKeyId(Guid.Parse(removeVaultKey.VaultKeyId));
+
+            if (removingVaultKey == null)
+            {
+                removeVaultKeyResponse.Success = false;
+                removeVaultKeyResponse.VaultId = "";
+                removeVaultKeyResponse.KeyName = "";
+
+                return removeVaultKeyResponse;
+            }
+
+            removeVaultKeyResponse.Success = true;
+            removeVaultKeyResponse.VaultId = removingVaultKey.VaultId.ToString();
+            removeVaultKeyResponse.KeyName = removingVaultKey.KeyName;
+
+            return removeVaultKeyResponse;
+
+
         }
 
         public async Task<UpdateVaultKeyReturn> UpdateVaultKey()
@@ -81,14 +126,33 @@ namespace VaultKeysAPI.Services
             throw new NotImplementedException();
         }
 
-        public async Task<UnhashVaultKeyReturn> UnhashVaultKey()
+        public async Task<DecryptVaultKeyReturn> DecryptVaultKey(Guid vaultKeyId)
+        {
+            DecryptVaultKeyReturn decryptVaultKeyResponse = new DecryptVaultKeyReturn();
+
+            throw new NotImplementedException();
+        }
+
+        public async Task ReturnAllVaultsForUser()
         {
             throw new NotImplementedException();
         }
 
-        private string HashVaultKey(string keyToHash)
+        private string EncryptVaultKey(string keyToEncrypt)
         {
-            return BCrypt.Net.BCrypt.EnhancedHashPassword(keyToHash, 10);
+
+            byte[] encryptedKey = _aes.EncryptFromString(keyToEncrypt);
+
+            return Convert.ToBase64String(encryptedKey);
+
+
+        }
+
+        private string DecryptVaultKey(string encryptedVaultKey)
+        {
+            byte[] encryptedKey = Convert.FromBase64String(encryptedVaultKey); 
+
+            return _aes.DecryptToString(encryptedKey);
         }
     }
 }

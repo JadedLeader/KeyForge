@@ -1,5 +1,7 @@
 using gRPCIntercommunicationService.Protos;
 using KeyForgedShared.Generics;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
 using KeyForgedShared.SharedDataModels; 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -61,6 +63,8 @@ namespace VaultKeysAPI
             builder.Services.AddScoped<IVaultRepo, VaultRepo>();
             builder.Services.AddScoped<IVaultKeysRepo, VaultKeysRepo>();
             builder.Services.AddScoped<IVaultKeysService, VaultKeysService>();
+
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
 
 
             var app = builder.Build();

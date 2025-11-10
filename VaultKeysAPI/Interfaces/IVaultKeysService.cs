@@ -12,8 +12,9 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<UpdateVaultKeyReturn> UpdateVaultKey();
 
-        public Task<UnhashVaultKeyReturn> UnhashVaultKey();
-        
+        public Task<DecryptVaultKeyReturn> DecryptVaultKey(Guid keyToUnhash);
+
+
 
     }
 }
