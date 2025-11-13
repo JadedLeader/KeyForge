@@ -1,8 +1,9 @@
-﻿using CryptoNet;
-using KeyForgedShared.DTO_s.VaultKeysDTO_s;
+﻿using KeyForgedShared.DTO_s.VaultKeysDTO_s;
 using KeyForgedShared.Interfaces;
+using KeyForgedShared.Projections.VaultKeysProjections;
 using KeyForgedShared.ReturnTypes.VaultKeys;
 using KeyForgedShared.SharedDataModels;
+using NETCore.Encrypt;
 using VaultKeysAPI.Interfaces;
 using VaultKeysAPI.Mappings;
 using VaultKeysAPI.Repos;
@@ -21,23 +22,19 @@ namespace VaultKeysAPI.Services
 
         private readonly IConfiguration _configuration;
 
-        private readonly ICryptoNetAes _aes;
+        private readonly string _key;
         
-        public VaultKeysService(IVaultKeysRepo vaultKeysRepo, IJwtHelper jwtHelper, IVaultRepo vaultRepo, IConfiguration config)
+        public VaultKeysService(IVaultKeysRepo vaultKeysRepo, IJwtHelper jwtHelper, IVaultRepo vaultRepo, IConfiguration config, VaultKeysMappings vaultKeyMappings)
         {
             _vaultKeysRepo = vaultKeysRepo;
             _jwtHelper = jwtHelper;
             _vaultRepo = vaultRepo;
             _configuration = config;
+            _vaultKeysMappings = vaultKeyMappings;
 
-            string? sharedKey = _configuration["Vault:AesKey"];
-
-            if (string.IsNullOrEmpty(sharedKey))
-            {
-                throw new Exception($"AES key not found");
-            }
+            _key = _configuration["Vault:AesKey"];
                 
-            _aes = new CryptoNetAes(sharedKey);
+
         }
 
         public async Task<AddVaultKeyReturn> AddVaultKey(AddVaultKeyDto addVaultKey, string shortLivedToken)
@@ -72,7 +69,7 @@ namespace VaultKeysAPI.Services
 
             string vaultKeyEncrypted = EncryptVaultKey(addVaultKey.PasswordToEncrypt);
 
-            VaultKeysDataModel vaultKeys = _vaultKeysMappings.CreateVaultKeysDataModel(vaultKeyEncrypted, returningVault);
+            VaultKeysDataModel vaultKeys = _vaultKeysMappings.CreateVaultKeysDataModel(vaultKeyEncrypted, returningVault, addVaultKey.KeyName);
 
             await _vaultKeysRepo.AddAsync(vaultKeys);
 
@@ -116,14 +113,50 @@ namespace VaultKeysAPI.Services
             removeVaultKeyResponse.VaultId = removingVaultKey.VaultId.ToString();
             removeVaultKeyResponse.KeyName = removingVaultKey.KeyName;
 
+            await _vaultKeysRepo.DeleteAsync(removingVaultKey);
+
             return removeVaultKeyResponse;
 
 
         }
 
-        public async Task<UpdateVaultKeyReturn> UpdateVaultKey()
+        public async Task<UpdateVaultKeyReturn> UpdateVaultKey(UpdateVaultKeyDto updateVaultKey, string shortLivedToken)
         {
+
+            UpdateVaultKeyReturn updateVaultKeyResponse = new UpdateVaultKeyReturn();
+
+            string? getAccountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(getAccountIdFromToken == null)
+            {
+                updateVaultKeyResponse.VaultName = "";
+                updateVaultKeyResponse.VaultKeyName = "";
+                updateVaultKeyResponse.EncryptedVaultKey = "";
+
+                return updateVaultKeyResponse;
+            }
+
+            SingleVaultWithSingleKeyProjection vaultKeysModel = await _vaultKeysRepo.ReturnVaultAndKey(Guid.Parse(updateVaultKey.VaultId), Guid.Parse(getAccountIdFromToken));
+
+            if (!vaultEncryptedKeyChanged(updateVaultKey) && vaultKeyNameChanged(updateVaultKey))
+            {
+                updateVaultKeyResponse.VaultName = vaultKeysModel.VaultName;
+                updateVaultKeyResponse.EncryptedVaultKey = vaultKeysModel.singleVaultKey.EncryptedVaultKey;
+                updateVaultKeyResponse.VaultKeyName = vaultKeysModel.singleVaultKey.KeyName;
+
+                return updateVaultKeyResponse;
+            }
+            else if(!vaultEncryptedKeyChanged(updateVaultKey))
+            {
+
+            }
+            else if(!vaultKeyNameChanged(updateVaultKey))
+            {
+
+            }
+
             throw new NotImplementedException();
+
         }
 
         public async Task<DecryptVaultKeyReturn> DecryptVaultKey(DecryptVaultKeyDto decryptVaultkey, string shortLivedToken)
@@ -154,30 +187,65 @@ namespace VaultKeysAPI.Services
             string decryptedVaultKey = DecryptKey(decryptVaultkey.EncryptedVaultKey);
 
             decryptVaultKeyResponse.DecryptedVaultKey = decryptedVaultKey;
+            decryptVaultKeyResponse.Sucess = true;
 
             return decryptVaultKeyResponse;
         }
 
-        public async Task ReturnAllVaultsForUser()
+        public async Task<List<GetAllVaultsDto>> ReturnAllVaultsForUser(string shortLivedToken)
         {
-            throw new NotImplementedException();
+
+            string? accountId = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(accountId == null)
+            {
+                return null;
+            }
+
+            List<GetAllVaultsDto> getAllVaults = await _vaultKeysRepo.ReturnVaultKeys(Guid.Parse(accountId));
+
+            if(getAllVaults.Count == 0)
+            {
+                new List<GetAllVaultsDto>();
+            }
+
+            return getAllVaults;
+
+
+
         }
 
         private string EncryptVaultKey(string keyToEncrypt)
         {
-
-            byte[] encryptedKey = _aes.EncryptFromString(keyToEncrypt);
-
-            return Convert.ToBase64String(encryptedKey);
-
-
+           
+            return EncryptProvider.AESEncrypt(keyToEncrypt, _key);
         }
 
         private string DecryptKey(string encryptedVaultKey)
         {
-            byte[] encryptedKey = Convert.FromBase64String(encryptedVaultKey); 
-
-            return _aes.DecryptToString(encryptedKey);
+            return EncryptProvider.AESDecrypt(encryptedVaultKey, _key);
         }
+
+        private bool vaultKeyNameChanged(UpdateVaultKeyDto updateVaultKey)
+        {
+            if(updateVaultKey.ChangedKeyName == string.Empty)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool vaultEncryptedKeyChanged(UpdateVaultKeyDto updateVaultKey)
+        {
+            if(updateVaultKey.ChangedEncryptedVaultKey == string.Empty)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        
     }
 }

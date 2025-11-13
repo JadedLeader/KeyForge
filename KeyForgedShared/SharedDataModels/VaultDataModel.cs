@@ -22,6 +22,8 @@ namespace KeyForgedShared.SharedDataModels
 
         public AccountDataModel Account { get; set; }
 
+        public ICollection<VaultKeysDataModel> VaultKeys { get; set; } = new List<VaultKeysDataModel>();
+
 
     }
 

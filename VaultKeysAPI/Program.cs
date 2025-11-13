@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using VaultKeysAPI.BackgroundConsumers;
 using VaultKeysAPI.DataContext;
 using VaultKeysAPI.Interfaces;
+using VaultKeysAPI.Mappings;
 using VaultKeysAPI.Repos;
 using VaultKeysAPI.Services;
 
@@ -65,6 +66,7 @@ namespace VaultKeysAPI
             builder.Services.AddScoped<IVaultKeysService, VaultKeysService>();
 
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
+            builder.Services.AddScoped<VaultKeysMappings>();
 
 
             var app = builder.Build();

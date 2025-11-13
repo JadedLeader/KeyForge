@@ -4,14 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KeyForgedShared.ReturnTypes.VaultKeys
+namespace KeyForgedShared.Projections.VaultKeysProjections
 {
-    public class UpdateVaultKeyReturn
+    public class SingleVaultKeyProjection
     {
 
-        public string VaultName { get; set; }   
-
-        public string VaultKeyName { get; set; }
+        public string KeyName { get; set; }
 
         public string EncryptedVaultKey { get; set; }   
 

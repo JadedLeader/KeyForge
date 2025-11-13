@@ -5,6 +5,9 @@ using VaultKeysAPI.Interfaces;
 using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using KeyForgedShared.DTO_s.VaultKeysDTO_s;
+using System.Security.Cryptography.Xml;
+using KeyForgedShared.Projections.VaultKeysProjections;
 
 namespace VaultKeysAPI.Repos
 {
@@ -56,13 +59,60 @@ namespace VaultKeysAPI.Repos
 
         }
 
-        public async Task ReturnVaultKeys(Guid accountId)
+        public async Task<List<GetAllVaultsDto>> ReturnVaultKeys(Guid accountId)
         {
-            throw new NotImplementedException();
+            
+
+            var result = await _vaultKeysDataContext.Vault.Where(x => x.AccountId == accountId)
+                .Include(x => x.VaultKeys)
+                .Select(x => new GetAllVaultsDto
+                {
+                    VaultCreatedAt = x.VaultCreatedAt, 
+                    VaultId = x.VaultId,
+                    VaultName = x.VaultName,
+                    VaultType = (KeyForgedShared.ReturnTypes.Vaults.VaultType)x.VaultType, 
+                    Keys = x.VaultKeys.Select(k => new VaultKeyDto 
+                    {  
+
+                        VaultKeyId = k.VaultKeyId,
+                        DateTimeVaultKeyCreated = k.DateTimeVaultKeyCreated, 
+                        HashedVaultKey = k.HashedVaultKey,
+                        KeyName = k.KeyName,
+                    }).ToList()
+                }).ToListAsync();
+
+
+            return result;
+
+
+        }
+
+        public async Task<SingleVaultWithSingleKeyProjection> ReturnVaultAndKey(Guid vaultId, Guid accountId)
+        {
+            SingleVaultWithSingleKeyProjection? result = await _vaultKeysDataContext.VaultKeys.Where(x => x.Vault.AccountId == accountId && x.VaultId == vaultId)
+                .Select(x => new SingleVaultWithSingleKeyProjection
+                {
+                    VaultName =  x.Vault.VaultName, 
+                    singleVaultKey = new SingleVaultKeyProjection
+                    {
+                        EncryptedVaultKey = x.HashedVaultKey, 
+                        KeyName = x.KeyName,
+                    }
+
+                }).FirstOrDefaultAsync();
+
+            if(result == null)
+            {
+                return null;
+            }
+
+            return result;
+                
+                
         }
 
 
-  
+
 
     }
 }

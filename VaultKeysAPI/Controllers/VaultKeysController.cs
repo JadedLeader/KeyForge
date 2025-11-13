@@ -37,5 +37,60 @@ namespace VaultKeysAPI.Controllers
 
             return Unauthorized();
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> DecryptVaultKey([FromBody] DecryptVaultKeyDto decryptVaultKey)
+        {
+            if(Request.Cookies.TryGetValue($"ShortLivedToken", out string? cookie))
+            {
+                DecryptVaultKeyReturn decryptedVaultKey = await _vaultKeysService.DecryptVaultKey(decryptVaultKey, cookie);
+
+                if (!decryptedVaultKey.Sucess)
+                {
+                    return BadRequest();
+                }
+
+                return Ok(decryptedVaultKey);
+            }
+
+            return Unauthorized();
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> RemoveVaultkey([FromBody] RemoveVaultKeyDto removeVaultKey)
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                RemoveVaultKeyReturn removedVaultKey = await _vaultKeysService.RemoveVaultKey(removeVaultKey, cookie);
+
+                if (!removedVaultKey.Success)
+                {
+                    return BadRequest();
+                }
+
+                return Ok(removedVaultKey);
+            }
+
+            return Unauthorized();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllVaultsWithKeys()
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                List<GetAllVaultsDto> getAllVaults = await _vaultKeysService.ReturnAllVaultsForUser(cookie);
+
+                if(getAllVaults.Count >= 0)
+                {
+                    return Ok(getAllVaults);
+                }
+
+                return BadRequest();
+            }
+
+            return Unauthorized();
+        }
     }
 }

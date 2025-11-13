@@ -6,7 +6,7 @@ namespace VaultKeysAPI.Mappings
     {
 
 
-        public VaultKeysDataModel CreateVaultKeysDataModel(string hashedVaultKey, VaultDataModel vault)
+        public VaultKeysDataModel CreateVaultKeysDataModel(string hashedVaultKey, VaultDataModel vault, string keyName)
         {
             VaultKeysDataModel newVaultKeys = new VaultKeysDataModel
             {
@@ -15,6 +15,7 @@ namespace VaultKeysAPI.Mappings
                 HashedVaultKey = hashedVaultKey,
                 Vault = vault,
                 DateTimeVaultKeyCreated = DateTime.Now.ToString(),
+                KeyName = keyName
                 
             };
 

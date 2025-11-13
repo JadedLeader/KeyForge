@@ -1,6 +1,14 @@
 import { React, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -53,15 +61,76 @@ interface CreateVaultRequest {
 }
 
 interface CreateVaultResponse { 
-
+    
 }
 
 
+type Vault = { 
+    vaultId: string;
+    vaultName: string;
+    vaultCreatedAt: string;
+    vaultType: string;
+    keys: VaultKey[]
+}
+
+type VaultKey = { 
+    vaultKeyId: string; 
+    keyName: string; 
+    hashedVaultKey: string; 
+    dateTimeVaultKeyCreated: string;
+}
+
+
+export function VaultDashboard({ vaults }: { vaults: Vault[] }) {
+    if (!vaults.length)
+        return <p className="text-gray-400">No vaults available.</p>;
+
+    return (
+        <div className="h-screen p-2 flex flex-col">
+            <h1 className="text-2xl font-bold text-white mb-2">Vault Dashboard</h1>
+
+            
+            <div className="flex-1 overflow-y-auto">
+                <div className="flex flex-wrap gap-3">
+                    {vaults.map((vault) => (
+                        <Card
+                            key={vault.vaultId}
+                            className="bg-gray-800 text-white shadow-md rounded-xl flex flex-col w-80 p-3"
+                        >
+                            
+                            <CardHeader >
+                                <CardTitle className="text-lg font-bold">{vault.vaultName}</CardTitle>
+                                <CardDescription className="text-gray-400 text-sm">
+                                    Created: {new Date(vault.vaultCreatedAt).toLocaleDateString()}
+                                </CardDescription>
+                            </CardHeader>
+
+                       
+                            <CardContent className="space-y-2">
+                                {vault.keys.map((key) => (
+                                    <div key={key.vaultKeyId}>
+                                        <p className="font-semibold text-sm">{key.keyName}</p>
+                                        <p className="text-gray-300 text-xs break-all">{key.hashedVaultKey}</p>
+                                    </div>
+                                ))}
+                            </CardContent>
+
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function HomePage() {
 
+    const [vaults, setVaults] = useState<Vault[]>([]);
     const [shortLivedToken, setShortLivedToken] = useState("");
     const [vaultName, setVaultName] = useState("");
     const [vaultType, setVaultType] = useState("");
+    const [vaultKeyName, setVaultKeyName] = useState("");
+    const [vaultKey, setVaultKey] = useState("");
     const [sidePanelOpen, setSidePanelOpen] = useState(true);
 
     useEffect(() => {
@@ -71,9 +140,15 @@ export function HomePage() {
             const shortLivedToken = await SilentTokenRefresh();
 
             setShortLivedToken(shortLivedToken.refreshedToken);
+
+            await GetVaultsAndKeys();
+
         }; 
 
         fetchToken();
+
+        
+        
 
     }, []);
 
@@ -113,6 +188,36 @@ export function HomePage() {
         }
 
     }
+
+    async function GetVaultsAndKeys(): Promise<void> { 
+
+
+        try {
+
+
+            const getVaults = await fetch("VaultKeys/GetAllVaultsWithKeys", {
+                method: "GET",
+                credentials: "include",
+
+            });
+
+            if (!getVaults) {
+
+                throw new Error("Failed To Fetch Vaults")
+
+            }
+
+            const data: Vault[] = await getVaults.json();
+            setVaults(data);
+        } 
+        catch (err) {
+            console.error("get vaults and keys threw an exception", err);
+            return null;
+        }
+
+
+    }
+    
 
     function BuildSilentCycleRequest(): SilentTokenCycleRequest { 
 
@@ -163,10 +268,8 @@ export function HomePage() {
     }
 
 
-
   return (
     
-
       <div className="dark"> 
 
           <Sheet open={sidePanelOpen} onOpenChange={setSidePanelOpen} className="sidemenu-dark">
@@ -234,12 +337,68 @@ export function HomePage() {
                               </DialogContent>
                           </form>
                       </Dialog>
+
+                      <Dialog> 
+
+                          <DialogTrigger asChild>
+
+                              <Button className="bg-blue-600 text-white" variant="outline">Create Vault Key</Button>
+
+                          </DialogTrigger>
+
+                          <DialogContent>
+
+                              <form className="dialog-dark-form" onSubmit={CreateNewVault} >
+
+                                  <DialogHeader className="dialog-header">
+
+                                      <DialogTitle className="dialog-title">Create Vault</DialogTitle>
+
+                                  </DialogHeader>
+
+                                  <div className="grid gap-3 space-y-2">
+                                      <div className="space-y-2">
+                                          <Label htmlFor="name-1">Vault Name</Label>
+                                          <Input value={vaultName} onChange={HandleVaultNameChanged} />
+
+                                          <Label htmlFor="vault-type">Vault Type</Label>
+
+                                          <Select value={vaultType} onValueChange={HandleVaultTypeChanged}>
+                                              <SelectTrigger>
+                                                  <SelectValue placeholder="Select vault type" className="Textplaceholder::placeholder" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                  <SelectItem value="Personal">Personal</SelectItem>
+                                                  <SelectItem value="Team">Team</SelectItem>
+                                              </SelectContent>
+                                          </Select>
+
+                                      </div>
+                                  </div>
+
+                                  <DialogFooter className="dialog-footer">
+
+                                      <DialogClose asChild>
+                                          <Button className="bg-blue-600 text-white" variant="outline">Cancel</Button>
+                                      </DialogClose>
+
+                                      <Button className="bg-blue-600 text-white" type="submit">Create Vault</Button>
+
+                                  </DialogFooter>
+
+                              </form>
+
+                          </DialogContent>
+
+                      </Dialog>
                       
 
 
                   </SheetHeader>
               </SheetContent>
           </Sheet>
+
+          <VaultDashboard vaults={vaults} />
         
 
       </div>

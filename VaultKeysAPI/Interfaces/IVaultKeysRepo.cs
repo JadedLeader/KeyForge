@@ -1,4 +1,6 @@
-﻿using KeyForgedShared.SharedDataModels;
+﻿using KeyForgedShared.DTO_s.VaultKeysDTO_s;
+using KeyForgedShared.Projections.VaultKeysProjections;
+using KeyForgedShared.SharedDataModels;
 
 namespace VaultKeysAPI.Interfaces
 {
@@ -12,6 +14,10 @@ namespace VaultKeysAPI.Interfaces
         public Task<VaultKeysDataModel> DeleteAsync(VaultKeysDataModel databaseModel);
 
         public Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId);
+
+        public Task<List<GetAllVaultsDto>> ReturnVaultKeys(Guid accountId);
+
+        public Task<SingleVaultWithSingleKeyProjection> ReturnVaultAndKey(Guid vaultId, Guid accountId);
 
     }
 }

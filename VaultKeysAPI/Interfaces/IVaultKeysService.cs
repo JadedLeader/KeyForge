@@ -10,9 +10,11 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<RemoveVaultKeyReturn> RemoveVaultKey(RemoveVaultKeyDto removeVaultKey, string shortLivedToken);
 
-        public Task<UpdateVaultKeyReturn> UpdateVaultKey();
+        public Task<UpdateVaultKeyReturn> UpdateVaultKey(UpdateVaultKeyDto updateVaultKey, string shortLivedToken);
 
         public Task<DecryptVaultKeyReturn> DecryptVaultKey(DecryptVaultKeyDto decryptVaultkey, string shortLivedToken);
+
+        public Task<List<GetAllVaultsDto>> ReturnAllVaultsForUser(string shortLivedToken);
 
 
 

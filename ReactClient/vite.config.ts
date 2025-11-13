@@ -30,14 +30,15 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
     }
 }
 
-const target = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
-    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7003';
 
-const targetAuth = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
-    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7010';
 
-const targetVault = env.ASPNETCORE_HTTPS_PORT ? `https://localhost:${env.ASPNETCORE_HTTPS_PORT}` :
-    env.ASPNETCORE_URLS ? env.ASPNETCORE_URLS.split(';')[0] : 'https://localhost:7149';
+
+const apiTargets = {
+    account: 'https://localhost:7003',
+    auth: 'https://localhost:7010',
+    vault: 'https://localhost:7149',
+    vaultKeys: 'https://localhost:7130',
+};
 
 
 // https://vitejs.dev/config/
@@ -45,31 +46,37 @@ export default defineConfig({
     plugins: [plugin(), tailwindcss()],
     resolve: {
         alias: {
-            '@': fileURLToPath(new URL('./src', import.meta.url))
-        }
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
+        },
     },
     server: {
-        proxy: {
-            '^/Account': {
-                target,
-                secure: false, 
-                changeOrigin: true
-            }, 
-            '^/Auth': { 
-                target: targetAuth, 
-                secure: false,
-                changeOrigin: true
-            }, 
-            '^/Vault': {
-                target: targetVault,
-                secure: false,
-                changeOrigin: true
-            }
-        },
         port: 5173,
         https: {
             key: fs.readFileSync(keyFilePath),
             cert: fs.readFileSync(certFilePath),
-        }
-    }
-})
+        },
+        proxy: {
+            '/Account': {
+                target: apiTargets.account,
+                changeOrigin: true,
+                secure: false, // self-signed certs
+            },
+            '/Auth': {
+                target: apiTargets.auth,
+                changeOrigin: true,
+                secure: false,
+            },
+            '/VaultKeys': {
+                target: apiTargets.vaultKeys,
+                changeOrigin: true,
+                secure: false,
+            },
+            '/Vault': {
+                target: apiTargets.vault,
+                changeOrigin: true,
+                secure: false,
+            },
+            
+        },
+    },
+});
