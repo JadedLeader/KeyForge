@@ -8,8 +8,7 @@ html, body {
 }
 
 body {
-    display: grid;
-    place-items: center;
+    
     overflow: hidden;
     position: relative;
 }

@@ -7,6 +7,7 @@ import child_process from 'child_process';
 import { env } from 'process';
 import tailwindcss from '@tailwindcss/vite'
 
+
 const baseFolder =
     env.APPDATA !== undefined && env.APPDATA !== ''
         ? `${env.APPDATA}/ASP.NET/https`
@@ -46,7 +47,7 @@ export default defineConfig({
     plugins: [plugin(), tailwindcss()],
     resolve: {
         alias: {
-            '@': fileURLToPath(new URL('./src', import.meta.url)),
+            "@": path.resolve(__dirname, "./src"),
         },
     },
     server: {
