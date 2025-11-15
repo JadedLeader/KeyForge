@@ -1,4 +1,4 @@
-﻿import  { useState, useEffect } from "react"
+﻿import  React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import "./HomePage.css"
 import {
@@ -82,7 +82,12 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { ChevronRight, MoreVertical, Trash2, Edit, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, MoreVertical, Trash2, Edit, Eye, EyeOff } from "lucide-react" 
+import {
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "@/components/ui/resizable"
 
 interface SilentTokenCycleRequest { 
 
@@ -101,7 +106,9 @@ interface CreateVaultRequest {
 }
 
 interface CreateVaultResponse { 
-    
+    vaultId: string;
+    vaultName: string;
+    sucessful: boolean;
 }
 
 interface DecryptKeyRequest { 
@@ -112,6 +119,26 @@ interface DecryptKeyRequest {
 
 interface DecryptKeyResponse { 
     decryptedVaultKey: string;
+}
+
+interface CreateVaultKeyRequest { 
+    vaultId: string;
+    keyName: string; 
+    passwordToEncrypt: string;
+}
+
+interface CreateVaultKeyResponse { 
+
+    vaultName: string; 
+    sucess: boolean;
+
+}
+
+interface CreateVaultWithKeysResponse { 
+
+    vaultId: string; 
+    vaultName: string;
+
 }
 
 
@@ -274,16 +301,245 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
     );
 }
 
+interface BuildCreateVaultModalProps { 
+    dialogOpen: boolean; 
+    setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateVaultModalProps)  { 
+
+
+    const [vaultName, setVaultName] = useState("");
+    const [vaultType, setVaultType] = useState("");
+    const [keyName, setKeyName] = useState("");
+    const [keyPassword, setKeyPassword] = useState("");
+    const [dropDownOpen, setDropdownOpen] = useState(false);
+    
+    function HandleKeyNameChanged(e: React.ChangeEvent<HTMLInputElement>) { 
+        setKeyName(e.target.value);
+    }
+
+    function HandleKeyPasswordChanged(e: React.ChangeEvent<HTMLInputElement>) { 
+        setKeyPassword(e.target.value);
+    }
+
+    function HandleVaultNameChanged(e: React.ChangeEvent<HTMLInputElement>) {
+
+        setVaultName(e.target.value);
+    }
+
+    function HandleDropdownOpen(open: boolean) { 
+        setDropdownOpen(open);
+    }
+
+    function HandleVaultTypeChanged(vaultType: string) {
+        setVaultType(vaultType);
+    }
+
+    function BuildCreateVaultRequest(vaultNameGiven: string, vaultTypeGiven: string): CreateVaultRequest {
+
+        const createNewVaultRequest: CreateVaultRequest = {
+
+            vaultName: vaultNameGiven,
+            vaultType: vaultTypeGiven
+        };
+
+        return createNewVaultRequest;
+
+    }
+
+    function BuildCreateVaultResponse(vaultId: string, vaultName: string, sucessful: boolean) : CreateVaultResponse { 
+
+        const newVaultResponse: CreateVaultResponse = {
+            vaultId: vaultId, 
+            vaultName: vaultName, 
+            sucessful: sucessful
+
+        }; 
+
+        return newVaultResponse;
+
+    }
+    function BuildCreateVaultKeyRequest(keyName: string, passwordToEncrypt: string, vaultId: string): CreateVaultKeyRequest { 
+
+        const buildingVaultKey: CreateVaultKeyRequest = { 
+
+            keyName: keyName, 
+            passwordToEncrypt: passwordToEncrypt, 
+            vaultId : vaultId
+        }
+
+        return buildingVaultKey;
+
+    }
+
+    function BuildCreateVaultKeyResponse(vaultName: string, sucessful: boolean): CreateVaultKeyResponse { 
+
+        const buildingVaultKeyResponse: CreateVaultKeyResponse = {
+
+
+            vaultName: vaultName,
+            sucess: sucessful
+
+        }; 
+
+        return buildingVaultKeyResponse;
+
+    } 
+
+    function BuildVaultWithKeysResponse(vaultId: string, vaultName: string): CreateVaultWithKeysResponse { 
+
+        const buildingVaultWithKeysResponse: CreateVaultWithKeysResponse = {
+
+            vaultId: vaultId,
+            vaultName: vaultName
+
+
+        }; 
+
+        return buildingVaultWithKeysResponse;
+
+    }
+
+    async function CreateNewVault(): Promise<CreateVaultResponse> {
+
+        const buildingCreateVaultRequest = BuildCreateVaultRequest(vaultName, vaultType);
+
+        const createNewVaultResponse = await fetch("/Vault/CreateVault", {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify(buildingCreateVaultRequest)
+        });
+
+        if (!createNewVaultResponse.ok) {
+
+            const errorText = await createNewVaultResponse.text();
+
+            throw new Error(errorText);
+        }
+
+        
+
+        const returnJson = await createNewVaultResponse.json();
+
+        console.log("Submitting vault:", vaultName, vaultType, returnJson.vaultId);
+
+        const built = BuildCreateVaultResponse(returnJson.vaultId, returnJson.vaultName, returnJson.sucessful);
+
+        return built;
+
+    }
+
+    async function CreateNewVaultKey(vaultId: string): Promise<CreateVaultKeyResponse> { 
+
+        const buildVaultKeyRequest = BuildCreateVaultKeyRequest(keyName, keyPassword, vaultId);
+
+        console.log("sending vault key request", buildVaultKeyRequest);
+
+        const fetchingApi = await fetch("/VaultKeys/CreateVaultKey", {
+
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify(buildVaultKeyRequest)
+
+        });
+
+
+        if (!fetchingApi.ok) { 
+
+            const errorText = await fetchingApi.text(); 
+
+            throw new Error(errorText);
+        }
+            
+        const returnJson = await fetchingApi.json();
+
+        const buildingResponse = BuildCreateVaultKeyResponse(returnJson.vaultName, returnJson.sucessful);
+
+        return buildingResponse;
+        
+
+    }
+
+    async function CreateVaultWithKey(): Promise<CreateVaultWithKeysResponse> { 
+
+        const buildVault = await CreateNewVault();
+
+        const buildKeys = await CreateNewVaultKey(buildVault.vaultId);
+
+        const buildingResponse = BuildVaultWithKeysResponse(buildVault.vaultId, buildKeys.vaultName); 
+
+        return buildingResponse;
+
+    }
+
+    return (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}  >
+            <DialogContent className="bg-zinc-950 text-white border-blue-600 overflow-y-auto ">
+
+                    <DialogHeader >
+
+                        <DialogTitle >Create Vault</DialogTitle>
+
+                    </DialogHeader>
+
+                    <Label>Vault Name</Label>
+                    <Input value={vaultName} onChange={HandleVaultNameChanged} />
+
+                    <Label>Vault Type</Label>
+
+                    <div className={dropDownOpen ? "mb-20" : "mb-4"} >
+                        <Select value={vaultType} onValueChange={HandleVaultTypeChanged} onOpenChange={() => HandleDropdownOpen(true)} >
+                            <SelectTrigger className="border-0 hover:underline" >
+                                <SelectValue placeholder="Select vault type" className="Textplaceholder::placeholder text-white bg-transparent" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-transparent border-0 hover:underline">
+                                <SelectItem className="text-white bg-transparent hover::underline" value="Personal">Personal</SelectItem>
+                                <SelectItem className="text-white bg-transparent hover::underline" value="Team">Team</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <Label>Key Name</Label>
+                    <Input value={keyName} onChange={HandleKeyNameChanged} />
+
+                    <Label>Password</Label>
+                    <Input value={keyPassword} onChange={HandleKeyPasswordChanged} />
+
+
+                    <DialogFooter >
+
+                        <DialogClose asChild>
+                            <Button className="bg-blue-600 text-white hover::underline" variant="outline" > Close </Button>
+                        </DialogClose>
+
+                        <Button className="bg-blue-600 text-white hover::underline" variant="outline" onClick={() => CreateVaultWithKey()}> Create Vault </Button>
+
+                    </DialogFooter>
+
+            </DialogContent>
+        </Dialog>
+
+    );
+    
+
+
+}
+
 export function HomePage() {
 
     const [vaults, setVaults] = useState<Vault[]>([]);
     const [shortLivedToken, setShortLivedToken] = useState("");
     const [vaultName, setVaultName] = useState("");
-    const [vaultType, setVaultType] = useState("");
+    const [isCreateVaultDialogOpen, setIsCreateVaultDialogOpen] = useState(false);
     const [vaultKeyName, setVaultKeyName] = useState("");
     const [vaultKey, setVaultKey] = useState("");
-    const [sidePanelOpen, setSidePanelOpen] = useState(true);
-    const [isCreateVaultDialogOpen, setIsCreateVaultDialogOpen] = useState(false);
     const [eyeOpen, setEyeOpen] = useState(false)
 
     useEffect(() => {
@@ -300,23 +556,14 @@ export function HomePage() {
 
         fetchToken();
 
-        
-        
 
     }, []);
 
-    function HandleVaultNameChanged(e: React.ChangeEvent<HTMLInputElement>) { 
-
-        setVaultName(e.target.value);
-    }
-
-    function HandleVaultTypeChanged(vaultType: string) { 
-        setVaultType(vaultType);
-    }
+    
 
     async function SilentTokenRefresh(): Promise<SilentTokenCycleResponse> { 
 
-        try {
+        
             const buildingRequest = BuildSilentCycleRequest();
 
             const silentTokenResponse = await fetch("/Auth/SilentShortLivedTokenRefresh", {
@@ -331,14 +578,11 @@ export function HomePage() {
             if (!silentTokenResponse.ok) {
                 const errorText = await silentTokenResponse.text();
                 console.error("Silent token refresh failed:", errorText);
-                return null; 
+                 
             }
 
             return await silentTokenResponse.json();
-        } catch (err) {
-            console.error("Silent token refresh threw an exception:", err);
-            return null; 
-        }
+        
 
     }
 
@@ -365,7 +609,7 @@ export function HomePage() {
         } 
         catch (err) {
             console.error("get vaults and keys threw an exception", err);
-            return null;
+            
         }
 
 
@@ -382,109 +626,70 @@ export function HomePage() {
         return newCycleRequest;
     }
 
-    async function CreateNewVault(): Promise<CreateVaultResponse> { 
-
-        const buildingCreateVaultRequest = BuildCreateVaultRequest(vaultName, vaultType); 
-
-        const createNewVaultResponse = await fetch("/Vault/CreateVault", {
-            method: "POST",
-            headers: {
-                "Content-type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(buildingCreateVaultRequest)
-        }); 
-
-        if (!createNewVaultResponse.ok) { 
-
-            const errorText = await createNewVaultResponse.text();
-
-            throw new Error(errorText);
-        }
-
-        console.log("Submitting vault:", vaultName, vaultType);
-
-        return createNewVaultResponse;
-
-    }
-
-    function BuildCreateVaultRequest(vaultNameGiven: string, vaultTypeGiven: string) : CreateVaultRequest { 
-
-        const createNewVaultRequest: CreateVaultRequest = {
-
-            vaultName: vaultNameGiven,
-            vaultType: vaultTypeGiven
-        };
-
-        return createNewVaultRequest;
-
-    }
-
-
-    
-
     return (
 
-        <div className="dark min-h-screen flex relative">
-            
-            <Sheet open={sidePanelOpen} onOpenChange={setSidePanelOpen} modal={false}>
-                <SheetTrigger className="absolute top-4 left-4 bg-blue-600 text-white p-2 rounded z-50">
-                    <ChevronRight size={20} />
-                </SheetTrigger>
-                <SheetContent
-                    side="left"
-                    className="w-64 bg-zinc-950 text-white border-r border-blue-600 flex flex-col"
-                >
-                    <SheetHeader>
-                        <SheetTitle>Menu</SheetTitle>
-                        <SheetDescription>
-                            This action cannot be undone.
-                        </SheetDescription>
+        <div className="flex relative h-screen">
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger className="justify-start bg-transparent hover:bg-transparent text-blue-500 hover:underline text-left">
-                                Vaults
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56" align="start">
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => setIsCreateVaultDialogOpen(true)}
-                                    className="bg-transparent text-white hover:underline"
-                                >
-                                    Create Vault
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="bg-transparent text-white hover:underline">
-                                    Delete Vault
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="bg-transparent text-white">
-                                    Edit Vault
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </SheetHeader>
-                </SheetContent>
-            </Sheet>
+            <ResizablePanelGroup direction="horizontal" className="h-full">
 
-     
-            
+                <ResizablePanel defaultSize={15} className="bg-zinc-950 border border-blue-600 flex flex-col ">
 
-                
-            <div className={`flex-1 flex flex-col transition-transform duration-300 ${sidePanelOpen ? 'ml-64' : 'ml-0'
-                }`}>
-                   
-                <div className="w-full h-14 flex items-center top-4">
-                    <h1 className={`text-white text-xl font-semibold transition-all duration-500
-                ${sidePanelOpen ? 'ml-8' : 'ml-12'}`}>Vaults</h1>
+                    <div className="flex flex-col h-full">
+
+
+                            <h1 className="text-white">Navigation</h1>
+
+                            <DropdownMenu>
+                                    <DropdownMenuTrigger className="justify-start bg-transparent hover:bg-transparent text-blue-500 hover:underline text-left text-white">
+                                        Drop down for something
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-56" align="start">
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                            onClick={() => setIsCreateVaultDialogOpen(true)}
+                                            className="bg-transparent text-white hover:underline"
+                                        >
+                                            Create Vault
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                            Delete Vault
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem className="bg-transparent text-white">
+                                            Edit Vault
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                    </DropdownMenuContent>
+                            </DropdownMenu>
+
                     </div>
 
-                    
-                    <div className="flex-1 p-4">
-                      
-                    <VaultDashboard vaults={vaults} />
+                    <BuildCeateVaultModal dialogOpen={isCreateVaultDialogOpen} setDialogOpen={setIsCreateVaultDialogOpen}  />
+
+                </ResizablePanel >
+      
+                <ResizableHandle withHandle className="bg-blue-600" />
+
+                <ResizablePanel defaultSize={85} >
+
+                    <div className="p-4"> 
+
+                        <h1 className="text-white justify-left p-4">Dashboard</h1>
+
                     </div>
-                </div>
-            </div>
+
+                    <div >
+
+                        <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
+                            <VaultDashboard vaults={vaults} />
+                        </div>
+                    </div>
+
+                </ResizablePanel>
+               
+
+            </ResizablePanelGroup >
+        </div>
+            
         
     );
 

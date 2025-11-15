@@ -19,5 +19,7 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<SingleVaultWithSingleKeyProjection> ReturnVaultAndKey(Guid vaultId, Guid accountId);
 
+        public Task<List<VaultKeysDataModel>> GetVaultKeysViaVaultId(Guid vaultId);
+
     }
 }

@@ -54,9 +54,9 @@ namespace VaultKeysAPI.Services
                 return addVaultKeyResponse;
             }
 
-            VaultDataModel returningVault = await _vaultRepo.GetVaultByUserId(Guid.Parse(returnUserIdFromToken));
+            VaultDataModel? getVault = await GetVaultWithRetry(Guid.Parse(addVaultKey.VaultId));
 
-            if(returningVault == null)
+            if(getVault == null)
             {
                 addVaultKeyResponse.Success = false;
                 addVaultKeyResponse.TimeOfKeyCreation = string.Empty;
@@ -69,13 +69,13 @@ namespace VaultKeysAPI.Services
 
             string vaultKeyEncrypted = EncryptVaultKey(addVaultKey.PasswordToEncrypt);
 
-            VaultKeysDataModel vaultKeys = _vaultKeysMappings.CreateVaultKeysDataModel(vaultKeyEncrypted, returningVault, addVaultKey.KeyName);
+            VaultKeysDataModel vaultKeys = _vaultKeysMappings.CreateVaultKeysDataModel(vaultKeyEncrypted, getVault, addVaultKey.KeyName);
 
             await _vaultKeysRepo.AddAsync(vaultKeys);
 
             addVaultKeyResponse.Success = true;
             addVaultKeyResponse.TimeOfKeyCreation = vaultKeys.DateTimeVaultKeyCreated;
-            addVaultKeyResponse.VaultName = returningVault.VaultName;
+            addVaultKeyResponse.VaultName = getVault.VaultName;
             addVaultKeyResponse.HashedKey = vaultKeys.HashedVaultKey;
             addVaultKeyResponse.KeyName = addVaultKey.KeyName;
 
@@ -246,6 +246,20 @@ namespace VaultKeysAPI.Services
             return true;
         }
 
-        
+        private async Task<VaultDataModel?> GetVaultWithRetry(Guid vaultId, int maxRetries = 5, int delayMs = 100)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                var vault = await _vaultRepo.GetVaultByVaultId(vaultId);
+                if (vault != null)
+                    return vault;
+
+                await Task.Delay(delayMs);
+            }
+
+            return null;
+        }
+
+
     }
 }

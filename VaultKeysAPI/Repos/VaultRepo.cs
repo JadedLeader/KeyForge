@@ -56,5 +56,19 @@ namespace VaultKeysAPI.Repos
             return true;
         }
 
+        public async Task<VaultDataModel> GetVaultByVaultId(Guid vaultId)
+        {
+
+            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+
+            if(getVault == null)
+            {
+                return null;
+            }
+
+            return getVault;
+        
+        }
+
     }
 }

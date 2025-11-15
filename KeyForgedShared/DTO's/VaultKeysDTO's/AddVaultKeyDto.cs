@@ -13,6 +13,8 @@ namespace KeyForgedShared.DTO_s.VaultKeysDTO_s
 
         public string PasswordToEncrypt { get ; set; } 
 
+        public string VaultId { get; set; }
+
 
     }
 }

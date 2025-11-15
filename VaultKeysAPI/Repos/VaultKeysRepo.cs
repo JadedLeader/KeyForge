@@ -110,6 +110,20 @@ namespace VaultKeysAPI.Repos
                 
                 
         }
+        
+        public async Task<List<VaultKeysDataModel>> GetVaultKeysViaVaultId(Guid vaultId)
+        {
+
+            List<VaultKeysDataModel> getVaultkeysViaVaultId = await _vaultKeysDataContext.VaultKeys.Where(x => x.VaultId == vaultId).ToListAsync();
+
+            if(getVaultkeysViaVaultId.Count == 0)
+            {
+                return null;
+            }
+
+            return getVaultkeysViaVaultId;
+
+        }
 
 
 
