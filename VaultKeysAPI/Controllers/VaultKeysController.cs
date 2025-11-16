@@ -92,5 +92,23 @@ namespace VaultKeysAPI.Controllers
 
             return Unauthorized();
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> RemoveAllVaultKeysFromVault([FromBody] RemoveAllVaultKeysDto removeVaultKeys)
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                RemoveAllVaultKeysReturn removingAllVaultKeys = await _vaultKeysService.RemoveAllVaultKeys(removeVaultKeys, cookie);
+
+                if (!removingAllVaultKeys.Success)
+                {
+                    return BadRequest();
+                }
+
+                return Ok(removingAllVaultKeys);
+            }
+
+            return BadRequest();
+        }
     }
 }

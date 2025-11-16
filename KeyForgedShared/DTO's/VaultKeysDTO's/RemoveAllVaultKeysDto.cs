@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace KeyForgedShared.DTO_s.VaultKeysDTO_s
 {
-    public class RemoveVaultKeyDto
+    public class RemoveAllVaultKeysDto
     {
 
-
         public string VaultId { get; set; }
-        public string VaultKeyId { get; set; }
 
     }
 }

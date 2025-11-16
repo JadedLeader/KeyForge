@@ -98,7 +98,7 @@ namespace VaultKeysAPI.Services
                 return removeVaultKeyResponse;
             }
 
-            VaultKeysDataModel removingVaultKey = await _vaultKeysRepo.RemoveVaultKeyViaKeyId(Guid.Parse(removeVaultKey.VaultKeyId));
+            VaultKeysDataModel removingVaultKey = await _vaultKeysRepo.RemoveVaultKeyViaKeyId(Guid.Parse(removeVaultKey.VaultKeyId), Guid.Parse(removeVaultKey.VaultId));
 
             if (removingVaultKey == null)
             {
@@ -212,6 +212,58 @@ namespace VaultKeysAPI.Services
             return getAllVaults;
 
 
+
+        }
+
+        public async Task<RemoveAllVaultKeysReturn> RemoveAllVaultKeys(RemoveAllVaultKeysDto removeAllVaultKeys, string shortLivedToken)
+        {
+            RemoveAllVaultKeysReturn removeAllVaultKeysReturn = new RemoveAllVaultKeysReturn();
+
+            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if (accountIdFromToken == string.Empty)
+            {
+                removeAllVaultKeysReturn.VaultId = "";
+                removeAllVaultKeysReturn.KeysDeleted = new List<Guid>();
+                removeAllVaultKeysReturn.Success = false;
+
+                return removeAllVaultKeysReturn;
+            }
+
+            bool ensuringUserHasVault = await _vaultRepo.HasVault(Guid.Parse(accountIdFromToken), Guid.Parse(removeAllVaultKeys.VaultId));
+
+            if(!ensuringUserHasVault)
+            {
+                removeAllVaultKeysReturn.VaultId = "";
+                removeAllVaultKeysReturn.KeysDeleted = new List<Guid>();
+                removeAllVaultKeysReturn.Success = false;
+
+                return removeAllVaultKeysReturn;
+            }
+
+            List<Guid> guidsRemoved = await _vaultKeysRepo.RemoveAllVaultsKeysFromVault(Guid.Parse(removeAllVaultKeys.VaultId));
+
+            if(guidsRemoved == null)
+            {
+                removeAllVaultKeysReturn.VaultId = "";
+                removeAllVaultKeysReturn.KeysDeleted = new List<Guid>();
+                removeAllVaultKeysReturn.Success = false;
+
+                return removeAllVaultKeysReturn;
+            }
+
+
+            removeAllVaultKeysReturn.VaultId = removeAllVaultKeys.VaultId;
+            
+            foreach(var keys in guidsRemoved)
+            {
+                removeAllVaultKeysReturn.KeysDeleted.Add(keys);
+            }
+
+            removeAllVaultKeysReturn.Success = true;
+
+            return removeAllVaultKeysReturn;
+            
 
         }
 

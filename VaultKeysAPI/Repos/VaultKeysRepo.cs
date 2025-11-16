@@ -45,10 +45,10 @@ namespace VaultKeysAPI.Repos
         }
         
 
-        public async Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId)
+        public async Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId, Guid vaultId)
         {
 
-            VaultKeysDataModel? removeVaultKey = await _vaultKeysDataContext.VaultKeys.FirstOrDefaultAsync(x => x.VaultKeyId == vaultKeyId);
+            VaultKeysDataModel? removeVaultKey = await _vaultKeysDataContext.VaultKeys.FirstOrDefaultAsync(x => x.VaultKeyId == vaultKeyId && x.VaultId == vaultId);
 
             if (removeVaultKey == null)
             {
@@ -122,6 +122,29 @@ namespace VaultKeysAPI.Repos
             }
 
             return getVaultkeysViaVaultId;
+
+        }
+
+        public async Task<List<Guid>> RemoveAllVaultsKeysFromVault(Guid vaultId)
+        {
+            List<VaultKeysDataModel> vaultKeys = await _vaultKeysDataContext.VaultKeys.Where(x => x.VaultId == vaultId).ToListAsync();
+
+            if(vaultKeys.Count == 0)
+            {
+                return null;
+            }
+
+            List<Guid> keysRemoved = new List<Guid>();
+            
+            foreach(VaultKeysDataModel keys in vaultKeys)
+            {
+
+                keysRemoved.Add(keys.VaultId);
+
+                await DeleteAsync(keys);
+            }
+
+            return keysRemoved;
 
         }
 

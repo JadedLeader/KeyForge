@@ -6,6 +6,8 @@ using AccountAPI.Repos;
 using AccountAPI.Services;
 using AccountAPI.Storage;
 using gRPCIntercommunicationService;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Threading.Channels;
@@ -26,6 +28,7 @@ namespace AccountAPI.Server
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddSingleton<StreamStorage>();
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
 
             builder.Services.AddSingleton(Channel.CreateUnbounded<StreamAccountResponse>());
 

@@ -16,6 +16,8 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<List<GetAllVaultsDto>> ReturnAllVaultsForUser(string shortLivedToken);
 
+        public Task<RemoveAllVaultKeysReturn> RemoveAllVaultKeys(RemoveAllVaultKeysDto removeAllVaultKeys, string shortLivedToken);
+
 
 
     }

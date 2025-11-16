@@ -3,6 +3,7 @@ using VaultKeysAPI.DataContext;
 using KeyForgedShared.SharedDataModels;
 using VaultKeysAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 
 namespace VaultKeysAPI.Repos
 {
@@ -28,6 +29,27 @@ namespace VaultKeysAPI.Repos
             }
 
             return await base.AddAsync(databaseModel);
+        }
+
+        public override Task<VaultDataModel> DeleteAsync(VaultDataModel databaseModel)
+        {
+            return base.DeleteAsync(databaseModel);
+        }
+
+        public async Task<Guid> DeleteVaultViaVaultId(Guid vaultId)
+        {
+            bool vaultExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == vaultId);
+
+            if (!vaultExists)
+            {
+                return Guid.Empty;
+            }
+
+            VaultDataModel? vaultToDelete = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+
+            _vaultKeysDataContext.Vault.Remove(vaultToDelete);
+
+            return vaultToDelete.VaultId;
         }
 
         public async Task<VaultDataModel> GetVaultByUserId(Guid userId)

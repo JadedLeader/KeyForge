@@ -13,5 +13,7 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultDataModel> GetVaultByVaultId(Guid vaultId);
 
+        public Task<Guid> DeleteVaultViaVaultId(Guid vaultId);
+
     }
 }

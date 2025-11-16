@@ -36,8 +36,6 @@ namespace VaultKeysAPI.BackgroundConsumers
 
             try
             {
-
-
                 var callOptions = new CallOptions().WithWaitForReady();
 
                 StreamAuthUpdatesRequest request = new StreamAuthUpdatesRequest();

@@ -1,4 +1,5 @@
-﻿import  React, { useState, useEffect } from "react"
+﻿import React from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import "./HomePage.css"
 import {
@@ -141,6 +142,25 @@ interface CreateVaultWithKeysResponse {
 
 }
 
+interface RemoveAllVaultKeysFromVaultRequest { 
+    vaultId: string;
+}
+
+interface RemoveAllVaultKeysFromVaultResponse { 
+    vaultId: string; 
+    success: boolean;
+}
+
+interface DeleteVaultRequest { 
+    vaultId: string;
+}
+
+interface DeleteVaultResponse { 
+    vaultId: string; 
+    accountId: string; 
+    sucessful: boolean;
+}
+
 
 type Vault = { 
     vaultId: string;
@@ -212,12 +232,6 @@ function BuildDecrpytKey(encryptedKey: string, vaultId: string): DecryptKeyReque
 }
 
 
-
-export function ButtonOutline() {
-    return <Button variant="outline">Outline</Button>
-}
-
-
 export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 
     const [decryptedKey, setDecryptedKey] = useState<Record<string, string>>({});
@@ -234,6 +248,113 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
             }));
         
     };
+
+    function BuildDeleteVaultWithAllKeysRequest(vaultId: string): RemoveAllVaultKeysFromVaultRequest { 
+
+        const buildingRequest: RemoveAllVaultKeysFromVaultRequest = {
+            vaultId: vaultId
+        }; 
+
+        return buildingRequest;
+
+    }
+
+    function BuildDeleteVaultWithAllVaultKeysResponse(vaultId: string, success: boolean): RemoveAllVaultKeysFromVaultResponse { 
+
+        const buildingResponse: RemoveAllVaultKeysFromVaultResponse = {
+
+            vaultId: vaultId,
+            success: success
+        }; 
+
+        return buildingResponse;
+
+    }
+
+    async function DeleteVaultWithAllKeys(vaultId : string) : Promise<RemoveAllVaultKeysFromVaultResponse> { 
+
+
+        const buildingRequestBody = BuildDeleteVaultWithAllKeysRequest(vaultId);
+
+        const deleteVaultKeysCall = await fetch("/VaultKeys/RemoveAllVaultKeysFromVault", {
+            method: "DELETE",
+            headers: {
+                "content-type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify(buildingRequestBody)
+        });
+
+        if (!deleteVaultKeysCall.ok) { 
+
+            const errorText = await deleteVaultKeysCall.text(); 
+
+            throw new Error(errorText);
+
+        }
+
+        const jsonBody = await deleteVaultKeysCall.json();
+
+        const buildingPromise = BuildDeleteVaultWithAllVaultKeysResponse(jsonBody.vaultId, jsonBody.sucess);
+
+        console.log("Deleting vault with keys", jsonBody);
+
+        return buildingPromise;
+    }
+
+    function BuildDeleteVaultRequest(vaultId: string): DeleteVaultRequest { 
+
+        const buildingRequest: DeleteVaultRequest = {
+            vaultId: vaultId
+        }; 
+
+        return buildingRequest;
+
+    }
+
+    function BuildDeleteVaultResponse(vaultId: string, accountId: string, sucessful: boolean): DeleteVaultResponse { 
+
+        const buildingResponse: DeleteVaultResponse = {
+            accountId: accountId,
+            vaultId: vaultId,
+            sucessful: sucessful
+        }; 
+
+        return buildingResponse;
+
+    }
+
+    async function DeleteVault(vaultId: string) : Promise<DeleteVaultResponse> { 
+
+        const buildingRequestBody = BuildDeleteVaultRequest(vaultId); 
+
+        const deleteVaultRequest = await fetch("/Vault/DeleteVault", {
+            method: "DELETE",
+            headers: {
+                "content-type": "application.json"
+            },
+            credentials: "include",
+            body: JSON.stringify(buildingRequestBody)
+        });
+
+        if (!deleteVaultRequest.ok) { 
+
+            const errorText = await deleteVaultRequest.text(); 
+
+            throw new Error(errorText);
+
+        }
+
+        const jsonBody = await deleteVaultRequest.json();
+
+        const buildingPromise = BuildDeleteVaultResponse(jsonBody.vaultId, jsonBody.accountId, jsonBody.sucessful);
+
+        return buildingPromise; 
+
+
+    }
+
+
     
     return (
         <div className="flex flex-wrap gap-4">
@@ -258,7 +379,7 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                                     <DropdownMenuItem>
                                         Edit
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem >
+                                    <DropdownMenuItem  >
                                         Delete
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>Expand</DropdownMenuItem>

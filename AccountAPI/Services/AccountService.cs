@@ -7,6 +7,10 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Threading.Channels;
 using Serilog;
 using AccountAPI.Storage;
+using KeyForgedShared.Interfaces;
+using KeyForgedShared.ReturnTypes.Accounts;
+using System.Data.SqlTypes;
+using KeyForgedShared.DTO_s.AccountDTO_s;
 
 namespace AccountAPI.Services
 {
@@ -17,10 +21,13 @@ namespace AccountAPI.Services
 
         private readonly StreamStorage _streamStorage;
 
-        public AccountService(IAccountRepo accountRepo, Channel<StreamAccountResponse> streamAccountResponseChannel, StreamStorage streamStorage)
+        private readonly IJwtHelper _jwtHelper;
+
+        public AccountService(IAccountRepo accountRepo, Channel<StreamAccountResponse> streamAccountResponseChannel, StreamStorage streamStorage, IJwtHelper jtwHelper)
         {
             _accountRepo = accountRepo;
             _streamStorage = streamStorage;
+            _jwtHelper = jtwHelper;
             
         }
 
@@ -133,6 +140,85 @@ namespace AccountAPI.Services
             }
         }
 
+        public async Task<GetAccountDetailsReturn> GetAccountDetails(string shortLivedToken)
+        {
+
+            GetAccountDetailsReturn getAccountResponse = new GetAccountDetailsReturn();
+
+            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(accountIdFromToken == string.Empty)
+            {
+                getAccountResponse.Username = "";
+                getAccountResponse.AccountCreated = "";
+                getAccountResponse.Email = "";
+                getAccountResponse.Success = false;
+
+                return getAccountResponse;
+            }
+
+            GetAccountDetailsReturn getAccountDetails = await _accountRepo.GetUserAccount(Guid.Parse(accountIdFromToken));
+
+            if(getAccountDetails == null)
+            {
+                getAccountResponse.Username = "";
+                getAccountResponse.AccountCreated = "";
+                getAccountResponse.Email = "";
+                getAccountResponse.Success = false;
+
+                return getAccountResponse;
+            }
+
+            getAccountResponse.Username = getAccountDetails.Username; 
+            getAccountResponse.Email = getAccountDetails.Email;
+            getAccountResponse.AccountCreated = getAccountDetails.AccountCreated;
+            getAccountResponse.Success = true;
+
+            return getAccountResponse;
+
+        }
+
+        public async Task<CheckPasswordMatchReturn> CheckPasswordMatch(PasswordMatchDto passwordMatchRequest, string shortLivedToken)
+        {
+            CheckPasswordMatchReturn checkPasswordMatchResponse = new CheckPasswordMatchReturn();
+
+            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(accountIdFromToken == string.Empty)
+            {
+                checkPasswordMatchResponse.IsMatch = false;
+                checkPasswordMatchResponse.IsMatch = false;
+
+                return checkPasswordMatchResponse;
+            }
+
+            string? hashedPassword = await _accountRepo.GetHashedPassword(Guid.Parse(accountIdFromToken));
+
+            if(hashedPassword == string.Empty)
+            {
+                checkPasswordMatchResponse.IsMatch = false;
+                checkPasswordMatchResponse.IsMatch = false;
+
+                return checkPasswordMatchResponse;
+            }
+
+            bool isPasswordMatch = CheckPasswordMatchesHash(passwordMatchRequest.Password, hashedPassword);
+
+            if (!isPasswordMatch)
+            {
+                checkPasswordMatchResponse.IsMatch = false;
+                checkPasswordMatchResponse.IsMatch = false;
+
+                return checkPasswordMatchResponse;
+            }
+
+            checkPasswordMatchResponse.IsMatch = true;
+            checkPasswordMatchResponse.Success = true;
+
+            return checkPasswordMatchResponse;
+
+        }
+
 
         /// <summary>
         /// 
@@ -142,6 +228,11 @@ namespace AccountAPI.Services
         private string EncryptPassword(string userPassword)
         {
             return BCrypt.Net.BCrypt.EnhancedHashPassword(userPassword, 10);
+        }
+
+        private bool CheckPasswordMatchesHash(string passwordToCheck, string hashToCheck)
+        {
+            return BCrypt.Net.BCrypt.EnhancedVerify(passwordToCheck, hashToCheck);
         }
 
         /// <summary>

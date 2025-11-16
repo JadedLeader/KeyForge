@@ -13,13 +13,15 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultKeysDataModel> DeleteAsync(VaultKeysDataModel databaseModel);
 
-        public Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId);
+        public Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId, Guid vaultId);
 
         public Task<List<GetAllVaultsDto>> ReturnVaultKeys(Guid accountId);
 
         public Task<SingleVaultWithSingleKeyProjection> ReturnVaultAndKey(Guid vaultId, Guid accountId);
 
         public Task<List<VaultKeysDataModel>> GetVaultKeysViaVaultId(Guid vaultId);
+
+        public Task<List<Guid>> RemoveAllVaultsKeysFromVault(Guid vaultId);
 
     }
 }

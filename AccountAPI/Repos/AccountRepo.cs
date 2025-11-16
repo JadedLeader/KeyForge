@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using AccountAPI.Interfaces.RepoInterface;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using KeyForgedShared.ReturnTypes.Accounts;
 
 namespace AccountAPI.Repos
 {
@@ -50,6 +51,39 @@ namespace AccountAPI.Repos
 
             return retrievedAccount;
 
+
+        }
+
+        public async Task<GetAccountDetailsReturn> GetUserAccount(Guid accountId)
+        {
+            GetAccountDetailsReturn? getUser = await _accountDataContext.Account.Where(x => x.AccountId == accountId)
+                .Select(x => new GetAccountDetailsReturn
+                {
+                    Username = x.Username,
+                    Email = x.Email,
+                    AccountCreated = x.AccountCreated.ToString(),
+                }).FirstOrDefaultAsync();
+
+            if(getUser == null)
+            {
+                return null; 
+            }
+
+            return getUser;
+        }
+
+        public async Task<string> GetHashedPassword(Guid accountId)
+        {
+
+            string? getPasswordForUser = await _accountDataContext.Account.Where(x => x.AccountId == accountId)
+                .Select(x => x.Password).FirstOrDefaultAsync();
+
+            if(getPasswordForUser == string.Empty)
+            {
+                return null;
+            }
+
+            return getPasswordForUser;
 
         }
 
