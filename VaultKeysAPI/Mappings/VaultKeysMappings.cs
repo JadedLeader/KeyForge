@@ -1,4 +1,6 @@
-﻿using KeyForgedShared.SharedDataModels;
+﻿using KeyForgedShared.Projections.VaultKeysProjections;
+using KeyForgedShared.ReturnTypes.VaultKeys;
+using KeyForgedShared.SharedDataModels;
 
 namespace VaultKeysAPI.Mappings
 {
@@ -21,6 +23,22 @@ namespace VaultKeysAPI.Mappings
 
             return newVaultKeys;
 
+        }
+
+        public GetSingleVaultWithAllDetailsReturn MapProjectionToGetSingleVaultAllDetails(GetSingleVaultWithAllKeysAndDetailsProjection projection)
+        {
+            GetSingleVaultWithAllDetailsReturn newVaultWithDetails = new GetSingleVaultWithAllDetailsReturn
+            {
+                AccountId = projection.VaultDataModelWithAllKeys.AccountId.ToString(),
+                VaultCreatedAt = projection.VaultDataModelWithAllKeys.VaultCreatedAt.ToString(),
+                VaultId = projection.VaultDataModelWithAllKeys.VaultId.ToString(),
+                VaultName = projection.VaultDataModelWithAllKeys.VaultName,
+                VaultType = projection.VaultDataModelWithAllKeys.VaultType,
+                VaultKeys = projection.VaultDataModelWithAllKeys.VaultKeys.ToList(),
+                Success = true
+            };
+
+            return newVaultWithDetails;
         }
 
     }

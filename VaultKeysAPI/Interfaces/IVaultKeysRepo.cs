@@ -23,5 +23,11 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<List<Guid>> RemoveAllVaultsKeysFromVault(Guid vaultId);
 
+        public Task<VaultDataModel> RemoveVault(Guid vaultId);
+
+        public Task<bool> HasVaultKeys(Guid vaultId);
+
+        public Task<GetSingleVaultWithAllKeysAndDetailsProjection> GetAllDetailsForVault(Guid vaultId);
+
     }
 }

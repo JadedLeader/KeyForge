@@ -4,6 +4,7 @@ using gRPCIntercommunicationService.Protos;
 using KeyForgedShared.SharedDataModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Client;
+using Serilog;
 using VaultKeysAPI.Interfaces;
 
 namespace VaultKeysAPI.BackgroundConsumers
@@ -24,35 +25,31 @@ namespace VaultKeysAPI.BackgroundConsumers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         { 
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
                 await ConsumeVaultCreations();
-            }
         }
 
         private async Task ConsumeVaultCreations()
         {
-            var callOptions = new CallOptions().WithWaitForReady();
+         
 
             StreamVaultCreationsRequest vaultCreationsRequest = new StreamVaultCreationsRequest();
 
-            var vaultStream = _vaultClient.StreamVaultCreations(vaultCreationsRequest, callOptions);
+            var vaultStream = _vaultClient.StreamVaultCreations(vaultCreationsRequest);
 
             var vaultStreamResponses = vaultStream.ResponseStream.ReadAllAsync();
 
             await foreach(var vaultStreamResponse in vaultStreamResponses)
             {
+                Log.Information($"Received vault creation with ID: {vaultStreamResponse.VaultId}");
+
                 using IServiceScope createScope = _scopeFactory.CreateScope();
 
                 IVaultRepo vaultRepo = createScope.ServiceProvider.GetRequiredService<IVaultRepo>();
+               
+                VaultDataModel streamToVaultModel = MapVaultStreamToVaultModel(vaultStreamResponse);
 
-                if (!vaultHashset.Add(Guid.Parse(vaultStreamResponse.VaultId)))
-                {
-                    VaultDataModel streamToVaultModel = MapVaultStreamToVaultModel(vaultStreamResponse);
-
-                    await vaultRepo.AddAsync(streamToVaultModel);
-                }
+                await vaultRepo.AddAsync(streamToVaultModel);
+             
             }
         }
 

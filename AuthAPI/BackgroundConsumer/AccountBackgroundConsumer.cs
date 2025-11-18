@@ -36,16 +36,9 @@ namespace AuthAPI.BackgroundConsumer
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         private async Task ConsumeAccountChannelStream(CancellationToken cancellationToken, AsyncServerStreamingCall<StreamAccountResponse> call)
         {
             
-            Log.Information($"Nothing in the queue, looping");
-
             await foreach (var resp in call.ResponseStream.ReadAllAsync(cancellationToken))
             { 
                 Log.Information($"current item in response stream {resp}");

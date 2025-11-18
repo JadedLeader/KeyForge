@@ -3,6 +3,7 @@ using KeyForgedShared.Interfaces;
 using KeyForgedShared.Projections.VaultKeysProjections;
 using KeyForgedShared.ReturnTypes.VaultKeys;
 using KeyForgedShared.SharedDataModels;
+using Microsoft.AspNetCore.Components.Web;
 using NETCore.Encrypt;
 using VaultKeysAPI.Interfaces;
 using VaultKeysAPI.Mappings;
@@ -215,6 +216,40 @@ namespace VaultKeysAPI.Services
 
         }
 
+        public async Task<CascadeDeleteVaultKeysReturn> CascadeVaultKeyDeleteFromVault(CascadeVaultKeyDeleteDto cascadeVaultDeleteRequest,string shortLivedToken)
+        {
+
+            CascadeDeleteVaultKeysReturn cascadeDeleteResponse = new CascadeDeleteVaultKeysReturn();
+
+            string? accountId = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(accountId == null)
+            {
+                cascadeDeleteResponse.VaultId = "";
+                cascadeDeleteResponse.Success = false;
+
+                return cascadeDeleteResponse;
+            }
+
+            bool hasVault = await _vaultRepo.HasVault(Guid.Parse(accountId), Guid.Parse(cascadeVaultDeleteRequest.VaultId));
+
+            if (!hasVault)
+            {
+                cascadeDeleteResponse.VaultId = "";
+                cascadeDeleteResponse.Success = false;
+
+                return cascadeDeleteResponse;
+            }
+
+            VaultDataModel cascadeDelete = await _vaultRepo.CascadeDeleteIntoVaultKeys(Guid.Parse(cascadeVaultDeleteRequest.VaultId));
+
+            cascadeDeleteResponse.VaultId = cascadeDelete.VaultId.ToString();
+            cascadeDeleteResponse.Success = true; 
+
+            return cascadeDeleteResponse;
+
+    
+        }
         public async Task<RemoveAllVaultKeysReturn> RemoveAllVaultKeys(RemoveAllVaultKeysDto removeAllVaultKeys, string shortLivedToken)
         {
             RemoveAllVaultKeysReturn removeAllVaultKeysReturn = new RemoveAllVaultKeysReturn();
@@ -267,6 +302,47 @@ namespace VaultKeysAPI.Services
 
         }
 
+        public async Task<GetSingleVaultWithAllDetailsReturn> GetSingleVaultWithAllKeysAndDetails(GetSingleVaultWithAllDetailsDto getSingleVaultWithAllDetails, string shortLivedToken)
+        {
+            GetSingleVaultWithAllDetailsReturn getSingleVaultResponse = new GetSingleVaultWithAllDetailsReturn();
+
+            string? accountId = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+
+            if(accountId == null)
+            {
+                getSingleVaultResponse.Success = false;
+
+                return getSingleVaultResponse;
+            }
+
+            bool hasVault = await _vaultRepo.HasVault(Guid.Parse(accountId), Guid.Parse(getSingleVaultWithAllDetails.VaultId));
+
+            bool hasVaultKeys = await _vaultKeysRepo.HasVaultKeys(Guid.Parse(getSingleVaultWithAllDetails.VaultId)); 
+
+            if(!hasVault || !hasVaultKeys)
+            {
+                getSingleVaultResponse.Success = false;
+
+                return getSingleVaultResponse;
+            }
+
+            GetSingleVaultWithAllKeysAndDetailsProjection? getVaultWithAllDetails = await _vaultKeysRepo.GetAllDetailsForVault(Guid.Parse(getSingleVaultWithAllDetails.VaultId));
+
+            if(getVaultWithAllDetails == null)
+            {
+                getSingleVaultResponse.Success = false;
+
+                return getSingleVaultResponse;
+            }
+
+            GetSingleVaultWithAllDetailsReturn response = _vaultKeysMappings.MapProjectionToGetSingleVaultAllDetails(getVaultWithAllDetails);
+
+            return response;
+
+
+        }
+
+
         private string EncryptVaultKey(string keyToEncrypt)
         {
            
@@ -311,6 +387,8 @@ namespace VaultKeysAPI.Services
 
             return null;
         }
+
+        
 
 
     }

@@ -2,6 +2,7 @@
 using Grpc.Core;
 using gRPCIntercommunicationService.Protos;
 using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
+using Serilog;
 using VaultKeysAPI.Interfaces;
 
 namespace VaultKeysAPI.BackgroundConsumers
@@ -9,10 +10,7 @@ namespace VaultKeysAPI.BackgroundConsumers
     public class DeleteVaultBackgroundConsumer : BackgroundService
     {
 
-        private readonly HashSet<Guid> VaultsToDelete = new HashSet<Guid>();
-
         private readonly Vault.VaultClient _vaultClient;
-
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         public DeleteVaultBackgroundConsumer(IServiceScopeFactory serviceScopeFactory, Vault.VaultClient vaultClient)
@@ -23,41 +21,29 @@ namespace VaultKeysAPI.BackgroundConsumers
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while(!stoppingToken.IsCancellationRequested)
+            Log.Information("DeleteVaultBackgroundConsumer started. Connecting to gRPC stream...");
+
+            var request = new StreamVaultDeletionsRequest();
+            var call = _vaultClient.StreamVaultDeletions(request, cancellationToken: stoppingToken);
+
+            await foreach (var vaultDeletions in call.ResponseStream.ReadAllAsync(stoppingToken))
             {
-                await ConsumeVaultDeletions();
-            }
-        }
+                Log.Information($"Received vault delete request: {vaultDeletions.VaultId}");
 
-        private async Task ConsumeVaultDeletions()
-        {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var vaultRepo = scope.ServiceProvider.GetRequiredService<IVaultRepo>();
 
-            var callOptions = new CallOptions().WithWaitForReady();
+                var deletedVault = await vaultRepo.DeleteVaultViaVaultId(Guid.Parse(vaultDeletions.VaultId));
 
-            StreamVaultDeletionsRequest vaultDeletionsRequest = new StreamVaultDeletionsRequest();
-
-            var stream = _vaultClient.StreamVaultDeletions(vaultDeletionsRequest);
-
-            var responseStream = stream.ResponseStream.ReadAllAsync();
-
-            await foreach(StreamVaultDeletionsResponse vaultDeletions in responseStream)
-            {
-                if (!VaultsToDelete.Add(Guid.Parse(vaultDeletions.VaultId)))
+                if (deletedVault != null)
                 {
-                    IServiceScope newserviceScope = _serviceScopeFactory.CreateScope();
-
-                    IVaultRepo vaultServiceScope = newserviceScope.ServiceProvider.GetRequiredService<IVaultRepo>();
-
-                    Guid deleteVault = await vaultServiceScope.DeleteVaultViaVaultId(Guid.Parse(vaultDeletions.VaultId));
-
-                    if(deleteVault ==  Guid.Empty)
-                    {
-                        throw new Exception($"delete vault in the background consumer failed as it doesn't exist");
-                    }
+                    Log.Information($"Deleted vault: {deletedVault.VaultId} : {deletedVault.VaultName}");
                 }
-
+                else
+                {
+                   Log.Warning($"Vault {vaultDeletions.VaultId} not found in VaultKeysDB.");
+                }
             }
-
         }
     }
 }

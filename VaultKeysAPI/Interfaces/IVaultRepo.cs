@@ -13,7 +13,9 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultDataModel> GetVaultByVaultId(Guid vaultId);
 
-        public Task<Guid> DeleteVaultViaVaultId(Guid vaultId);
+        public Task<VaultDataModel> DeleteVaultViaVaultId(Guid vaultId);
+
+        public Task<VaultDataModel> CascadeDeleteIntoVaultKeys(Guid vaultId);
 
     }
 }

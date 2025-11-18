@@ -8,7 +8,7 @@ namespace VaultAPI.Interfaces.ServiceInterfaces
     {
         Task<CreateVaultReturn> CreateVault(CreateVaultDto request, string shortLivedToken);
 
-        Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken, string vaultIdCookie);
+        Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken);
 
         Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken, string vaultIdCookie);
     }

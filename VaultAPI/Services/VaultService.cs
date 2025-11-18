@@ -91,7 +91,7 @@ namespace VaultAPI.Services
 
         }
 
-        public async Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken, string vaultIdCookie)
+        public async Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken)
         {
             DeleteVaultReturn serverResponse = new DeleteVaultReturn();
 
@@ -111,7 +111,7 @@ namespace VaultAPI.Services
 
             AccountDataModel doesAccountExist = await _accountRepo.CheckForExistingAccount(Guid.Parse(getShortLivedToken));
 
-            VaultDataModel checkForExistingVault = await _vaultRepo.GetVaultViaVaultId(Guid.Parse(vaultIdCookie));
+            VaultDataModel checkForExistingVault = await _vaultRepo.GetVaultViaVaultId(Guid.Parse(request.VaultId));
 
             if (doesAccountExist.AccountId == Guid.Empty || checkForExistingVault.VaultId == Guid.Empty)
             {
@@ -185,26 +185,71 @@ namespace VaultAPI.Services
 
         public override async Task StreamVaultCreations(StreamVaultCreationsRequest request, IServerStreamWriter<StreamVaultCreationsResponse> responseStream, ServerCallContext context)
         {
-            foreach(var vaultCreation in _vaultActionsStorage.ReturnVaultCreations())
+            Log.Information($"StreamVaultCreations client connected");
+
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                await responseStream.WriteAsync(vaultCreation);
+                var creations = _vaultActionsStorage.ReturnVaultCreations();
+
+                foreach (var vaultCreation in creations)
+                {
+                    Log.Information($"vault creation being sent {vaultCreation.VaultId} : {vaultCreation.VaultName}");
+
+                    await responseStream.WriteAsync(vaultCreation);
+                }
+
+                _vaultActionsStorage.ClearVaultCreationsDict();
+
+                await Task.Delay(250);
             }
+
+            
         }
 
         public override async Task StreamVaultDeletions(StreamVaultDeletionsRequest request, IServerStreamWriter<StreamVaultDeletionsResponse> responseStream, ServerCallContext context)
         {
-            foreach(var vaultDeletion in _vaultActionsStorage.ReturnVaultDeletions())
+            Log.Information("StreamVaultDeletions CLIENT CONNECTED.");
+
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                await responseStream.WriteAsync(vaultDeletion);
+                var deletions = _vaultActionsStorage.ReturnVaultDeletions();
+
+                foreach (var deletion in deletions)
+                {
+                    Log.Information($"Sending vault deletion: {deletion.VaultId}");
+                    await responseStream.WriteAsync(deletion);
+                }
+
+                
+                _vaultActionsStorage.ClearVaultDeletionsDict();
+
+                await Task.Delay(250); 
             }
         }
 
         public override async Task StreamVaultUpdates(StreamVaultUpdateRequest request, IServerStreamWriter<StreamVaultUpdateResponse> responseStream, ServerCallContext context)
         {
-            foreach(var vaultUpdate in _vaultActionsStorage.ReturnVaultUpdates())
+
+            Log.Information($"StreamVaultUpdates client connected");
+
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                await responseStream.WriteAsync(vaultUpdate);
+                var updates = _vaultActionsStorage.ReturnVaultUpdates();
+
+                foreach (var vaultUpdate in updates)
+                {
+
+                    Log.Information($"Sending vault update: {vaultUpdate.UniqueVaultUpdateId} : {vaultUpdate.VaultId}");
+                    await responseStream.WriteAsync(vaultUpdate);
+                }
+
+                _vaultActionsStorage.ClearVaultUpdatesDict();
+
+                await Task.Delay(250);
+
             }
+
+          
         }
      
     }

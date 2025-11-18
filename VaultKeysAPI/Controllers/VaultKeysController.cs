@@ -93,6 +93,7 @@ namespace VaultKeysAPI.Controllers
             return Unauthorized();
         }
 
+        
         [HttpDelete]
         public async Task<IActionResult> RemoveAllVaultKeysFromVault([FromBody] RemoveAllVaultKeysDto removeVaultKeys)
         {
@@ -109,6 +110,43 @@ namespace VaultKeysAPI.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpDelete]
+
+        public async Task<IActionResult> CascadeDeleteVaultKeysFromVault([FromBody] CascadeVaultKeyDeleteDto cascadeVaultKeyDelete)
+        {
+            if(Request.Cookies.TryGetValue($"shortLivedToken", out string? cookie))
+            {
+                CascadeDeleteVaultKeysReturn cascadeDelete = await _vaultKeysService.CascadeVaultKeyDeleteFromVault(cascadeVaultKeyDelete, cookie);
+
+                if(!cascadeDelete.Success)
+                {
+                    return BadRequest(cascadeDelete);
+                }
+
+                return Ok(cascadeDelete);
+            }
+
+            return NotFound();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetVaultWithAllDetails([FromBody] GetSingleVaultWithAllDetailsDto getVaultWithAllDetails)
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                GetSingleVaultWithAllDetailsReturn vaultWithAllDetails = await _vaultKeysService.GetSingleVaultWithAllKeysAndDetails(getVaultWithAllDetails, cookie);
+
+                if (!vaultWithAllDetails.Success)
+                {
+                    return BadRequest(vaultWithAllDetails);
+                }
+
+                return Ok(vaultWithAllDetails);
+            }
+
+            return NotFound();
         }
     }
 }

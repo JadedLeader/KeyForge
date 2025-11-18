@@ -74,13 +74,7 @@ namespace AccountAPI.Services
 
         public override async Task StreamAccount(StreamAccountRequest request, IServerStreamWriter<StreamAccountResponse> responseStream, ServerCallContext context)
         {
-            if(_streamStorage.AccountCreationStreamTotal() == 0)
-            {
-                Log.Information($"the stream account response is zero");
-            }
-
-            Log.Information($"Not null but not sending");
-
+         
             foreach (StreamAccountResponse item in _streamStorage.ReturnAccountCreationStream())
             {
                 Log.Information($"streaming requets {item} to auth");
@@ -120,13 +114,7 @@ namespace AccountAPI.Services
 
         public override async Task StreamAccountDeletions(StreamAccountDeleteRequest request, IServerStreamWriter<StreamAccountDeleteResponse> responseStream, ServerCallContext context)
         {
-            if (_streamStorage.AccountDeletionStreamTotal() == 0)
-            {
-                Log.Error($"Account deletion stream is currently zero");
-            }
-
-            Log.Information($"New account deletion request received");
-
+            
             foreach(Guid accountDeletionId in _streamStorage.ReturnAccountDeletionList())
             {
                 StreamAccountDeleteResponse newDeleteResponse = new StreamAccountDeleteResponse

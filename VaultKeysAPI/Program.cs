@@ -4,7 +4,9 @@ using KeyForgedShared.Helpers;
 using KeyForgedShared.Interfaces;
 using KeyForgedShared.SharedDataModels; 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
+using Serilog;
 using VaultKeysAPI.BackgroundConsumers;
 using VaultKeysAPI.DataContext;
 using VaultKeysAPI.Interfaces;
@@ -44,9 +46,10 @@ namespace VaultKeysAPI
 
             builder.Services.AddDbContext<VaultKeysDataContext>(options =>
             {
-                string? connectionString = builder.Configuration.GetConnectionString("VaultKeysApiConnectionString");
-
-                options.UseSqlServer(connectionString);
+                options.UseSqlServer(
+       builder.Configuration.GetConnectionString("VaultKeysApiConnectionString"))
+          .EnableSensitiveDataLogging()
+          .LogTo(Console.WriteLine, LogLevel.Information);
 
             });
 
@@ -66,6 +69,10 @@ namespace VaultKeysAPI
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
             builder.Services.AddScoped<VaultKeysMappings>();
 
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
 
             var app = builder.Build();
 

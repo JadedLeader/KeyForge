@@ -4,6 +4,7 @@ using KeyForgedShared.SharedDataModels;
 using VaultKeysAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
+using Serilog;
 
 namespace VaultKeysAPI.Repos
 {
@@ -21,6 +22,8 @@ namespace VaultKeysAPI.Repos
         public override async Task<VaultDataModel> AddAsync(VaultDataModel databaseModel)
         {
 
+            Log.Information($"adding vault to the database");
+
             bool entityExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == databaseModel.VaultId);
 
             if (entityExists)
@@ -31,25 +34,27 @@ namespace VaultKeysAPI.Repos
             return await base.AddAsync(databaseModel);
         }
 
-        public override Task<VaultDataModel> DeleteAsync(VaultDataModel databaseModel)
+        public override async Task<VaultDataModel> DeleteAsync(VaultDataModel databaseModel)
         {
-            return base.DeleteAsync(databaseModel);
+            return await base.DeleteAsync(databaseModel);
         }
 
-        public async Task<Guid> DeleteVaultViaVaultId(Guid vaultId)
+        public async Task<VaultDataModel?> DeleteVaultViaVaultId(Guid vaultId)
         {
             bool vaultExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == vaultId);
 
             if (!vaultExists)
             {
-                return Guid.Empty;
+                return null;
             }
 
             VaultDataModel? vaultToDelete = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
 
             _vaultKeysDataContext.Vault.Remove(vaultToDelete);
 
-            return vaultToDelete.VaultId;
+            await _vaultKeysDataContext.SaveChangesAsync();
+
+            return vaultToDelete;
         }
 
         public async Task<VaultDataModel> GetVaultByUserId(Guid userId)
@@ -90,6 +95,22 @@ namespace VaultKeysAPI.Repos
 
             return getVault;
         
+        }
+
+        public async Task<VaultDataModel> CascadeDeleteIntoVaultKeys(Guid vaultId)
+        {
+            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+
+            if(getVault == null)
+            {
+                Log.Warning($"Vault was null when cascading deletes"); 
+            }
+
+            _vaultKeysDataContext.Vault.Remove(getVault);
+            await _vaultKeysDataContext.SaveChangesAsync();
+
+            return getVault;
+
         }
 
     }

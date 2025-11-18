@@ -26,6 +26,15 @@ namespace VaultKeysAPI.DataContext
             optionsBuilder.UseSqlServer(dbConnectionString);
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<VaultKeysDataModel>()
+                .HasOne(vk => vk.Vault)
+                .WithMany(vk => vk.VaultKeys)
+                .HasForeignKey(vk => vk.VaultId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
 
         public DbSet<AccountDataModel> Account { get; set; }
 

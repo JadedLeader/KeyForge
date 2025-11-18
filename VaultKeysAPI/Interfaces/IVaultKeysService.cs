@@ -18,6 +18,10 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<RemoveAllVaultKeysReturn> RemoveAllVaultKeys(RemoveAllVaultKeysDto removeAllVaultKeys, string shortLivedToken);
 
+        public Task<CascadeDeleteVaultKeysReturn> CascadeVaultKeyDeleteFromVault(CascadeVaultKeyDeleteDto cascadeVaultDeleteRequest, string shortLivedToken);
+
+        public Task<GetSingleVaultWithAllDetailsReturn> GetSingleVaultWithAllKeysAndDetails(GetSingleVaultWithAllDetailsDto getSingleVaultWithAllDetails, string shortLivedToken);
+
 
 
     }

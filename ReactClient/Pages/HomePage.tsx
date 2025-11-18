@@ -143,7 +143,7 @@ interface CreateVaultWithKeysResponse {
 }
 
 interface RemoveAllVaultKeysFromVaultRequest { 
-    vaultId: string;
+    VaultId: string;
 }
 
 interface RemoveAllVaultKeysFromVaultResponse { 
@@ -159,6 +159,13 @@ interface DeleteVaultResponse {
     vaultId: string; 
     accountId: string; 
     sucessful: boolean;
+}
+
+interface DeleteVaultWithAllKeysResponse { 
+
+    vaultId: string; 
+    accountId: string;
+
 }
 
 
@@ -231,63 +238,63 @@ function BuildDecrpytKey(encryptedKey: string, vaultId: string): DecryptKeyReque
 
 }
 
+interface SetPropsForDeletionVerificaitonModal { 
+    isOpen: boolean; 
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
-export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
-
-    const [decryptedKey, setDecryptedKey] = useState<Record<string, string>>({});
-
-    const handleRevealKey = async (encryptedKey: string, vaultId: string, vaultKeyId: string) => {
+    vaultId: string;
+}
 
 
-        const response = await DecryptVaultKey(encryptedKey, vaultId);
 
-        //not sure what this does, revisit
-            setDecryptedKey(prev => ({
-                ...prev,
-                [vaultKeyId]: response.decryptedVaultKey,
-            }));
-        
-    };
+export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: SetPropsForDeletionVerificaitonModal) { 
 
-    function BuildDeleteVaultWithAllKeysRequest(vaultId: string): RemoveAllVaultKeysFromVaultRequest { 
+
+    function BuildDeleteVaultWithAllKeysRequest(): RemoveAllVaultKeysFromVaultRequest {
 
         const buildingRequest: RemoveAllVaultKeysFromVaultRequest = {
-            vaultId: vaultId
-        }; 
+            VaultId: vaultId
+        };
+
+        console.log("vault id being pinged:", buildingRequest.VaultId);
 
         return buildingRequest;
 
     }
 
-    function BuildDeleteVaultWithAllVaultKeysResponse(vaultId: string, success: boolean): RemoveAllVaultKeysFromVaultResponse { 
+    function BuildDeleteVaultWithAllVaultKeysResponse(vaultId: string, success: boolean): RemoveAllVaultKeysFromVaultResponse {
 
         const buildingResponse: RemoveAllVaultKeysFromVaultResponse = {
 
             vaultId: vaultId,
             success: success
-        }; 
+        };
 
         return buildingResponse;
 
     }
 
-    async function DeleteVaultWithAllKeys(vaultId : string) : Promise<RemoveAllVaultKeysFromVaultResponse> { 
+    async function DeleteAllKeysFromVault(): Promise<RemoveAllVaultKeysFromVaultResponse> {
 
 
-        const buildingRequestBody = BuildDeleteVaultWithAllKeysRequest(vaultId);
+        const buildingRequestBody = BuildDeleteVaultWithAllKeysRequest();
 
-        const deleteVaultKeysCall = await fetch("/VaultKeys/RemoveAllVaultKeysFromVault", {
+
+        const deleteVaultKeysCall = await fetch("/VaultKeys/CascadeDeleteVaultKeysFromVault", {
             method: "DELETE",
             headers: {
-                "content-type": "application/json"
+                "Content-Type": "application/json",
             },
             credentials: "include",
-            body: JSON.stringify(buildingRequestBody)
+            body: JSON.stringify(buildingRequestBody),
         });
 
-        if (!deleteVaultKeysCall.ok) { 
+        console.log(deleteVaultKeysCall);
 
-            const errorText = await deleteVaultKeysCall.text(); 
+
+        if (!deleteVaultKeysCall.ok) {
+
+            const errorText = await deleteVaultKeysCall.text();
 
             throw new Error(errorText);
 
@@ -302,44 +309,46 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
         return buildingPromise;
     }
 
-    function BuildDeleteVaultRequest(vaultId: string): DeleteVaultRequest { 
+    function BuildDeleteVaultRequest(vaultId: string): DeleteVaultRequest {
 
         const buildingRequest: DeleteVaultRequest = {
             vaultId: vaultId
-        }; 
+        };
 
         return buildingRequest;
 
     }
 
-    function BuildDeleteVaultResponse(vaultId: string, accountId: string, sucessful: boolean): DeleteVaultResponse { 
+    function BuildDeleteVaultResponse(vaultId: string, accountId: string, sucessful: boolean): DeleteVaultResponse {
 
         const buildingResponse: DeleteVaultResponse = {
             accountId: accountId,
             vaultId: vaultId,
             sucessful: sucessful
-        }; 
+        };
 
         return buildingResponse;
 
     }
 
-    async function DeleteVault(vaultId: string) : Promise<DeleteVaultResponse> { 
+    async function DeleteVault(): Promise<DeleteVaultResponse> {
 
-        const buildingRequestBody = BuildDeleteVaultRequest(vaultId); 
+        const buildingRequestBody = BuildDeleteVaultRequest(vaultId);
+
+        console.log("hit delete vault", buildingRequestBody)
 
         const deleteVaultRequest = await fetch("/Vault/DeleteVault", {
             method: "DELETE",
             headers: {
-                "content-type": "application.json"
+                "content-type": "application/json"
             },
             credentials: "include",
             body: JSON.stringify(buildingRequestBody)
         });
 
-        if (!deleteVaultRequest.ok) { 
+        if (!deleteVaultRequest.ok) {
 
-            const errorText = await deleteVaultRequest.text(); 
+            const errorText = await deleteVaultRequest.text();
 
             throw new Error(errorText);
 
@@ -349,12 +358,107 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 
         const buildingPromise = BuildDeleteVaultResponse(jsonBody.vaultId, jsonBody.accountId, jsonBody.sucessful);
 
-        return buildingPromise; 
+        console.log("deleting vault", jsonBody);
+
+        return buildingPromise;
 
 
     }
 
+    function BuildDeleteVaultWithAllKeys(vaultId: string, accountId: string): DeleteVaultWithAllKeysResponse { 
 
+        const buildingResponse: DeleteVaultWithAllKeysResponse = {
+            vaultId: vaultId,
+            accountId: accountId
+        }; 
+
+        return buildingResponse;
+
+    }
+
+    async function DeleteVaultWithAllKeys() : Promise<DeleteVaultWithAllKeysResponse> { 
+
+
+
+        console.log("hit final", vaultId);
+
+        const deleteAllKeysWithinVault = await DeleteAllKeysFromVault(); 
+
+        const deleteVault = await DeleteVault();
+
+
+        if (!deleteVault.sucessful) { 
+
+            throw new Error("Deleting vault was not successful");
+
+        }
+
+        console.log("vault has been deleted with all keys"); 
+
+        const buildingResponse = BuildDeleteVaultWithAllKeys(deleteVault.vaultId, deleteVault.accountId);
+
+        return buildingResponse;
+
+
+    }
+
+    return (
+
+        <div>
+
+            <Dialog open={isOpen} onOpenChange={setIsOpen} >
+                <DialogContent className="bg-zinc-950 text-white border-blue-600 overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Are you sure you want to delete this vault and all of it's keys?</DialogTitle>
+                        <DialogDescription>
+                            This action cannot be undone. This will permanently delete your vault
+                            and remove your all data.
+                        </DialogDescription>
+                    </DialogHeader>
+
+
+                    <DialogFooter>
+
+                        <DialogClose asChild>
+                            <Button className="bg-blue-600 text-white hover::underline" variant="outline">Close</Button>
+                        </DialogClose>
+
+                        <Button className="bg-blue-600 text-white hover::underline" variant="outline" onClick={() => DeleteVaultWithAllKeys()}>Delete</Button>
+
+                    </DialogFooter>
+
+     
+
+                </DialogContent>
+            </Dialog>
+            
+             
+        </div>
+
+    ); 
+
+}
+
+
+export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
+
+    const [decryptedKey, setDecryptedKey] = useState<Record<string, string>>({});
+    const [isDeleteVerificationOpen, setIsDeleteVerificationOpen] = useState(false);
+
+    const handleRevealKey = async (encryptedKey: string, vaultId: string, vaultKeyId: string) => {
+
+
+        const response = await DecryptVaultKey(encryptedKey, vaultId);
+
+        //not sure what this does, revisit
+            setDecryptedKey(prev => ({
+                ...prev,
+                [vaultKeyId]: response.decryptedVaultKey,
+            }));
+        
+    };
+
+   
     
     return (
         <div className="flex flex-wrap gap-4">
@@ -379,9 +483,11 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                                     <DropdownMenuItem>
                                         Edit
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem  >
+                                    <DropdownMenuItem onSelect={() => setIsDeleteVerificationOpen(true)}  >
                                         Delete
                                     </DropdownMenuItem>
+
+                                    <CreateDeleteVerificationModal isOpen={isDeleteVerificationOpen} setIsOpen={setIsDeleteVerificationOpen} vaultId={vault.vaultId} />
                                     <DropdownMenuItem>Expand</DropdownMenuItem>
 
                                 </DropdownMenuContent>
@@ -391,6 +497,7 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                
                     </CardHeader>
 
+                    
 
                     <CardContent className="space-y-2">
                         {vault.keys.map((key) => (
@@ -662,6 +769,7 @@ export function HomePage() {
     const [vaultKeyName, setVaultKeyName] = useState("");
     const [vaultKey, setVaultKey] = useState("");
     const [eyeOpen, setEyeOpen] = useState(false)
+    
 
     useEffect(() => {
 

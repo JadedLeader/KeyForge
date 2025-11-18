@@ -36,9 +36,6 @@ namespace VaultAPI.Controllers
                     return BadRequest(createNewVault);
                 }
 
-                Response.Cookies.Append("VaultId", createNewVault.VaultId);
-                Response.Cookies.Append("TypeOfVault", createNewVault.VaultType.ToString());
-
                 return Ok(createNewVault);
             }
 
@@ -51,23 +48,19 @@ namespace VaultAPI.Controllers
         {
             bool shortLivedToken = Request.Cookies.TryGetValue("ShortLivedToken", out string? tokenCookie);
 
-            bool vaultId = Request.Cookies.TryGetValue("VaultId", out string? vaultIdCookie);
-
-            if(shortLivedToken && vaultId)
+            if (Request.Cookies.TryGetValue($"ShortLivedToken", out string cookie))
             {
-                DeleteVaultReturn deleteVault = await _vaultService.DeleteVault(deleteVaultRequest, tokenCookie, vaultIdCookie);
+                DeleteVaultReturn deleteVault = await _vaultService.DeleteVault(deleteVaultRequest, tokenCookie);
 
-                if(deleteVault.Sucessful == false)
+                if (!deleteVault.Sucessful)
                 {
                     return BadRequest(deleteVault);
                 }
 
                 return Ok(deleteVault);
             }
-            
-            return NotFound();
 
-            
+            return NotFound();
         }
 
         [HttpPut]

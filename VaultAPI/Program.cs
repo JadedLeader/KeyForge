@@ -1,20 +1,21 @@
 
-using KeyForgedShared.SharedDataModels;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.Generics;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
+using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using VaultAPI.BackgroundConsumers;
 using VaultAPI.DataContext;
-using VaultAPI.Repos;
-using KeyForgedShared.Generics;
+using VaultAPI.Interfaces.MappingInterfaces;
 using VaultAPI.Interfaces.RepoInterfaces;
-using KeyForgedShared.Interfaces;
-using KeyForgedShared.Helpers;
 using VaultAPI.Interfaces.ServiceInterfaces;
+using VaultAPI.Mappings;
+using VaultAPI.Repos;
 using VaultAPI.Services;
 using VaultAPI.Storage;
-using VaultAPI.Interfaces.MappingInterfaces;
-using VaultAPI.Mappings;
 
 namespace VaultAPI
 {
@@ -69,6 +70,11 @@ namespace VaultAPI
 
             //this line helps inject the dependency of the DbContext for the GenericRepository located in KeyForgedShared
             builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<VaultDataContext>());
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
 
             var app = builder.Build();
 

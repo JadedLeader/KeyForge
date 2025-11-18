@@ -110,7 +110,8 @@ namespace VaultKeysAPI.Repos
                 
                 
         }
-        
+
+    
         public async Task<List<VaultKeysDataModel>> GetVaultKeysViaVaultId(Guid vaultId)
         {
 
@@ -123,6 +124,46 @@ namespace VaultKeysAPI.Repos
 
             return getVaultkeysViaVaultId;
 
+        }
+
+        public async Task<bool> HasVaultKeys(Guid vaultId)
+        {
+
+            List<VaultKeysDataModel> listOfVaultKeys = await _vaultKeysDataContext.VaultKeys.Where(x => x.VaultId == vaultId).ToListAsync();
+
+            if(listOfVaultKeys.Count == 0)
+            {
+                return false;
+            }
+
+            return true;
+
+        }
+
+        public async Task<GetSingleVaultWithAllKeysAndDetailsProjection> GetAllDetailsForVault(Guid vaultId)
+        {
+            GetSingleVaultWithAllKeysAndDetailsProjection? singleVaultAllDetails = await _vaultKeysDataContext.Vault.Where(v => v.VaultId == vaultId)
+                .Include(v => v.VaultKeys)
+                .Select(v => new GetSingleVaultWithAllKeysAndDetailsProjection
+                {
+                    VaultDataModelWithAllKeys = new VaultDataModel
+                    {
+                        VaultId = v.VaultId,
+                        AccountId = v.AccountId,
+                        VaultCreatedAt = v.VaultCreatedAt,
+                        VaultName = v.VaultName,
+                        VaultType = v.VaultType,
+                        VaultKeys = v.VaultKeys.ToList(),
+                    }
+
+                }).FirstOrDefaultAsync();
+
+            if(singleVaultAllDetails == null)
+            {
+                return null;
+            }
+
+            return singleVaultAllDetails;
         }
 
         public async Task<List<Guid>> RemoveAllVaultsKeysFromVault(Guid vaultId)
@@ -145,6 +186,26 @@ namespace VaultKeysAPI.Repos
             }
 
             return keysRemoved;
+
+        }
+
+        public async Task<VaultDataModel> RemoveVault(Guid vaultId)
+        {
+
+            VaultDataModel? removedVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+
+            if(removedVault == null)
+            {
+                return null;
+            }
+
+            _vaultKeysDataContext.Remove(removedVault);
+
+            await _vaultKeysDataContext.SaveChangesAsync();
+
+            return removedVault;
+
+
 
         }
 

@@ -40,6 +40,21 @@ namespace VaultAPI.Storage
             return _vaultDeletions;
         }
 
+        public void ClearVaultDeletionsDict()
+        {
+            _vaultDeletions.Clear();
+        }
+
+        public void ClearVaultCreationsDict()
+        {
+            _vaultCreations.Clear();
+        }
+
+        public void ClearVaultUpdatesDict()
+        {
+            _vaultUpdates.Clear();
+        }
+
 
 
     }
