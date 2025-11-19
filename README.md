@@ -81,4 +81,19 @@ dotnet ef database update --project VaultAPI
 ```bash
 dotnet ef database update --project VaultKeysAPI
 ```
+# 🛠️ Current Working Build Projects
+
+## **Steps to setup current build**
+1. Navigate to "Start"
+2. Click the dropdown arrow 
+3. Common properties  
+4. Configure startup projects
+5. Select multiple startup projects
+6. Under "Action" select "Start" on the AccountAPI
+7. Under "Action" select "Start" on the AuthAPI
+8. Under "Action" select "Start" on the VaultAPI
+9. Under "Action" select "Start" on the VaultKeysAPI
+10. Under "Action" select "Start" on the "ReactClient"
+   
+
 
