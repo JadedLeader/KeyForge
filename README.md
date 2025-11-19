@@ -59,7 +59,7 @@ After adding your connection strings using User Secrets, run the following comma
 
 Navigate to the solution root or the API project directory, then run the corresponding command for each API. If using visual studio, go to tools -> NuGet Packet Manager -> Package Manager Console
 
-###Reminder to restore packages before migrations
+### Reminder to restore packages before migrations
 Packages may need to be restored before applying migrations, simply go to the package manager console and do: 
 ```bash
 dotnet restore
