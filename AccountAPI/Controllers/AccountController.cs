@@ -56,7 +56,7 @@ namespace AccountAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUserAccountDetails()
         {
-            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            if(Request.Cookies.TryGetValue("LongLivedToken", out string? cookie))
             {
                 GetAccountDetailsReturn details = await _accountService.GetAccountDetails(cookie);
 

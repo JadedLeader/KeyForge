@@ -89,6 +89,9 @@ import {
     ResizablePanel,
     ResizablePanelGroup,
 } from "@/components/ui/resizable"
+import { Separator } from "../src/components/ui/separator"
+import { error } from "console"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface SilentTokenCycleRequest { 
 
@@ -461,13 +464,13 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
    
     
     return (
-        <div className="flex flex-wrap gap-4 rounded-2xl bg-neutral-900/60 border border-neutral-700 
+        <div className="flex flex-wrap gap-4 rounded-2xl 
         shadow-lg shadow-black/40 hover:shadow-xl hover:shadow-black/60 
          p-4">
 
             {vaults.map((vault) => (
 
-                <Card key={vault.vaultId} className=" group bg-zinc-950 text-white border-blue-800 w-80 hover:-translate-y-1 transition">
+                <Card key={vault.vaultId} className=" group bg-[hsl(210_10%_6%)] text-white border-[hsl(210_10%_16%)] w-80 hover:-translate-y-1 transition">
                     <CardHeader>
                         <CardTitle className="flex justify-between font-semibold text-neutral-50">
 
@@ -766,6 +769,104 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
 
 }
 
+
+interface GetUserAccountDetailsResponse { 
+    username: string; 
+    email: string;
+    success: boolean;
+} 
+
+interface BuildAvatarAndUsernameProps { 
+    username: string; 
+    email: string;
+}
+
+
+export function BuildAvatarAndUsernameSideBarSegment() { 
+
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+
+    useEffect(() => {
+
+        const buildAvatarData = async () => {
+
+            
+            await GetUserAccountDetails();
+
+
+        };
+
+        buildAvatarData();
+
+    }, []);
+
+    function BuildUsersAccountDetails(username: string, email: string, success: boolean): GetUserAccountDetailsResponse {
+
+        const buildNew: GetUserAccountDetailsResponse = {
+
+            username: username,
+            email: email,
+            success: success
+
+        };
+
+        return buildNew;
+
+    }
+
+    async function GetUserAccountDetails(): Promise<GetUserAccountDetailsResponse> {
+
+        const getAccountDetails = await fetch("/Account/GetUserAccountDetails", {
+            method: "GET",
+            headers: {
+                "content-type": "application/json"
+            },
+            credentials: "include",
+        });
+
+        if (!getAccountDetails.ok) {
+
+            const errorText = await getAccountDetails.text();
+
+            throw new Error(errorText);
+        }
+
+        const jsonBody = await getAccountDetails.json();
+
+        console.log(jsonBody);
+
+        const buildResponse = BuildUsersAccountDetails(jsonBody.username, jsonBody.email, jsonBody.success);
+
+        if (buildResponse.success) { 
+            setUsername(jsonBody.username); 
+            setEmail(jsonBody.email);
+        }
+
+        return buildResponse;
+
+
+    }
+   
+
+    return (
+
+        <div className="flex flex-row pt-2 items-start">
+            <Avatar className="bg-gray-700 font-semibold text-neutral-50">
+                <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+
+            <div className="flex flex-col ml-3">
+                <Label className="font-semibold text-neutral-50">{username}</Label>
+                <Label className="font-semibold text-neutral-50 mt-1">{email}</Label>
+            </div>
+        </div>
+
+    );
+
+}
+
+
 export function HomePage() {
 
     const [vaults, setVaults] = useState<Vault[]>([]);
@@ -774,9 +875,9 @@ export function HomePage() {
     const [isCreateVaultDialogOpen, setIsCreateVaultDialogOpen] = useState(false);
     const [vaultKeyName, setVaultKeyName] = useState("");
     const [vaultKey, setVaultKey] = useState("");
-    const [eyeOpen, setEyeOpen] = useState(false)
-    
+    const [eyeOpen, setEyeOpen] = useState(false);
 
+   
     useEffect(() => {
 
         const fetchToken = async () => {
@@ -787,9 +888,13 @@ export function HomePage() {
 
             await GetVaultsAndKeys();
 
+            
+
         }; 
 
         fetchToken();
+
+
 
 
     }, []);
@@ -867,18 +972,16 @@ export function HomePage() {
 
             <ResizablePanelGroup direction="horizontal" className="h-full">
 
-                <ResizablePanel defaultSize={15} className="bg-neutral-900/60 border border-neutral-600 flex flex-col  ">
+                <ResizablePanel defaultSize={10} className="bg-[hsl(210_10%_6%)] border border-[hsl(210_12%_14%)v] flex flex-col  ">
 
-                    <div className="flex flex-col h-full bg-zinc-950 backdrop-blur-xl border-r">
-
-
-                        <h1 className="text-white px-4">Navigation</h1>
-
+                    <div className="flex flex-col h-full">
 
                         <div>
 
-                            <Label className="text-white">Vaults</Label>
+                            <BuildAvatarAndUsernameSideBarSegment />
 
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
+                          
                             <DropdownMenu>
                                 <DropdownMenuTrigger className="justify-start text-blue-500 hover:underline text-left text-white px-4">
                                     Vaults
@@ -901,6 +1004,12 @@ export function HomePage() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
+
+                            <Label className="justify-start text-blue-500 hover:underline text-left text-white px-4">Teams</Label>
+
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
+
                         </div>
 
                     </div>
@@ -909,14 +1018,13 @@ export function HomePage() {
 
                 </ResizablePanel >
       
-                <ResizableHandle className="bg-neutral-700" />
+                <ResizableHandle className="bg-neutral-900" />
 
-                <ResizablePanel defaultSize={85} >
+                <ResizablePanel defaultSize={90} >
 
-                    <div className="top-0 z-20 bg-black p-4 border-b border-neutral-600 h-24 justify-between">
-                        <u className="text-white">
-                            <h1 className="text-white text-xl font-semibold p-2">Dashboard</h1>
-                        </u>
+                    <div className="top-0 z-20 p-4 h-24 justify-between">
+     
+                        <h1 className="font-semibold text-neutral-50 text-xl p-2">Dashboard</h1>
 
                     </div>
 
