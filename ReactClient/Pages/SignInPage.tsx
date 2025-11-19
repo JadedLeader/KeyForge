@@ -237,7 +237,8 @@ export function SignInPage() {
                 <source src="/smoke.mp4" type="video/mp4" />
             </video>
 
-            <div className="container">
+            <div className="center-screen"> 
+            <div className="container " >
 
                 <div className="header">
 
@@ -280,6 +281,7 @@ export function SignInPage() {
                     </div>
 
                 </form>
+                </div>
             </div>
 
         </>

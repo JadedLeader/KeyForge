@@ -97,6 +97,7 @@ export function SignUpPage() {
                 <source src="/smoke.mp4" type="video/mp4" />
             </video>
 
+            <div className="center-screen"> 
             <div className="container">
 
                 <div className="header">
@@ -146,10 +147,11 @@ export function SignUpPage() {
                     </button>
                 </form>
 
-                <div className="footer">
-                    Already registered? <a href="/signin">log in</a>
+                    <div className="footer">
+                        Already registered? <a href="/signin">log in</a>
+                    </div>
                 </div>
-            </div>
+            </div >
         </>
   );
 }

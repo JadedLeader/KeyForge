@@ -83,7 +83,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { ChevronRight, MoreVertical, Trash2, Edit, Eye, EyeOff } from "lucide-react" 
+import { ChevronRight, MoreVertical, Trash2, Edit, Eye, EyeOff, Cog, Pencil, Trash, Maximize2 } from "lucide-react" 
 import {
     ResizableHandle,
     ResizablePanel,
@@ -461,14 +461,18 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
    
     
     return (
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-4 rounded-2xl bg-neutral-900/60 border border-neutral-700 
+        shadow-lg shadow-black/40 hover:shadow-xl hover:shadow-black/60 
+         p-4">
 
             {vaults.map((vault) => (
 
-                <Card key={vault.vaultId} className="bg-zinc-950 text-white border-blue-600 w-80">
+                <Card key={vault.vaultId} className=" group bg-zinc-950 text-white border-blue-800 w-80 hover:-translate-y-1 transition">
                     <CardHeader>
-                        <CardTitle className="flex justify-between">
-                            Vault Name: {vault.vaultName}
+                        <CardTitle className="flex justify-between font-semibold text-neutral-50">
+
+                            <Cog className="transition-transform duration-300 group-hover:rotate-180" />
+                            Vault: {vault.vaultName}
 
                             <DropdownMenu >
                                 <DropdownMenuTrigger>
@@ -478,17 +482,19 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 
                                 </DropdownMenuTrigger>
 
-                                <DropdownMenuContent className="text-white bg-transparent border-0">
+                                <DropdownMenuContent className="text-gray-400 bg-transparent border border-neutral-600 bg-neutral-900 p-1 min-w-0">
 
-                                    <DropdownMenuItem>
-                                        Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => setIsDeleteVerificationOpen(true)}  >
-                                        Delete
+                                    <DropdownMenuItem className="p-1 h-6">
+                                        <Pencil size={16}  />
+                                    </DropdownMenuItem >
+                                    <DropdownMenuItem className="p-1 h-6" onSelect={() => setIsDeleteVerificationOpen(true)}  >
+                                        <Trash size={16}  />
                                     </DropdownMenuItem>
 
                                     <CreateDeleteVerificationModal isOpen={isDeleteVerificationOpen} setIsOpen={setIsDeleteVerificationOpen} vaultId={vault.vaultId} />
-                                    <DropdownMenuItem>Expand</DropdownMenuItem>
+                                    <DropdownMenuItem className="p-1 h-6">
+                                        <Maximize2 size={16}  />
+                                    </DropdownMenuItem>
 
                                 </DropdownMenuContent>
 
@@ -504,12 +510,12 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                             <div key={key.vaultKeyId}>
 
                                 <div className="flex justify-between">
-                                <FieldLabel className="font-semibold text-white">Key Name:</FieldLabel>
+                                    <FieldLabel className="font-semibold text-neutral-50">Key Name:</FieldLabel>
                                 <p className="text-gray-300 text-xs break-all">{key.keyName}</p>
                                 </div>
 
                                 
-                                <FieldLabel className="text-white font-semibold">Vault Key</FieldLabel>
+                                <FieldLabel className="text-neutral-50 font-semibold">Vault Key(s)</FieldLabel>
 
                                 <div className="flex justify-between"> 
                                     <p className="text-gray-300 text-xs break-all">{decryptedKey[key.vaultKeyId] ?? key.hashedVaultKey} </p>
@@ -861,34 +867,41 @@ export function HomePage() {
 
             <ResizablePanelGroup direction="horizontal" className="h-full">
 
-                <ResizablePanel defaultSize={15} className="bg-zinc-950 border border-blue-600 flex flex-col ">
+                <ResizablePanel defaultSize={15} className="bg-neutral-900/60 border border-neutral-600 flex flex-col  ">
 
-                    <div className="flex flex-col h-full">
+                    <div className="flex flex-col h-full bg-zinc-950 backdrop-blur-xl border-r">
 
 
-                            <h1 className="text-white">Navigation</h1>
+                        <h1 className="text-white px-4">Navigation</h1>
+
+
+                        <div>
+
+                            <Label className="text-white">Vaults</Label>
 
                             <DropdownMenu>
-                                    <DropdownMenuTrigger className="justify-start bg-transparent hover:bg-transparent text-blue-500 hover:underline text-left text-white">
-                                        Drop down for something
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="w-56" align="start">
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            onClick={() => setIsCreateVaultDialogOpen(true)}
-                                            className="bg-transparent text-white hover:underline"
-                                        >
-                                            Create Vault
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
-                                            Delete Vault
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem className="bg-transparent text-white">
-                                            Edit Vault
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                    </DropdownMenuContent>
+                                <DropdownMenuTrigger className="justify-start text-blue-500 hover:underline text-left text-white px-4">
+                                    Vaults
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56 px-4" align="start">
+                                    <DropdownMenuSeparator className="border-neutral-700" />
+                                    <DropdownMenuItem
+                                        onClick={() => setIsCreateVaultDialogOpen(true)}
+                                        className="bg-transparent text-white hover:underline"
+                                    >
+                                        Create Vault
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        Delete Vault
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="bg-transparent text-white">
+                                        Edit Vault
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                </DropdownMenuContent>
                             </DropdownMenu>
+
+                        </div>
 
                     </div>
 
@@ -896,13 +909,14 @@ export function HomePage() {
 
                 </ResizablePanel >
       
-                <ResizableHandle withHandle className="bg-blue-600" />
+                <ResizableHandle className="bg-neutral-700" />
 
                 <ResizablePanel defaultSize={85} >
 
-                    <div className="p-4"> 
-
-                        <h1 className="text-white justify-left p-4">Dashboard</h1>
+                    <div className="top-0 z-20 bg-black p-4 border-b border-neutral-600 h-24 justify-between">
+                        <u className="text-white">
+                            <h1 className="text-white text-xl font-semibold p-2">Dashboard</h1>
+                        </u>
 
                     </div>
 
