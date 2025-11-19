@@ -5,12 +5,12 @@
 store and rotate keys with fine-grained policies, and collaborate safely via invitation workflows and real-time audit feeds. Every action—creating a vault, issuing a key, 
 accessing a secret—is immutably logged and can be streamed live to dashboards for compliance and security monitoring.
 
-# 🔧 API Setup Guide (Development Environment)
+# API Setup Guide (Development Environment)
 
 This project uses **User Secrets** to store local connection strings securely.  
 Follow the steps below to configure each API and apply the required database migrations.
 
-## 📁 1. Configure Connection Strings Using User Secrets
+## 1. Configure Connection Strings Using User Secrets
 
 Each API has its own database connection string. These **must be added locally** using Visual Studio’s **User Secrets** feature.
 
@@ -20,7 +20,7 @@ Each API has its own database connection string. These **must be added locally**
 3. In the generated `secrets.json` file, paste the appropriate entry  
 4. Replace the empty string `""` with your local SQL Server connection string
 
-## 🔑 2. Required Connection String Entries
+## 2. Required Connection String Entries
 
 ### **Account API**
 ```json  
@@ -50,12 +50,12 @@ Each API has its own database connection string. These **must be added locally**
 }
 ```
 
-# 🗄️ Applying Entity Framework Core Migrations (Per API via .NET CLI)
+# Applying Entity Framework Core Migrations (Per API via .NET CLI)
 
 Each API in the solution maintains its own database.  
 After adding your connection strings using User Secrets, run the following commands to apply migrations for each API using the **.NET CLI**.
 
-## 🚀 Apply Migrations Using .NET CLI
+## Apply Migrations Using .NET CLI
 
 Navigate to the solution root or the API project directory, then run the corresponding command for each API. If using visual studio, go to tools -> NuGet Packet Manager -> Package Manager Console
 
@@ -81,7 +81,7 @@ dotnet ef database update --project VaultAPI
 ```bash
 dotnet ef database update --project VaultKeysAPI
 ```
-# 🛠️ Current Working Build Projects
+# Current Working Build Projects
 
 ## **Steps to setup current build**
 1. Navigate to "Start"
