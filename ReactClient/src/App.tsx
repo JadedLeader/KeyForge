@@ -1,12 +1,18 @@
 import React from "react";
+import { Toaster } from "sonner";
 
 
 export function App() { 
     return (
-        <div >
-            <h1>Hello from App!</h1>
-            <p>If you see this, App is wired correctly.</p>
-        </div>
+
+        <>
+            <Toaster />
+
+            <div>
+                <h1>Hello from App!</h1>
+                <p>If you see this, App is wired correctly.</p>
+            </div>
+        </>
     )
 }
 

@@ -68,13 +68,11 @@ namespace VaultAPI.Controllers
         {
             bool shortLivedToken = Request.Cookies.TryGetValue("ShortLivedToken", out string? shortLivedTokenCookie);
 
-            bool vaultId = Request.Cookies.TryGetValue("VaultId", out string? vaultIdCookie);
-
-            if(shortLivedToken && vaultId)
+            if(shortLivedToken)
             {
-                UpdateVaultNameReturn updateVaultName = await _vaultService.UpdateVaultName(updateVaultNameRequest, shortLivedTokenCookie, vaultIdCookie);
+                UpdateVaultNameReturn updateVaultName = await _vaultService.UpdateVaultName(updateVaultNameRequest, shortLivedTokenCookie);
 
-                if(updateVaultName.Sucessful == false)
+                if(!updateVaultName.Sucessful)
                 {
                     return BadRequest(updateVaultName); 
                 }
@@ -83,6 +81,24 @@ namespace VaultAPI.Controllers
             }
 
             return Unauthorized();
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAllVaults()
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                bool deleteVaults = await _vaultService.DeleteAllVaults(cookie);
+
+                if (!deleteVaults)
+                {
+                    return BadRequest(deleteVaults);
+                }
+
+                return Ok(deleteVaults);
+            }
+
+            return BadRequest();
         }
 
     }

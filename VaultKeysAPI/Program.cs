@@ -59,6 +59,7 @@ namespace VaultKeysAPI
             builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
             builder.Services.AddHostedService<UpdateAuthBackgroundConsumer>();
             builder.Services.AddHostedService<DeleteVaultBackgroundConsumer>();
+            builder.Services.AddHostedService<UpdateVaultBackgroundConsumer>();
 
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
             builder.Services.AddScoped<IAuthRepo, AuthRepo>();

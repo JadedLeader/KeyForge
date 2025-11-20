@@ -5,10 +5,15 @@ import { SignUpPage } from "../Pages/SignUpPage";
 import './index.css'
 import { SignInPage } from '../Pages/SignInPage';
 import { HomePage } from '../Pages/HomePage'; 
+import { Toaster, toast } from "sonner";
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <BrowserRouter>
+
+            <Toaster
+                position="top-right" theme="dark"
+            />
             <Routes>
 
                 <Route path="/" element={<SignInPage />}  />

@@ -10,5 +10,7 @@ namespace VaultAPI.Interfaces.RepoInterfaces
         Task<VaultDataModel> GetVaultViaVaultId(Guid vaultId);
         Task UpdateVaultName(VaultDataModel vaultDataModel, string newVaultName);
         Task<List<VaultDataModel>> GetVaultsViaAccountId(Guid accountId);
+
+        public Task DeleteAllVaultsForAccount(Guid accountId);
     }
 }

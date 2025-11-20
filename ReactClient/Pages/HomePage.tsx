@@ -92,6 +92,8 @@ import {
 import { Separator } from "../src/components/ui/separator"
 import { error } from "console"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { toast } from "sonner"
 
 interface SilentTokenCycleRequest { 
 
@@ -134,7 +136,7 @@ interface CreateVaultKeyRequest {
 interface CreateVaultKeyResponse { 
 
     vaultName: string; 
-    sucess: boolean;
+    success: boolean;
 
 }
 
@@ -142,6 +144,7 @@ interface CreateVaultWithKeysResponse {
 
     vaultId: string; 
     vaultName: string;
+    success: boolean
 
 }
 
@@ -168,6 +171,7 @@ interface DeleteVaultWithAllKeysResponse {
 
     vaultId: string; 
     accountId: string;
+    sucessful: boolean;
 
 }
 
@@ -247,8 +251,6 @@ interface SetPropsForDeletionVerificaitonModal {
 
     vaultId: string;
 }
-
-
 
 export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: SetPropsForDeletionVerificaitonModal) { 
 
@@ -368,11 +370,13 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
 
     }
 
-    function BuildDeleteVaultWithAllKeys(vaultId: string, accountId: string): DeleteVaultWithAllKeysResponse { 
+    function BuildDeleteVaultWithAllKeys(vaultId: string, accountId: string, sucessful: boolean): DeleteVaultWithAllKeysResponse { 
 
         const buildingResponse: DeleteVaultWithAllKeysResponse = {
             vaultId: vaultId,
-            accountId: accountId
+            accountId: accountId, 
+            sucessful: sucessful
+            
         }; 
 
         return buildingResponse;
@@ -398,7 +402,7 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
 
         console.log("vault has been deleted with all keys"); 
 
-        const buildingResponse = BuildDeleteVaultWithAllKeys(deleteVault.vaultId, deleteVault.accountId);
+        const buildingResponse = BuildDeleteVaultWithAllKeys(deleteVault.vaultId, deleteVault.accountId, deleteVault.sucessful);
 
         return buildingResponse;
 
@@ -410,7 +414,7 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
         <div>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen} >
-                <DialogContent className="bg-zinc-950 text-white border-blue-600 overflow-y-auto">
+                <DialogContent className="expand-label-theme expand-label-theme-hover overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Are you sure you want to delete this vault and all of it's keys?</DialogTitle>
                         <DialogDescription>
@@ -419,14 +423,29 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
                         </DialogDescription>
                     </DialogHeader>
 
-
                     <DialogFooter>
 
                         <DialogClose asChild>
                             <Button className="bg-blue-600 text-white hover::underline" variant="outline">Close</Button>
                         </DialogClose>
 
-                        <Button className="bg-blue-600 text-white hover::underline" variant="outline" onClick={() => DeleteVaultWithAllKeys()}>Delete</Button>
+                        <Button className="bg-blue-600 text-white hover::underline" variant="outline"
+                            onClick={async () =>
+                            {
+                                const deleting = await DeleteVaultWithAllKeys();
+
+                                if (deleting.sucessful) {
+                                    toast.success(`Vault: ${deleting.vaultId} has been deleted!`);
+                                    setIsOpen(false);
+                                }
+                                else { 
+                                    toast.error(`Vault ${deleting.vaultId} could not be deleted`);
+                                    setIsOpen(false);
+                                }
+
+                            }}>
+                            Delete
+                        </Button>
 
                     </DialogFooter>
 
@@ -442,11 +461,143 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
 
 }
 
+interface ExpandVaultDetailsProps { 
+    vaultId: string;
+    vaultKeys: VaultKey[];
+    isOpen: boolean; 
+    setIsOpen: () => void;
+}
+
+interface GetVaultWithAllDetailsRequest { 
+    vaultId: string;
+}
+
+interface GetVaultWithAllDetailsResponse { 
+
+    success: boolean;
+
+}
+
+export function ExpandVaultDetails({ vaultId, vaultKeys, isOpen, setIsOpen }: ExpandVaultDetailsProps) { 
+ 
+    const [vaultName, setVaultName] = useState("");
+    const [vaultCreatedAt, setVaultCreatedAt] = useState("");
+
+    useEffect(() => {
+
+        const loadVaultDetails = async () => {
+
+            await GetVaultWithAllDetails();
+
+        };
+
+        loadVaultDetails();
+
+
+
+
+    }, []);
+
+    function BuildGetVaultWithAllDetailsResponse(success: boolean): GetVaultWithAllDetailsResponse { 
+
+        const response: GetVaultWithAllDetailsResponse = {
+            success: success
+
+        };
+
+        return response;
+
+    }
+
+    function BuildGetVaultWithAllDetailsRequest(): GetVaultWithAllDetailsRequest { 
+
+        const buildingRequest: GetVaultWithAllDetailsRequest = {
+            vaultId: vaultId
+
+        }; 
+
+        return buildingRequest;
+
+    }
+
+
+    async function GetVaultWithAllDetails() : Promise<GetVaultWithAllDetailsResponse> { 
+
+
+        const buildingRequest = BuildGetVaultWithAllDetailsRequest();
+
+        const getVault = await fetch("/VaultKeys/GetVaultWithAllDetails", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify(buildingRequest)
+        });
+
+        if (!getVault.ok) { 
+
+            const errorText = await getVault.text(); 
+
+            throw new Error(errorText);
+        }
+
+        const jsonBody = await getVault.json();
+
+        setVaultName(jsonBody.vaultName); 
+        setVaultCreatedAt(jsonBody.vaultCreatedAt);
+
+        const buildingResponse = BuildGetVaultWithAllDetailsResponse(true);
+
+        return buildingResponse;
+    }
+
+
+    return (
+
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogContent className="expand-label-theme expand-label-theme-hover max-w-lg max-h-[80vh] overflow-y-auto p-6 rounded-lg">
+                <DialogHeader>
+                    <DialogTitle>Vault: {vaultName}</DialogTitle>
+                    <DialogDescription>
+                        Details of all vault keys in this vault
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="mt-4 space-y-3">
+                    {vaultKeys.map((key) => (
+                        <div
+                            key={key.vaultKeyId}
+                            className="border-b border-gray-700 pb-2"
+                        >
+                            <Label className="title-text">Vault Key ID: {key.vaultKeyId}</Label>
+                        
+                            <Label className="title-text ">Key Name: {key.keyName}</Label>
+
+                            <Label className="title-text">Encrypted Key: {key.hashedVaultKey}</Label>
+
+                            <Label className="title-text">Vault Key Created: {key.dateTimeVaultKeyCreated}</Label>
+                        </div>
+                    ))}
+                </div>
+
+                <DialogFooter className="mt-4">
+                    <DialogClose asChild>
+                        <Button variant="outline">Close</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+
+
+}
 
 export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 
     const [decryptedKey, setDecryptedKey] = useState<Record<string, string>>({});
     const [isDeleteVerificationOpen, setIsDeleteVerificationOpen] = useState(false);
+    const [isExpandOpen, setIsExpandOpen] = useState<string | null>();
 
     const handleRevealKey = async (encryptedKey: string, vaultId: string, vaultKeyId: string) => {
 
@@ -470,7 +621,7 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 
             {vaults.map((vault) => (
 
-                <Card key={vault.vaultId} className=" group bg-[hsl(210_10%_6%)] text-white border-[hsl(210_10%_16%)] w-80 hover:-translate-y-1 transition">
+                <Card key={vault.vaultId} className=" group card-theme w-80 card-theme-hover">
                     <CardHeader>
                         <CardTitle className="flex justify-between font-semibold text-neutral-50">
 
@@ -490,22 +641,34 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                                     <DropdownMenuItem className="p-1 h-6">
                                         <Pencil size={16}  />
                                     </DropdownMenuItem >
-                                    <DropdownMenuItem className="p-1 h-6" onSelect={() => setIsDeleteVerificationOpen(true)}  >
+                                    <DropdownMenuItem className="p-1 h-6" onClick={() => setIsDeleteVerificationOpen(true)}  >
                                         <Trash size={16}  />
                                     </DropdownMenuItem>
 
-                                    <CreateDeleteVerificationModal isOpen={isDeleteVerificationOpen} setIsOpen={setIsDeleteVerificationOpen} vaultId={vault.vaultId} />
-                                    <DropdownMenuItem className="p-1 h-6">
+                                    
+                                    <DropdownMenuItem className="p-1 h-6" onClick={() => setIsExpandOpen(vault.vaultId) } >
                                         <Maximize2 size={16}  />
                                     </DropdownMenuItem>
 
                                 </DropdownMenuContent>
+
+                                
 
                             </DropdownMenu>
                         </CardTitle>
                
                     </CardHeader>
 
+                    <CreateDeleteVerificationModal isOpen={isDeleteVerificationOpen} setIsOpen={setIsDeleteVerificationOpen} vaultId={vault.vaultId} />
+
+                    {isExpandOpen === vault.vaultId && (
+                        <ExpandVaultDetails
+                            vaultId={vault.vaultId}
+                            vaultKeys={vault.keys}
+                            isOpen={isExpandOpen === vault.vaultId}
+                            setIsOpen={() => setIsExpandOpen(null)}
+                        />
+                    )}
                     
 
                     <CardContent className="space-y-2">
@@ -513,15 +676,15 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                             <div key={key.vaultKeyId}>
 
                                 <div className="flex justify-between">
-                                    <FieldLabel className="font-semibold text-neutral-50">Key Name:</FieldLabel>
-                                <p className="text-gray-300 text-xs break-all">{key.keyName}</p>
+                                    <FieldLabel className="title-text">Key Name:</FieldLabel>
+                                <p className="normal-text">{key.keyName}</p>
                                 </div>
 
                                 
-                                <FieldLabel className="text-neutral-50 font-semibold">Vault Key(s)</FieldLabel>
+                                <FieldLabel className="title-text">Vault Key(s)</FieldLabel>
 
                                 <div className="flex justify-between"> 
-                                    <p className="text-gray-300 text-xs break-all">{decryptedKey[key.vaultKeyId] ?? key.hashedVaultKey} </p>
+                                    <p className="normal-text">{decryptedKey[key.vaultKeyId] ?? key.hashedVaultKey} </p>
                                     <Button onClick={() => handleRevealKey(key.hashedVaultKey, vault.vaultId, key.vaultKeyId)} >
                                         <Eye/>
                                     </Button>
@@ -610,13 +773,13 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
 
     }
 
-    function BuildCreateVaultKeyResponse(vaultName: string, sucessful: boolean): CreateVaultKeyResponse { 
+    function BuildCreateVaultKeyResponse(vaultName: string, success: boolean): CreateVaultKeyResponse { 
 
         const buildingVaultKeyResponse: CreateVaultKeyResponse = {
 
 
             vaultName: vaultName,
-            sucess: sucessful
+            success: success
 
         }; 
 
@@ -624,12 +787,13 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
 
     } 
 
-    function BuildVaultWithKeysResponse(vaultId: string, vaultName: string): CreateVaultWithKeysResponse { 
+    function BuildVaultWithKeysResponse(vaultId: string, vaultName: string, success: boolean): CreateVaultWithKeysResponse { 
 
         const buildingVaultWithKeysResponse: CreateVaultWithKeysResponse = {
 
             vaultId: vaultId,
-            vaultName: vaultName
+            vaultName: vaultName,
+            success : success
 
 
         }; 
@@ -697,7 +861,9 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
             
         const returnJson = await fetchingApi.json();
 
-        const buildingResponse = BuildCreateVaultKeyResponse(returnJson.vaultName, returnJson.sucessful);
+        console.log("build keys", returnJson);
+
+        const buildingResponse = BuildCreateVaultKeyResponse(returnJson.vaultName, returnJson.success);
 
         return buildingResponse;
         
@@ -710,15 +876,18 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
 
         const buildKeys = await CreateNewVaultKey(buildVault.vaultId);
 
-        const buildingResponse = BuildVaultWithKeysResponse(buildVault.vaultId, buildKeys.vaultName); 
+        const buildingResponse = BuildVaultWithKeysResponse(buildVault.vaultId, buildKeys.vaultName, buildKeys.success); 
+
 
         return buildingResponse;
 
     }
 
     return (
+
+        
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}  >
-            <DialogContent className="bg-zinc-950 text-white border-blue-600 overflow-y-auto ">
+            <DialogContent className="expand-label-theme expand-label-theme:hover overflow-y-auto ">
 
                     <DialogHeader >
 
@@ -727,7 +896,7 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
                     </DialogHeader>
 
                     <Label>Vault Name</Label>
-                    <Input value={vaultName} onChange={HandleVaultNameChanged} />
+                <Input value={vaultName} onChange={HandleVaultNameChanged} maxLength={20} />
 
                     <Label>Vault Type</Label>
 
@@ -744,10 +913,10 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
                     </div>
 
                     <Label>Key Name</Label>
-                    <Input value={keyName} onChange={HandleKeyNameChanged} />
+                <Input value={keyName} onChange={HandleKeyNameChanged} maxLength={20} />
 
                     <Label>Password</Label>
-                    <Input value={keyPassword} onChange={HandleKeyPasswordChanged} />
+                <Input value={keyPassword} onChange={HandleKeyPasswordChanged} maxLength={20} />
 
 
                     <DialogFooter >
@@ -756,7 +925,31 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
                             <Button className="bg-blue-600 text-white hover::underline" variant="outline" > Close </Button>
                         </DialogClose>
 
-                        <Button className="bg-blue-600 text-white hover::underline" variant="outline" onClick={() => CreateVaultWithKey()}> Create Vault </Button>
+                    <Button
+                        className="bg-blue-600 text-white hover:underline"
+                        variant="outline"
+                        onClick={async () => {
+
+                            const result = await CreateVaultWithKey();
+                            if (result.success) {
+
+                                console.log("Vault created");
+
+                                toast.success("Vault has been created!");
+
+                                HandleDropdownOpen(false);
+
+                                setDialogOpen(false);
+
+
+                            } else {
+                                console.log("Vault did not create");
+                                toast.error("Oops, creating a vault didn’t work.");
+                            }
+                        }}
+                    >
+                        Create Vault
+                    </Button>
 
                     </DialogFooter>
 
@@ -776,10 +969,6 @@ interface GetUserAccountDetailsResponse {
     success: boolean;
 } 
 
-interface BuildAvatarAndUsernameProps { 
-    username: string; 
-    email: string;
-}
 
 
 export function BuildAvatarAndUsernameSideBarSegment() { 
@@ -876,6 +1065,7 @@ export function HomePage() {
     const [vaultKeyName, setVaultKeyName] = useState("");
     const [vaultKey, setVaultKey] = useState("");
     const [eyeOpen, setEyeOpen] = useState(false);
+    const [vaultDropdownOpen, setVaultDropDownOpen] = useState(false);
 
    
     useEffect(() => {
@@ -899,8 +1089,7 @@ export function HomePage() {
 
     }, []);
 
-    
-
+   
     async function SilentTokenRefresh(): Promise<SilentTokenCycleResponse> { 
 
         
@@ -972,7 +1161,7 @@ export function HomePage() {
 
             <ResizablePanelGroup direction="horizontal" className="h-full">
 
-                <ResizablePanel defaultSize={10} className="bg-[hsl(210_10%_6%)] border border-[hsl(210_12%_14%)v] flex flex-col  ">
+                <ResizablePanel defaultSize={10} className="sidepanel-theme sidepanel-theme-hover ">
 
                     <div className="flex flex-col h-full">
 
@@ -981,8 +1170,10 @@ export function HomePage() {
                             <BuildAvatarAndUsernameSideBarSegment />
 
                             <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
-                          
-                            <DropdownMenu>
+
+                            <div className={`${vaultDropdownOpen ? "mb-40" : "mb-4"}`}> 
+
+                            <DropdownMenu onOpenChange={setVaultDropDownOpen}>
                                 <DropdownMenuTrigger className="justify-start text-blue-500 hover:underline text-left text-white px-4">
                                     Vaults
                                 </DropdownMenuTrigger>
@@ -994,19 +1185,39 @@ export function HomePage() {
                                     >
                                         Create Vault
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
-                                        Delete Vault
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="bg-transparent text-white">
-                                        Edit Vault
-                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                 </DropdownMenuContent>
-                            </DropdownMenu>
+                                </DropdownMenu>
+
+                            </div>
 
                             <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
 
-                            <Label className="justify-start text-blue-500 hover:underline text-left text-white px-4">Teams</Label>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger className="justify-start text-blue-500 hover:underline text-left text-white px-4">
+                                    Teams
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56 px-4" align="start">
+
+                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        Create Team
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        Add Team Member
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        Team Invitations
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        Remove Team Member
+                                    </DropdownMenuItem>
+
+                                </DropdownMenuContent>
+
+                            </DropdownMenu>
 
                             <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
 
@@ -1024,7 +1235,7 @@ export function HomePage() {
 
                     <div className="top-0 z-20 p-4 h-24 justify-between">
      
-                        <h1 className="font-semibold text-neutral-50 text-xl p-2">Dashboard</h1>
+                        <h1 className="font-semibold text-neutral-50 text-xl p-2 transition hover:[text-shadow:0_0_15px_#48abe0]">Dashboard</h1>
 
                     </div>
 

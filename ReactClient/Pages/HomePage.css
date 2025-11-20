@@ -1,3 +1,34 @@
 @import "tailwindcss";
 
 
+.card-theme {
+    @apply bg-[hsl(210_10%_6%)] text-white border-[hsl(210_10%_16%)];
+}
+
+    .card-theme:hover {
+        @apply shadow-[0_0_50px_15px_#48abe0] -translate-y-1;
+    }
+
+.sidepanel-theme {
+    @apply bg-[hsl(210_10%_6%)] border border-[hsl(210_12%_14%)v] flex flex-col;
+}
+
+    .sidepanel-theme:hover {
+        @apply shadow-[0_0_50px_5px_#48abe0];
+    }
+
+.expand-label-theme {
+    @apply bg-[hsl(210_10%_6%)] text-white border-[hsl(210_10%_16%)];
+}
+
+    .expand-label-theme:hover {
+        @apply shadow-[0_0_50px_15px_#48abe0];
+    }
+
+.title-text{ 
+    @apply font-semibold text-neutral-50;
+}
+
+.normal-text {
+    @apply text-gray-300 text-xs break-all;
+}

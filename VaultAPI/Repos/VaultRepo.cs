@@ -3,6 +3,7 @@ using KeyForgedShared.SharedDataModels;
 using VaultAPI.Interfaces.RepoInterfaces;
 using KeyForgedShared.Generics;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace VaultAPI.Repos
 {
@@ -58,6 +59,18 @@ namespace VaultAPI.Repos
             return vaults;
         }
 
+        public async Task DeleteAllVaultsForAccount(Guid accountId)
+        {
+
+            List<VaultDataModel> vaultsToDelete = await _dataContext.Vault.Where(x => x.AccountId == accountId).ToListAsync();
+
+            _dataContext.RemoveRange(vaultsToDelete);
+
+            Log.Information($"Deleting all vaults for account with ID {accountId}");
+
+            await _dataContext.SaveChangesAsync();
+
+        }
 
 
     }

@@ -22,6 +22,10 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<GetSingleVaultWithAllDetailsReturn> GetSingleVaultWithAllKeysAndDetails(GetSingleVaultWithAllDetailsDto getSingleVaultWithAllDetails, string shortLivedToken);
 
+        public Task<bool> RemoveAllVaultsAndKeysFromAccount(string shortLivedToken);
+
+        public Task<UpdateVaultKeyAndKeyNameReturn> UpdateVaultKeyAndKeyName(UpdateVaultKeyAndKeyNameDto updateVaultKeyAndName, string shortLivedToken);
+
 
 
     }

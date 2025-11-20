@@ -138,7 +138,7 @@ namespace VaultAPI.Services
 
         }
 
-        public async Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken, string vaultIdCookie)
+        public async Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken)
         {
             UpdateVaultNameReturn serverResponse = new UpdateVaultNameReturn();
 
@@ -155,7 +155,7 @@ namespace VaultAPI.Services
                 return serverResponse;
             }
 
-            VaultDataModel existingVault = await _vaultRepo.GetVaultViaVaultId(Guid.Parse(vaultIdCookie));
+            VaultDataModel existingVault = await _vaultRepo.GetVaultViaVaultId(Guid.Parse(request.VaultId));
 
             if(existingVault.VaultId == Guid.Empty)
             {
@@ -171,16 +171,29 @@ namespace VaultAPI.Services
             await _vaultRepo.UpdateVaultName(existingVault, request.VaultName);
 
             serverResponse.VaultId = existingVault.VaultId.ToString();
-            serverResponse.UpdatedVaultName = existingVault.VaultName;
+            serverResponse.UpdatedVaultName = request.VaultName;
             serverResponse.Sucessful = true;
 
             StreamVaultUpdateResponse newStreamVaultUpdate =  _typeMappings.MapVaultToStreamVaultUpdates(existingVault);
             
             _vaultActionsStorage.AddToVaultUpdates(newStreamVaultUpdate);
             
-
             return serverResponse;
 
+        }
+
+        public async Task<bool> DeleteAllVaults(string shortLivedToken)
+        {
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            if(accountId == Guid.Empty)
+            {
+                return false;
+            }
+
+            await _vaultRepo.DeleteAllVaultsForAccount(accountId);
+
+            return true;
         }
 
         public override async Task StreamVaultCreations(StreamVaultCreationsRequest request, IServerStreamWriter<StreamVaultCreationsResponse> responseStream, ServerCallContext context)
@@ -238,8 +251,7 @@ namespace VaultAPI.Services
 
                 foreach (var vaultUpdate in updates)
                 {
-
-                    Log.Information($"Sending vault update: {vaultUpdate.UniqueVaultUpdateId} : {vaultUpdate.VaultId}");
+                    Log.Information($"Sending vault update: {vaultUpdate.VaultId} : {vaultUpdate.VaultName}");
                     await responseStream.WriteAsync(vaultUpdate);
                 }
 
@@ -248,6 +260,8 @@ namespace VaultAPI.Services
                 await Task.Delay(250);
 
             }
+
+
 
           
         }

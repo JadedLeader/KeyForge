@@ -148,5 +148,42 @@ namespace VaultKeysAPI.Controllers
 
             return NotFound();
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> CascadeDeleteAllVaultsAndKeys()
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                bool deletedVaults = await _vaultKeysService.RemoveAllVaultsAndKeysFromAccount(cookie);
+
+                if (!deletedVaults)
+                {
+                    return BadRequest(deletedVaults);
+                }
+
+                return Ok(deletedVaults);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateVaultKeyAndKeyName([FromBody] UpdateVaultKeyAndKeyNameDto updateVaultKeyAndName)
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                UpdateVaultKeyAndKeyNameReturn updatedVaultKey = await _vaultKeysService.UpdateVaultKeyAndKeyName(updateVaultKeyAndName, cookie);
+
+                if (!updatedVaultKey.Success)
+                {
+                    return BadRequest(updatedVaultKey);
+                }
+
+                return Ok(updatedVaultKey);
+            }
+
+            return BadRequest();
+
+        }
     }
 }

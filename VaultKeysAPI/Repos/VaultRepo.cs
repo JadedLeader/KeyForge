@@ -39,6 +39,11 @@ namespace VaultKeysAPI.Repos
             return await base.DeleteAsync(databaseModel);
         }
 
+        public override async Task<VaultDataModel> UpdateAsync(VaultDataModel databaseModel)
+        {
+            return await base.UpdateAsync(databaseModel);
+        }
+
         public async Task<VaultDataModel?> DeleteVaultViaVaultId(Guid vaultId)
         {
             bool vaultExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == vaultId);
@@ -108,6 +113,38 @@ namespace VaultKeysAPI.Repos
 
             _vaultKeysDataContext.Vault.Remove(getVault);
             await _vaultKeysDataContext.SaveChangesAsync();
+
+            return getVault;
+
+        }
+
+        public async Task CascadeDeleteAllVaultsAndKeys(Guid accountId)
+        {
+
+            List<VaultDataModel> getVaults = await _vaultKeysDataContext.Vault.Where(x => x.AccountId == accountId).ToListAsync();
+
+            _vaultKeysDataContext.Vault.RemoveRange(getVaults);
+
+            await _vaultKeysDataContext.SaveChangesAsync();
+
+            Log.Information($"Deleted all vaults and keys for user {accountId}");
+            
+        }
+
+        public async Task<VaultDataModel> UpdateVaultKeyName(Guid vaultId, string newKeyName)
+        {
+
+            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+
+            if(getVault == null)
+            {
+                return null;
+            }
+
+            getVault.VaultName = newKeyName;
+
+            await UpdateAsync(getVault);
+
 
             return getVault;
 

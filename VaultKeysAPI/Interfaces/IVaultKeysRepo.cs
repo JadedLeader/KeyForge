@@ -29,5 +29,7 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<GetSingleVaultWithAllKeysAndDetailsProjection> GetAllDetailsForVault(Guid vaultId);
 
+        public Task<VaultKeysDataModel> GetAndUpdateVaultKeys(Guid vaultKeysId, string newEncryedKey, string newKeyName);
+
     }
 }

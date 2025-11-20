@@ -17,5 +17,9 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<VaultDataModel> CascadeDeleteIntoVaultKeys(Guid vaultId);
 
+        public Task CascadeDeleteAllVaultsAndKeys(Guid accountId);
+
+        public Task<VaultDataModel> UpdateVaultKeyName(Guid vaultId, string newKeyName);
+
     }
 }

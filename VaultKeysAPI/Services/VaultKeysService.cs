@@ -250,6 +250,7 @@ namespace VaultKeysAPI.Services
 
     
         }
+
         public async Task<RemoveAllVaultKeysReturn> RemoveAllVaultKeys(RemoveAllVaultKeysDto removeAllVaultKeys, string shortLivedToken)
         {
             RemoveAllVaultKeysReturn removeAllVaultKeysReturn = new RemoveAllVaultKeysReturn();
@@ -339,6 +340,52 @@ namespace VaultKeysAPI.Services
 
             return response;
 
+
+        }
+
+        public async Task<bool> RemoveAllVaultsAndKeysFromAccount(string shortLivedToken)
+        {
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            if(accountId == Guid.Empty)
+            {
+                return false;
+            }
+
+            await _vaultRepo.CascadeDeleteAllVaultsAndKeys(accountId);
+
+            return true;
+        }
+
+        public async Task<UpdateVaultKeyAndKeyNameReturn> UpdateVaultKeyAndKeyName(UpdateVaultKeyAndKeyNameDto updateVaultKeyAndName, string shortLivedToken)
+        {
+
+            UpdateVaultKeyAndKeyNameReturn updatedResponse = new UpdateVaultKeyAndKeyNameReturn();
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            if(accountId == Guid.Empty)
+            {
+                updatedResponse.Success = false;
+                return updatedResponse;
+            }
+
+            string reencryptKey = EncryptVaultKey(updateVaultKeyAndName.NewVaultKey);
+
+            VaultKeysDataModel? updatedVaultKeys = await _vaultKeysRepo.GetAndUpdateVaultKeys(Guid.Parse(updateVaultKeyAndName.VaultKeyId), reencryptKey, updateVaultKeyAndName.NewKeyName);
+
+            if(updatedVaultKeys == null)
+            {
+                updatedResponse.Success = false;
+
+                return updatedResponse;
+            }
+
+            updatedResponse.NewEncryptedKey = updatedVaultKeys.HashedVaultKey;
+            updatedResponse.NewKeyName = updatedVaultKeys.KeyName;
+            updatedResponse.Success = true; 
+
+            return updatedResponse;
 
         }
 

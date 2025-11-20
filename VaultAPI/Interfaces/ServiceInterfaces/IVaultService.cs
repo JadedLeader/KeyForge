@@ -10,6 +10,8 @@ namespace VaultAPI.Interfaces.ServiceInterfaces
 
         Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken);
 
-        Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken, string vaultIdCookie);
+        Task<UpdateVaultNameReturn> UpdateVaultName(UpdateVaultNameDto request, string shortLivedToken);
+
+        public Task<bool> DeleteAllVaults(string shortLivedToken);
     }
 }
