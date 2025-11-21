@@ -142,6 +142,16 @@ namespace VaultAPI.Services
         {
             UpdateVaultNameReturn serverResponse = new UpdateVaultNameReturn();
 
+            bool vaultNameChange = string.IsNullOrWhiteSpace(request.VaultName);
+
+            if(vaultNameChange)
+            {
+                serverResponse.Sucessful = true;
+                serverResponse.Description = "No change occurred";
+
+                return serverResponse;
+            }
+
             string? getAccountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
 
             if(getAccountIdFromToken == string.Empty)

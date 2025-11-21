@@ -19,19 +19,6 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -41,22 +28,6 @@ import {
     DialogFooter,
     DialogClose
 } from "@/components/ui/dialog"
-import {
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
-} from "@tanstack/react-table"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
 import { Label } from "@/components/ui/label"
 import {
     Field,
@@ -78,11 +49,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import { ChevronRight, MoreVertical, Trash2, Edit, Eye, EyeOff, Cog, Pencil, Trash, Maximize2 } from "lucide-react" 
 import {
     ResizableHandle,
@@ -90,55 +56,14 @@ import {
     ResizablePanelGroup,
 } from "@/components/ui/resizable"
 import { Separator } from "../src/components/ui/separator"
-import { error } from "console"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { toast } from "sonner"
+import { EditVaultModal } from "@/components/Vaults/EditVaultModal"
+import { GetUserAccountDetails } from "@/components/api/Account"
+import { SilentTokenRefresh } from "@/components/api/Auth"
+import { DeleteVault, CreateNewVault } from "@/components/api/Vault"
+import { DeleteAllKeysFromVault, DecryptVaultKey, CreateNewVaultKey, GetVaultsAndKeys, GetVaultWithAllDetails } from "@/components/api/VaultKeys"
 
-interface SilentTokenCycleRequest { 
-
-}
-
-
-interface SilentTokenCycleResponse { 
-    refreshedToken: string; 
-    successful: boolean;
-}
-
-interface CreateVaultRequest { 
-
-    vaultName: string; 
-    vaultType: string;
-}
-
-interface CreateVaultResponse { 
-    vaultId: string;
-    vaultName: string;
-    sucessful: boolean;
-}
-
-interface DecryptKeyRequest { 
-
-    encryptedVaultkey: string; 
-    vaultId: string;
-}
-
-interface DecryptKeyResponse { 
-    decryptedVaultKey: string;
-}
-
-interface CreateVaultKeyRequest { 
-    vaultId: string;
-    keyName: string; 
-    passwordToEncrypt: string;
-}
-
-interface CreateVaultKeyResponse { 
-
-    vaultName: string; 
-    success: boolean;
-
-}
 
 interface CreateVaultWithKeysResponse { 
 
@@ -148,25 +73,6 @@ interface CreateVaultWithKeysResponse {
 
 }
 
-interface RemoveAllVaultKeysFromVaultRequest { 
-    VaultId: string;
-}
-
-interface RemoveAllVaultKeysFromVaultResponse { 
-    vaultId: string; 
-    success: boolean;
-}
-
-interface DeleteVaultRequest { 
-    vaultId: string;
-}
-
-interface DeleteVaultResponse { 
-    vaultId: string; 
-    accountId: string; 
-    sucessful: boolean;
-}
-
 interface DeleteVaultWithAllKeysResponse { 
 
     vaultId: string; 
@@ -174,7 +80,6 @@ interface DeleteVaultWithAllKeysResponse {
     sucessful: boolean;
 
 }
-
 
 type Vault = { 
     vaultId: string;
@@ -191,184 +96,17 @@ type VaultKey = {
     dateTimeVaultKeyCreated: string;
 }
 
-async function DecryptVaultKey(encryptedKey: string, vaultId: string): Promise<DecryptKeyResponse> {
-
-    const buildingDecryptkeyRequest = BuildDecrpytKey(encryptedKey, vaultId);
-
-    const decryptKeysResponse = await fetch("/VaultKeys/DecryptVaultKey", {
-        method: "POST",
-        headers: {
-            "content-type": "application/json"
-        },
-        body: JSON.stringify(buildingDecryptkeyRequest)
-    });
-
-    if (!decryptKeysResponse.ok) {
-
-        const errorText = await decryptKeysResponse.text();
-
-        throw new Error(errorText);
-
-    }
-
-    const data = await decryptKeysResponse.json();
-
-    const response = BuildDecryptKeyResponse(data.decryptedVaultKey)
-
-    console.log("decrypting key returned:", response);
-
-    return response;
-
-
-
-}
-
-function BuildDecryptKeyResponse(response: string): DecryptKeyResponse {
-
-
-    const create: DecryptKeyResponse = {
-        decryptedVaultKey: response,
-    };
-
-    return create;
-}
-
-function BuildDecrpytKey(encryptedKey: string, vaultId: string): DecryptKeyRequest {
-
-    const createNewDecryptKey: DecryptKeyRequest = {
-        encryptedVaultkey: encryptedKey,
-        vaultId: vaultId
-
-    };
-
-    return createNewDecryptKey;
-
-}
-
 interface SetPropsForDeletionVerificaitonModal { 
     isOpen: boolean; 
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
     vaultId: string;
+    reloadVaults: () => void;
 }
 
-export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: SetPropsForDeletionVerificaitonModal) { 
+export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId, reloadVaults }: SetPropsForDeletionVerificaitonModal) { 
 
 
-    function BuildDeleteVaultWithAllKeysRequest(): RemoveAllVaultKeysFromVaultRequest {
-
-        const buildingRequest: RemoveAllVaultKeysFromVaultRequest = {
-            VaultId: vaultId
-        };
-
-        console.log("vault id being pinged:", buildingRequest.VaultId);
-
-        return buildingRequest;
-
-    }
-
-    function BuildDeleteVaultWithAllVaultKeysResponse(vaultId: string, success: boolean): RemoveAllVaultKeysFromVaultResponse {
-
-        const buildingResponse: RemoveAllVaultKeysFromVaultResponse = {
-
-            vaultId: vaultId,
-            success: success
-        };
-
-        return buildingResponse;
-
-    }
-
-    async function DeleteAllKeysFromVault(): Promise<RemoveAllVaultKeysFromVaultResponse> {
-
-
-        const buildingRequestBody = BuildDeleteVaultWithAllKeysRequest();
-
-
-        const deleteVaultKeysCall = await fetch("/VaultKeys/CascadeDeleteVaultKeysFromVault", {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(buildingRequestBody),
-        });
-
-        console.log(deleteVaultKeysCall);
-
-
-        if (!deleteVaultKeysCall.ok) {
-
-            const errorText = await deleteVaultKeysCall.text();
-
-            throw new Error(errorText);
-
-        }
-
-        const jsonBody = await deleteVaultKeysCall.json();
-
-        const buildingPromise = BuildDeleteVaultWithAllVaultKeysResponse(jsonBody.vaultId, jsonBody.sucess);
-
-        console.log("Deleting vault with keys", jsonBody);
-
-        return buildingPromise;
-    }
-
-    function BuildDeleteVaultRequest(vaultId: string): DeleteVaultRequest {
-
-        const buildingRequest: DeleteVaultRequest = {
-            vaultId: vaultId
-        };
-
-        return buildingRequest;
-
-    }
-
-    function BuildDeleteVaultResponse(vaultId: string, accountId: string, sucessful: boolean): DeleteVaultResponse {
-
-        const buildingResponse: DeleteVaultResponse = {
-            accountId: accountId,
-            vaultId: vaultId,
-            sucessful: sucessful
-        };
-
-        return buildingResponse;
-
-    }
-
-    async function DeleteVault(): Promise<DeleteVaultResponse> {
-
-        const buildingRequestBody = BuildDeleteVaultRequest(vaultId);
-
-        console.log("hit delete vault", buildingRequestBody)
-
-        const deleteVaultRequest = await fetch("/Vault/DeleteVault", {
-            method: "DELETE",
-            headers: {
-                "content-type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(buildingRequestBody)
-        });
-
-        if (!deleteVaultRequest.ok) {
-
-            const errorText = await deleteVaultRequest.text();
-
-            throw new Error(errorText);
-
-        }
-
-        const jsonBody = await deleteVaultRequest.json();
-
-        const buildingPromise = BuildDeleteVaultResponse(jsonBody.vaultId, jsonBody.accountId, jsonBody.sucessful);
-
-        console.log("deleting vault", jsonBody);
-
-        return buildingPromise;
-
-
-    }
 
     function BuildDeleteVaultWithAllKeys(vaultId: string, accountId: string, sucessful: boolean): DeleteVaultWithAllKeysResponse { 
 
@@ -386,12 +124,11 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
     async function DeleteVaultWithAllKeys() : Promise<DeleteVaultWithAllKeysResponse> { 
 
 
-
         console.log("hit final", vaultId);
 
-        const deleteAllKeysWithinVault = await DeleteAllKeysFromVault(); 
+        const deleteAllKeysWithinVault = await DeleteAllKeysFromVault(vaultId); 
 
-        const deleteVault = await DeleteVault();
+        const deleteVault = await DeleteVault(vaultId);
 
 
         if (!deleteVault.sucessful) { 
@@ -437,6 +174,7 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
                                 if (deleting.sucessful) {
                                     toast.success(`Vault: ${deleting.vaultId} has been deleted!`);
                                     setIsOpen(false);
+                                    reloadVaults();
                                 }
                                 else { 
                                     toast.error(`Vault ${deleting.vaultId} could not be deleted`);
@@ -463,94 +201,25 @@ export function CreateDeleteVerificationModal({ isOpen, setIsOpen, vaultId }: Se
 
 interface ExpandVaultDetailsProps { 
     vaultId: string;
+    vaultName: string;
     vaultKeys: VaultKey[];
     isOpen: boolean; 
     setIsOpen: () => void;
 }
 
-interface GetVaultWithAllDetailsRequest { 
-    vaultId: string;
-}
-
-interface GetVaultWithAllDetailsResponse { 
-
-    success: boolean;
-
-}
-
-export function ExpandVaultDetails({ vaultId, vaultKeys, isOpen, setIsOpen }: ExpandVaultDetailsProps) { 
+export function ExpandVaultDetails({vaultName, vaultId, vaultKeys, isOpen, setIsOpen }: ExpandVaultDetailsProps) { 
  
-    const [vaultName, setVaultName] = useState("");
-    const [vaultCreatedAt, setVaultCreatedAt] = useState("");
-
     useEffect(() => {
 
         const loadVaultDetails = async () => {
 
-            await GetVaultWithAllDetails();
+            await GetVaultWithAllDetails(vaultId);
 
         };
 
         loadVaultDetails();
 
-
-
-
     }, []);
-
-    function BuildGetVaultWithAllDetailsResponse(success: boolean): GetVaultWithAllDetailsResponse { 
-
-        const response: GetVaultWithAllDetailsResponse = {
-            success: success
-
-        };
-
-        return response;
-
-    }
-
-    function BuildGetVaultWithAllDetailsRequest(): GetVaultWithAllDetailsRequest { 
-
-        const buildingRequest: GetVaultWithAllDetailsRequest = {
-            vaultId: vaultId
-
-        }; 
-
-        return buildingRequest;
-
-    }
-
-
-    async function GetVaultWithAllDetails() : Promise<GetVaultWithAllDetailsResponse> { 
-
-
-        const buildingRequest = BuildGetVaultWithAllDetailsRequest();
-
-        const getVault = await fetch("/VaultKeys/GetVaultWithAllDetails", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(buildingRequest)
-        });
-
-        if (!getVault.ok) { 
-
-            const errorText = await getVault.text(); 
-
-            throw new Error(errorText);
-        }
-
-        const jsonBody = await getVault.json();
-
-        setVaultName(jsonBody.vaultName); 
-        setVaultCreatedAt(jsonBody.vaultCreatedAt);
-
-        const buildingResponse = BuildGetVaultWithAllDetailsResponse(true);
-
-        return buildingResponse;
-    }
 
 
     return (
@@ -593,18 +262,23 @@ export function ExpandVaultDetails({ vaultId, vaultKeys, isOpen, setIsOpen }: Ex
 
 }
 
-export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
+interface VaultDashboardProps { 
+    vaults: Vault[];
+    reloadVaults: () => void;
+}
+
+export function VaultDashboard({ vaults, reloadVaults }: VaultDashboardProps) {
 
     const [decryptedKey, setDecryptedKey] = useState<Record<string, string>>({});
-    const [isDeleteVerificationOpen, setIsDeleteVerificationOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState<string | null>(null);
     const [isExpandOpen, setIsExpandOpen] = useState<string | null>();
+    const [editOpen, setEditOpen] = useState<string | null>();
 
     const handleRevealKey = async (encryptedKey: string, vaultId: string, vaultKeyId: string) => {
 
 
         const response = await DecryptVaultKey(encryptedKey, vaultId);
 
-        //not sure what this does, revisit
             setDecryptedKey(prev => ({
                 ...prev,
                 [vaultKeyId]: response.decryptedVaultKey,
@@ -638,10 +312,10 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 
                                 <DropdownMenuContent className="text-gray-400 bg-transparent border border-neutral-600 bg-neutral-900 p-1 min-w-0">
 
-                                    <DropdownMenuItem className="p-1 h-6">
-                                        <Pencil size={16}  />
+                                    <DropdownMenuItem className="p-1 h-6" onClick={() => setEditOpen(vault.vaultId)}>
+                                        <Pencil size={16}  /> 
                                     </DropdownMenuItem >
-                                    <DropdownMenuItem className="p-1 h-6" onClick={() => setIsDeleteVerificationOpen(true)}  >
+                                    <DropdownMenuItem className="p-1 h-6" onClick={() => setDeleteOpen(vault.vaultId)}  >
                                         <Trash size={16}  />
                                     </DropdownMenuItem>
 
@@ -659,10 +333,15 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
                
                     </CardHeader>
 
-                    <CreateDeleteVerificationModal isOpen={isDeleteVerificationOpen} setIsOpen={setIsDeleteVerificationOpen} vaultId={vault.vaultId} />
+                    <CreateDeleteVerificationModal isOpen={deleteOpen === vault.vaultId} setIsOpen={() => setDeleteOpen(null)} vaultId={vault.vaultId} reloadVaults={reloadVaults} />
+                   
+                    {editOpen === vault.vaultId  && (
+                        <EditVaultModal vaultId={vault.vaultId} reloadVaults={reloadVaults} isOpen={!!editOpen} setIsOpen={() => setEditOpen(null)} currentVaultName={vault.vaultName} />
+                    )}
 
                     {isExpandOpen === vault.vaultId && (
                         <ExpandVaultDetails
+                            vaultName={vault.vaultName}
                             vaultId={vault.vaultId}
                             vaultKeys={vault.keys}
                             isOpen={isExpandOpen === vault.vaultId}
@@ -704,9 +383,11 @@ export function VaultDashboard({ vaults }: {vaults : Vault[] }) {
 interface BuildCreateVaultModalProps { 
     dialogOpen: boolean; 
     setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+
+    reloadVaults: () => void;
 }
 
-export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateVaultModalProps)  { 
+export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults } : BuildCreateVaultModalProps)  { 
 
 
     const [vaultName, setVaultName] = useState("");
@@ -736,56 +417,6 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
         setVaultType(vaultType);
     }
 
-    function BuildCreateVaultRequest(vaultNameGiven: string, vaultTypeGiven: string): CreateVaultRequest {
-
-        const createNewVaultRequest: CreateVaultRequest = {
-
-            vaultName: vaultNameGiven,
-            vaultType: vaultTypeGiven
-        };
-
-        return createNewVaultRequest;
-
-    }
-
-    function BuildCreateVaultResponse(vaultId: string, vaultName: string, sucessful: boolean) : CreateVaultResponse { 
-
-        const newVaultResponse: CreateVaultResponse = {
-            vaultId: vaultId, 
-            vaultName: vaultName, 
-            sucessful: sucessful
-
-        }; 
-
-        return newVaultResponse;
-
-    }
-    function BuildCreateVaultKeyRequest(keyName: string, passwordToEncrypt: string, vaultId: string): CreateVaultKeyRequest { 
-
-        const buildingVaultKey: CreateVaultKeyRequest = { 
-
-            keyName: keyName, 
-            passwordToEncrypt: passwordToEncrypt, 
-            vaultId : vaultId
-        }
-
-        return buildingVaultKey;
-
-    }
-
-    function BuildCreateVaultKeyResponse(vaultName: string, success: boolean): CreateVaultKeyResponse { 
-
-        const buildingVaultKeyResponse: CreateVaultKeyResponse = {
-
-
-            vaultName: vaultName,
-            success: success
-
-        }; 
-
-        return buildingVaultKeyResponse;
-
-    } 
 
     function BuildVaultWithKeysResponse(vaultId: string, vaultName: string, success: boolean): CreateVaultWithKeysResponse { 
 
@@ -802,82 +433,15 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
 
     }
 
-    async function CreateNewVault(): Promise<CreateVaultResponse> {
+    
 
-        const buildingCreateVaultRequest = BuildCreateVaultRequest(vaultName, vaultType);
+    async function CreateVaultWithKey(vaultName: string, vaultType: string, keyName: string, keyPassword: string): Promise<CreateVaultWithKeysResponse> { 
 
-        const createNewVaultResponse = await fetch("/Vault/CreateVault", {
-            method: "POST",
-            headers: {
-                "Content-type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(buildingCreateVaultRequest)
-        });
+        const buildVault = await CreateNewVault(vaultName, vaultType);
 
-        if (!createNewVaultResponse.ok) {
-
-            const errorText = await createNewVaultResponse.text();
-
-            throw new Error(errorText);
-        }
-
-        
-
-        const returnJson = await createNewVaultResponse.json();
-
-        console.log("Submitting vault:", vaultName, vaultType, returnJson.vaultId);
-
-        const built = BuildCreateVaultResponse(returnJson.vaultId, returnJson.vaultName, returnJson.sucessful);
-
-        return built;
-
-    }
-
-    async function CreateNewVaultKey(vaultId: string): Promise<CreateVaultKeyResponse> { 
-
-        const buildVaultKeyRequest = BuildCreateVaultKeyRequest(keyName, keyPassword, vaultId);
-
-        console.log("sending vault key request", buildVaultKeyRequest);
-
-        const fetchingApi = await fetch("/VaultKeys/CreateVaultKey", {
-
-            method: "POST",
-            headers: {
-                "content-type": "application/json"
-            },
-            credentials: "include",
-            body: JSON.stringify(buildVaultKeyRequest)
-
-        });
-
-
-        if (!fetchingApi.ok) { 
-
-            const errorText = await fetchingApi.text(); 
-
-            throw new Error(errorText);
-        }
-            
-        const returnJson = await fetchingApi.json();
-
-        console.log("build keys", returnJson);
-
-        const buildingResponse = BuildCreateVaultKeyResponse(returnJson.vaultName, returnJson.success);
-
-        return buildingResponse;
-        
-
-    }
-
-    async function CreateVaultWithKey(): Promise<CreateVaultWithKeysResponse> { 
-
-        const buildVault = await CreateNewVault();
-
-        const buildKeys = await CreateNewVaultKey(buildVault.vaultId);
+        const buildKeys = await CreateNewVaultKey(keyName, keyPassword, buildVault.vaultId);
 
         const buildingResponse = BuildVaultWithKeysResponse(buildVault.vaultId, buildKeys.vaultName, buildKeys.success); 
-
 
         return buildingResponse;
 
@@ -886,7 +450,7 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
     return (
 
         
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}  >
+        <Dialog open={dialogOpen} onOpenChange={ setDialogOpen}  >
             <DialogContent className="expand-label-theme expand-label-theme:hover overflow-y-auto ">
 
                     <DialogHeader >
@@ -930,7 +494,7 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
                         variant="outline"
                         onClick={async () => {
 
-                            const result = await CreateVaultWithKey();
+                            const result = await CreateVaultWithKey(vaultName, vaultType, keyName, keyPassword);
                             if (result.success) {
 
                                 console.log("Vault created");
@@ -940,6 +504,13 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
                                 HandleDropdownOpen(false);
 
                                 setDialogOpen(false);
+
+                                reloadVaults();
+
+                                setVaultName("");
+                                setVaultType("");
+                                setKeyName("");
+                                setKeyPassword("");
 
 
                             } else {
@@ -962,15 +533,6 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen } : BuildCreateV
 
 }
 
-
-interface GetUserAccountDetailsResponse { 
-    username: string; 
-    email: string;
-    success: boolean;
-} 
-
-
-
 export function BuildAvatarAndUsernameSideBarSegment() { 
 
     const [username, setUsername] = useState("");
@@ -981,61 +543,16 @@ export function BuildAvatarAndUsernameSideBarSegment() {
         const buildAvatarData = async () => {
 
             
-            await GetUserAccountDetails();
+            const response = await GetUserAccountDetails();
 
-
+            setUsername(response.username);
+            setEmail(response.email);
         };
 
         buildAvatarData();
 
     }, []);
 
-    function BuildUsersAccountDetails(username: string, email: string, success: boolean): GetUserAccountDetailsResponse {
-
-        const buildNew: GetUserAccountDetailsResponse = {
-
-            username: username,
-            email: email,
-            success: success
-
-        };
-
-        return buildNew;
-
-    }
-
-    async function GetUserAccountDetails(): Promise<GetUserAccountDetailsResponse> {
-
-        const getAccountDetails = await fetch("/Account/GetUserAccountDetails", {
-            method: "GET",
-            headers: {
-                "content-type": "application/json"
-            },
-            credentials: "include",
-        });
-
-        if (!getAccountDetails.ok) {
-
-            const errorText = await getAccountDetails.text();
-
-            throw new Error(errorText);
-        }
-
-        const jsonBody = await getAccountDetails.json();
-
-        console.log(jsonBody);
-
-        const buildResponse = BuildUsersAccountDetails(jsonBody.username, jsonBody.email, jsonBody.success);
-
-        if (buildResponse.success) { 
-            setUsername(jsonBody.username); 
-            setEmail(jsonBody.email);
-        }
-
-        return buildResponse;
-
-
-    }
    
 
     return (
@@ -1055,16 +572,11 @@ export function BuildAvatarAndUsernameSideBarSegment() {
 
 }
 
-
 export function HomePage() {
 
     const [vaults, setVaults] = useState<Vault[]>([]);
     const [shortLivedToken, setShortLivedToken] = useState("");
-    const [vaultName, setVaultName] = useState("");
     const [isCreateVaultDialogOpen, setIsCreateVaultDialogOpen] = useState(false);
-    const [vaultKeyName, setVaultKeyName] = useState("");
-    const [vaultKey, setVaultKey] = useState("");
-    const [eyeOpen, setEyeOpen] = useState(false);
     const [vaultDropdownOpen, setVaultDropDownOpen] = useState(false);
 
    
@@ -1076,7 +588,9 @@ export function HomePage() {
 
             setShortLivedToken(shortLivedToken.refreshedToken);
 
-            await GetVaultsAndKeys();
+            const vaults = await GetVaultsAndKeys();
+
+            setVaults(vaults);
 
             
 
@@ -1089,71 +603,6 @@ export function HomePage() {
 
     }, []);
 
-   
-    async function SilentTokenRefresh(): Promise<SilentTokenCycleResponse> { 
-
-        
-            const buildingRequest = BuildSilentCycleRequest();
-
-            const silentTokenResponse = await fetch("/Auth/SilentShortLivedTokenRefresh", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(buildingRequest),
-            });
-
-            if (!silentTokenResponse.ok) {
-                const errorText = await silentTokenResponse.text();
-                console.error("Silent token refresh failed:", errorText);
-                 
-            }
-
-            return await silentTokenResponse.json();
-        
-
-    }
-
-    async function GetVaultsAndKeys(): Promise<void> { 
-
-
-        try {
-
-
-            const getVaults = await fetch("VaultKeys/GetAllVaultsWithKeys", {
-                method: "GET",
-                credentials: "include",
-
-            });
-
-            if (!getVaults) {
-
-                throw new Error("Failed To Fetch Vaults")
-
-            }
-
-            const data: Vault[] = await getVaults.json();
-            setVaults(data);
-        } 
-        catch (err) {
-            console.error("get vaults and keys threw an exception", err);
-            
-        }
-
-
-    }
-    
-
-    function BuildSilentCycleRequest(): SilentTokenCycleRequest { 
-
-
-        const newCycleRequest: SilentTokenCycleRequest = {
-
-        }; 
-
-        return newCycleRequest;
-    }
 
     return (
 
@@ -1225,7 +674,14 @@ export function HomePage() {
 
                     </div>
 
-                    <BuildCeateVaultModal dialogOpen={isCreateVaultDialogOpen} setDialogOpen={setIsCreateVaultDialogOpen}  />
+                    <BuildCeateVaultModal dialogOpen={isCreateVaultDialogOpen} setDialogOpen={setIsCreateVaultDialogOpen} reloadVaults={async () =>
+                    {
+
+                        const getVaults = await GetVaultsAndKeys();
+
+                        setVaults(getVaults);
+                    } 
+                    }  />
 
                 </ResizablePanel >
       
@@ -1242,7 +698,12 @@ export function HomePage() {
                     <div >
 
                         <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
-                            <VaultDashboard vaults={vaults} />
+                            <VaultDashboard vaults={vaults} reloadVaults={async () =>
+                            {
+                                const reload = await GetVaultsAndKeys(); 
+
+                                setVaults(reload);
+                            }} />
                         </div>
                     </div>
 

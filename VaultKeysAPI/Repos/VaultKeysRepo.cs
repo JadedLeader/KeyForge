@@ -209,7 +209,7 @@ namespace VaultKeysAPI.Repos
 
         }
 
-        public async Task<VaultKeysDataModel> GetAndUpdateVaultKeys(Guid vaultKeysId, string newEncryedKey, string newKeyName)
+        public async Task<VaultKeysDataModel> GetAndUpdateVaultKeys(Guid vaultKeysId, string? newEncryedKey, string? newKeyName)
         {
             VaultKeysDataModel? getVaultKeys = await _vaultKeysDataContext.VaultKeys.Where(x => x.VaultKeyId == vaultKeysId).FirstOrDefaultAsync();
 
@@ -218,8 +218,16 @@ namespace VaultKeysAPI.Repos
                 return null;
             }
 
-            getVaultKeys.HashedVaultKey = newEncryedKey;
-            getVaultKeys.KeyName = newKeyName;
+            if(!string.IsNullOrWhiteSpace(newEncryedKey))
+            {
+                getVaultKeys.HashedVaultKey = newEncryedKey;
+            }
+
+            if(!string.IsNullOrWhiteSpace(newKeyName))
+            {
+                getVaultKeys.KeyName = newKeyName;
+            }
+         
 
             await UpdateAsync(getVaultKeys);
 

@@ -362,6 +362,17 @@ namespace VaultKeysAPI.Services
 
             UpdateVaultKeyAndKeyNameReturn updatedResponse = new UpdateVaultKeyAndKeyNameReturn();
 
+            bool vaultKeyEmpty = string.IsNullOrWhiteSpace(updateVaultKeyAndName.NewVaultKey);
+            bool keyNameEmpty = string.IsNullOrWhiteSpace(updateVaultKeyAndName.NewKeyName);
+
+            if(vaultKeyEmpty && keyNameEmpty)
+            {
+                updatedResponse.Success = true;
+                updatedResponse.Description = "No changes were made";
+
+                return updatedResponse;
+            }
+
             Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
 
             if(accountId == Guid.Empty)
@@ -370,7 +381,12 @@ namespace VaultKeysAPI.Services
                 return updatedResponse;
             }
 
-            string reencryptKey = EncryptVaultKey(updateVaultKeyAndName.NewVaultKey);
+            string? reencryptKey = null;
+
+            if (!vaultKeyEmpty)
+            {
+                reencryptKey = EncryptVaultKey(updateVaultKeyAndName.NewVaultKey);
+            }
 
             VaultKeysDataModel? updatedVaultKeys = await _vaultKeysRepo.GetAndUpdateVaultKeys(Guid.Parse(updateVaultKeyAndName.VaultKeyId), reencryptKey, updateVaultKeyAndName.NewKeyName);
 

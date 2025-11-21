@@ -11,7 +11,7 @@ namespace KeyForgedShared.DTO_s.VaultDTO_s
 
         public string VaultId { get; set; }
 
-        public string VaultName { get; set; }   
+        public string? VaultName { get; set; }   
 
     }
 }

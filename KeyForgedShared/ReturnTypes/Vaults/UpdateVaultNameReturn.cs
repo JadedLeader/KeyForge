@@ -15,5 +15,7 @@ namespace KeyForgedShared.ReturnTypes.Vaults
 
         public bool Sucessful { get; set; }
 
+        public string Description { get; set; }
+
     }
 }
