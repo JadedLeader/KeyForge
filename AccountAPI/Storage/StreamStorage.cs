@@ -49,6 +49,16 @@ namespace AccountAPI.Storage
             return _accountDeletionStream;  
         }
 
+        public void ClearAccountCreationStream()
+        {
+            _accountCreationStream.Clear();
+        }
+
+        public void ClearAccountDeletionsStream()
+        {
+            _accountDeletionStream.Clear();
+        }
+
 
 
     }

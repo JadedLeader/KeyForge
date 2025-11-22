@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import "./SignUpPage.css"
+import { ReachCreateAccountEndpoint } from "@/components/api/Account"
 
 interface SignUpUser { 
 
@@ -19,7 +20,6 @@ export function SignUpPage() {
     if (goToSignIn) { 
         return <Navigate to="/signin" />;
     }
-
 
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value);
@@ -60,28 +60,6 @@ export function SignUpPage() {
         return newUser;
     }
 
-    async function ReachCreateAccountEndpoint(signingUpUser: SignUpUser) : Promise<any> {
-
-        const res = await fetch("/Account/CreateAccounts", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json", 
-            },
-            body: JSON.stringify(signingUpUser)
-        });
-
-        if (!res.ok) { 
-
-            const errorText = await res.text(); 
-
-            throw new Error(errorText);
-        }
-
-        const data = await res.json; 
-
-        return data;
-
-    }
 
     return (
 

@@ -74,13 +74,18 @@ namespace AccountAPI.Services
 
         public override async Task StreamAccount(StreamAccountRequest request, IServerStreamWriter<StreamAccountResponse> responseStream, ServerCallContext context)
         {
-         
-            foreach (StreamAccountResponse item in _streamStorage.ReturnAccountCreationStream())
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                Log.Information($"streaming requets {item} to auth");
+                foreach (StreamAccountResponse item in _streamStorage.ReturnAccountCreationStream())
+                {
+                    Log.Information($"streaming requets {item} to auth");
 
-                await responseStream.WriteAsync(item);
+                    await responseStream.WriteAsync(item);
+                }
+
+                _streamStorage.ClearAccountCreationStream();
             }
+            
         }
 
         public async Task<DeleteAccountResponse> RemoveAccount(DeleteAccountRequest request)
@@ -114,18 +119,24 @@ namespace AccountAPI.Services
 
         public override async Task StreamAccountDeletions(StreamAccountDeleteRequest request, IServerStreamWriter<StreamAccountDeleteResponse> responseStream, ServerCallContext context)
         {
-            
-            foreach(Guid accountDeletionId in _streamStorage.ReturnAccountDeletionList())
+
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                StreamAccountDeleteResponse newDeleteResponse = new StreamAccountDeleteResponse
+                foreach (Guid accountDeletionId in _streamStorage.ReturnAccountDeletionList())
                 {
-                    AccountId = accountDeletionId.ToString(),
-                };
+                    StreamAccountDeleteResponse newDeleteResponse = new StreamAccountDeleteResponse
+                    {
+                        AccountId = accountDeletionId.ToString(),
+                    };
 
-                Log.Information($"Sending deletion request for account with ID {newDeleteResponse.AccountId}");
+                    Log.Information($"Sending deletion request for account with ID {newDeleteResponse.AccountId}");
 
-                await responseStream.WriteAsync(newDeleteResponse);
+                    await responseStream.WriteAsync(newDeleteResponse);
+                }
+
+                _streamStorage.ClearAccountDeletionsStream();
             }
+            
         }
 
         public async Task<GetAccountDetailsReturn> GetAccountDetails(string shortLivedToken)

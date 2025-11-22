@@ -39,6 +39,15 @@ namespace VaultAPI.Services
 
             CreateVaultReturn vaultReturn = new CreateVaultReturn();
 
+            bool vaultNameEmpty = string.IsNullOrWhiteSpace(request.VaultName);
+            bool vaultTypeEmpty = string.IsNullOrWhiteSpace(request.VaultType);
+
+            if(vaultNameEmpty || vaultTypeEmpty)
+            {
+                vaultReturn.Sucessful = false; 
+                return vaultReturn;
+            }
+
             string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
 
             Guid parsedAccountId = Guid.Parse(accountIdFromToken);
@@ -94,6 +103,15 @@ namespace VaultAPI.Services
         public async Task<DeleteVaultReturn> DeleteVault(DeleteVaultDto request, string shortLivedToken)
         {
             DeleteVaultReturn serverResponse = new DeleteVaultReturn();
+
+            bool empty = string.IsNullOrWhiteSpace(request.VaultId);
+
+            if (empty)
+            {
+                serverResponse.Sucessful = false; 
+
+                return serverResponse;
+            }
 
             string? getShortLivedToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
 

@@ -3,15 +3,12 @@ import "./SignInPage.css";
 import { Navigate } from "react-router-dom";
 import { error } from "console";
 import { json } from "stream/consumers";
+import { FetchShortLivedTokenRefresh, FetchAuthEndpoint, FetchLoginEndpoint } from "@/components/api/Auth"
 
 interface UserLoginRequest { 
 
     username: string; 
     password: string;
-}
-
-interface UserLoginResponse { 
-    accountId: string;
 }
 
 interface BuildTokenGenerationRequest { 
@@ -20,26 +17,9 @@ interface BuildTokenGenerationRequest {
 
 }
 
-interface BuildTokenGenerationResponse { 
-    accountId: string;
-    shortLivedToken: string; 
-    longLivedToken: string;
-    successful: boolean;
-    details: string;
-
-}
-
 interface RefreshShortLivedTokenRequest { 
     accountId: string;
 }
-
-interface RefreshShortLivedTokenResponse { 
-
-    accountId: string; 
-    successful: boolean; 
-    refreshedToken: string;
-}
-
 
 export function SignInPage() {
 
@@ -59,14 +39,45 @@ export function SignInPage() {
     } 
 
 
-   
-
     const HandleUsernameChanged = (e: React.ChangeEvent<HTMLInputElement>) => { 
         setUsername(e.target.value);
     }
 
     const HandlePasswordChanged = (e: React.ChangeEvent<HTMLInputElement>) => { 
         setPassword(e.target.value);
+    }
+
+    function BuildUserLogin(): UserLoginRequest {
+
+        const newUserLogin: UserLoginRequest = {
+
+            username: username,
+            password: password,
+
+        };
+
+        return newUserLogin;
+
+    }
+
+    function BuildAuth(accountId: string): BuildTokenGenerationRequest {
+
+
+        const newTokenGeneration: BuildTokenGenerationRequest = {
+            accountId: accountId,
+        };
+
+        return newTokenGeneration;
+    }
+
+    function BuildShortLivedTokenRequest(accountId: string): RefreshShortLivedTokenRequest {
+
+        const shortLivedtokenRequest: RefreshShortLivedTokenRequest = {
+            accountId: accountId,
+        };
+
+        return shortLivedtokenRequest;
+
     }
 
     const OnLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => { 
@@ -108,117 +119,7 @@ export function SignInPage() {
 
     }
 
-    function BuildUserLogin(): UserLoginRequest { 
-
-        const newUserLogin: UserLoginRequest = { 
-
-            username: username,
-            password: password,
-
-        }; 
-
-        return newUserLogin;
-
-    }
-
-    function BuildAuth(accountId: string): BuildTokenGenerationRequest { 
-
-
-        const newTokenGeneration: BuildTokenGenerationRequest = {
-            accountId: accountId,
-        };
-
-        return newTokenGeneration;
-    }
-
-
-    async function FetchLoginEndpoint(loginRequest : UserLoginRequest) : Promise<UserLoginResponse> { 
-
-        const fetchLogin = await fetch("/Auth/UserLogin", {
-            method: "POST",
-            headers: {
-                'Content-type': "application/json"
-            },
-            body: JSON.stringify(loginRequest),
-        });
-
-        if (!fetchLogin.ok) { 
-
-            const errorText = await fetchLogin.text(); 
-
-            throw new Error(errorText);
-        }
-
-        const responseData = await fetchLogin.json() as UserLoginResponse;
-
-        console.log("retrieved account login response"); 
-        console.log("Account ID", responseData.accountId);
-
-        return responseData;
-
-
-    }
-
-    async function FetchAuthEndpoint(buildTokenGenerationRequest: BuildTokenGenerationRequest) : Promise<BuildTokenGenerationResponse> { 
-
-        const fetchAuth = await fetch("/Auth/CreateInitialKey", {
-            method: "POST",
-            headers: {
-                'Content-type': "application/json"
-            },
-            body: JSON.stringify(buildTokenGenerationRequest),
-        });
-
-        if (!fetchAuth.ok) { 
-
-            const authErrorText = await fetchAuth.text(); 
-
-            throw new Error(authErrorText);
-
-        }
-
-        const authResponseData = await fetchAuth.json() as BuildTokenGenerationResponse; 
-
-
-        return authResponseData;
-
-    }
-
-    function BuildShortLivedTokenRequest(accountId: string): RefreshShortLivedTokenRequest { 
-
-        const shortLivedtokenRequest: RefreshShortLivedTokenRequest = {
-            accountId: accountId,
-        }; 
-
-        return shortLivedtokenRequest;
-
-    }
-
-    async function FetchShortLivedTokenRefresh(shortLivedTokenRequest: RefreshShortLivedTokenRequest): Promise<RefreshShortLivedTokenResponse>{ 
-
-
-        const fetchShortLivedTokenEndpoint = await fetch("/Auth/UpdateShortLivedKey", {
-            method: "PUT",
-            headers: {
-                'Content-type': "application/json"
-            },
-            body: JSON.stringify(shortLivedTokenRequest),
-        }); 
-
-        if (!fetchShortLivedTokenEndpoint.ok) { 
-
-            const errorText = await fetchShortLivedTokenEndpoint.text(); 
-
-            throw new Error(errorText);
-            
-        }
-
-        const responseData = await fetchShortLivedTokenEndpoint.json() as RefreshShortLivedTokenResponse;
-
-        return responseData;
-
-    }
-
+   
 
 
 
