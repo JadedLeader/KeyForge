@@ -133,6 +133,7 @@ message StreamAuthUpdatesResponse
 	optional string ShortLivedKey = 3; 
 	optional string LongLivedKey = 4;
 	UpdateType UpdateType = 5;
+	string authKey = 6;
 }
 
 enum UpdateType

@@ -3,62 +3,44 @@ using Grpc.Core;
 using gRPCIntercommunicationService;
 using gRPCIntercommunicationService.Protos;
 using VaultAPI.Interfaces.RepoInterfaces;
+using KeyForgedShared.Generics;
+using Serilog;
 
 namespace VaultAPI.BackgroundConsumers
 {
-    public class AddAuthBackgroundConsumer : BackgroundService
+    public class AddAuthBackgroundConsumer : GenericGrpcConsumer<StreamAuthCreationsResponse, AuthDataModel>
     {
 
         private readonly Auth.AuthClient _authClient;
 
-        private readonly IServiceScopeFactory _serviceScope;
-
-        private HashSet<Guid> _authCreations = new HashSet<Guid>();
-
-        public AddAuthBackgroundConsumer(Auth.AuthClient authClient, IServiceScopeFactory serviceScope)
+        public AddAuthBackgroundConsumer(Auth.AuthClient authClient, IServiceScopeFactory serviceScope) : base(serviceScope) 
         {
             _authClient = authClient;
-            _serviceScope = serviceScope;
+
         }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        
+
+        protected override async Task HandleMessage(IServiceProvider service, AuthDataModel model)
         {
 
-            using IServiceScope createScope = _serviceScope.CreateScope();
+            Log.Information($"{nameof(AddAuthBackgroundConsumer)}: has received auth creation request with {model.AuthKey}");
 
-            IAuthRepo getAuthRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAuthRepo>();
+            var scope = service.GetRequiredService<IAuthRepo>(); 
 
-            while(!stoppingToken.IsCancellationRequested)
-            {
-                await AddAuths(getAuthRepoLifetime);
-            }
+            await scope.AddAsync(model);
         }
 
-
-        private async Task AddAuths(IAuthRepo authRepo)
+        protected override AuthDataModel MapToType(StreamAuthCreationsResponse responseType)
         {
-
-            var callOptions = new CallOptions().WithWaitForReady();
-            StreamAuthCreationsRequest streamAuthCreations = new StreamAuthCreationsRequest();
-
-            var handler = _authClient.StreamAuthCreations(streamAuthCreations, callOptions);
-
-            var responseStream = handler.ResponseStream.ReadAllAsync();
-
-            await foreach(StreamAuthCreationsResponse authCreationResponse in responseStream)
-            {
-
-                if(_authCreations.Add(Guid.Parse(authCreationResponse.AuthKey)))
-                {
-
-                    AuthDataModel addAuthModelToDb = MapStreamAuthCreationToAuthModel(authCreationResponse);
-
-                    await authRepo.AddAsync(addAuthModelToDb);
-                }
-
-            }
-          
+            return MapStreamAuthCreationToAuthModel(responseType);
         }
 
+        protected override IAsyncEnumerable<StreamAuthCreationsResponse> OpenStream()
+        {
+            var client = _authClient.StreamAuthCreations(new StreamAuthCreationsRequest());
+
+            return client.ResponseStream.ReadAllAsync();
+        }
 
         private AuthDataModel MapStreamAuthCreationToAuthModel(StreamAuthCreationsResponse streamAuthCreation)
         {

@@ -1,76 +1,54 @@
 ﻿
 using Grpc.Core;
 using gRPCIntercommunicationService;
+using KeyForgedShared.Generics;
 using KeyForgedShared.SharedDataModels;
 using Microsoft.Identity.Client;
+using Serilog;
 using VaultKeysAPI.Interfaces;
 
 namespace VaultKeysAPI.BackgroundConsumers
 {
-    public class AddAccountBackgroundConsumer : BackgroundService
+    public class AddAccountBackgroundConsumer : GenericGrpcConsumer<StreamAccountResponse, AccountDataModel>
     {
 
         private Account.AccountClient _accountClient;
 
-        private HashSet<Guid> _addAccountResponse = new HashSet<Guid>();
-
-        private readonly IServiceScopeFactory _serviceScope;
-
-        public AddAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory scopeFactory)
+        public AddAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory scopeFactory) : base(scopeFactory)
         {
             _accountClient = accountClient;
-            _serviceScope = scopeFactory;
-        }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await AddAccountsFromStreamAsync();
-            }
         }
 
-        private async Task AddAccountsFromStreamAsync()
-        {
-            var callOptions = new CallOptions().WithWaitForReady();
-
-            StreamAccountRequest newStreamAccountRequest = new StreamAccountRequest();
-
-            var streamAccountClient = _accountClient.StreamAccount(newStreamAccountRequest, callOptions);
-
-            var accountsResponseStream = streamAccountClient.ResponseStream.ReadAllAsync();
-
-            await foreach(var account in accountsResponseStream)
-            {
-                using var scope = _serviceScope.CreateScope();
-                var accountRepo = scope.ServiceProvider.GetRequiredService<IAccountRepo>();
-
-
-                if (!_addAccountResponse.Add(Guid.Parse(account.AccountId)))
-                {
-                    AccountDataModel newAccountDataModel = MapStreamAccountToDataModel(account);
-
-                    await accountRepo.AddAsync(newAccountDataModel);
-                }
-            }
-
-            
-        }
-
-        private AccountDataModel MapStreamAccountToDataModel(StreamAccountResponse accountResponse)
+        protected override AccountDataModel MapToType(StreamAccountResponse responseType)
         {
             AccountDataModel newAccountDataModel = new AccountDataModel
             {
-                AccountId = Guid.Parse(accountResponse.AccountId),
-                Username = accountResponse.Username,
-                Password = accountResponse.Password,
-                Email = accountResponse.Email,
-                AccountCreated = DateTime.Parse(accountResponse.AccountCreated),
-                AuthorisationLevel = (AuthRoles)accountResponse.AuthRole,
+                AccountId = Guid.Parse(responseType.AccountId),
+                Username = responseType.Username,
+                Password = responseType.Password,
+                Email = responseType.Email,
+                AccountCreated = DateTime.Parse(responseType.AccountCreated),
+                AuthorisationLevel = (AuthRoles)responseType.AuthRole,
 
             };
 
             return newAccountDataModel;
+        }
+
+        protected override IAsyncEnumerable<StreamAccountResponse> OpenStream()
+        {
+            var client = _accountClient.StreamAccount(new StreamAccountRequest());
+
+            return client.ResponseStream.ReadAllAsync();
+        }
+
+        protected override async Task HandleMessage(IServiceProvider service, AccountDataModel model)
+        {
+            Log.Information($"Received {model.AccountId} to be created");
+
+            var serviceScope = service.GetRequiredService<IAccountRepo>();
+
+            await serviceScope.AddAsync(model);
         }
     }
 }

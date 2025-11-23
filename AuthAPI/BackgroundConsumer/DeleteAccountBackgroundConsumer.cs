@@ -2,57 +2,55 @@
 using AuthAPI.Interfaces.RepoInterface;
 using Grpc.Core;
 using gRPCIntercommunicationService;
+using KeyForgedShared.Generics;
+using KeyForgedShared.SharedDataModels;
+using Microsoft.AspNetCore.Components.Forms;
 using Serilog;
 using System.Threading;
 
 namespace AuthAPI.BackgroundConsumer
 {
-    public class DeleteAccountBackgroundConsumer : BackgroundService
+    public class DeleteAccountBackgroundConsumer : GenericGrpcConsumer<StreamAccountDeleteResponse, AccountDataModel>
     {
-
-        private readonly HashSet<Guid> _seenIds = new();
 
         private readonly Account.AccountClient _Accountclient;
 
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        public DeleteAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory serviceScopeFactory)
+        public DeleteAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
         {
             _Accountclient = accountClient;
-            _serviceScopeFactory = serviceScopeFactory;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override AccountDataModel MapToType(StreamAccountDeleteResponse responseType)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            AccountDataModel account = MapResponseToModel(responseType);
+
+            return account;
+        }
+
+        protected override IAsyncEnumerable<StreamAccountDeleteResponse> OpenStream()
+        {
+            var client = _Accountclient.StreamAccountDeletions(new StreamAccountDeleteRequest());
+
+            return client.ResponseStream.ReadAllAsync();
+        }
+
+        protected override async Task HandleMessage(IServiceProvider service, AccountDataModel model)
+        {
+            Log.Information($"{typeof(DeleteAccountBackgroundConsumer)} recieved deleted request {model.AccountId}");
+
+            var scope = service.GetRequiredService<IAuthRepo>();
+
+            await scope.RemoveAccountFromTable(model);
+        }
+
+        private AccountDataModel MapResponseToModel(StreamAccountDeleteResponse delete)
+        {
+            AccountDataModel newAccount = new AccountDataModel
             {
-                StreamAccountDeleteRequest streamAccountDeletions = new StreamAccountDeleteRequest();
+                AccountId = Guid.Parse(delete.AccountId),
+            };
 
-                using var stream = _Accountclient.StreamAccountDeletions(streamAccountDeletions, null, null, stoppingToken);
-
-                await ReceiveAccountDeletionStream(stoppingToken, stream);
-            }
+            return newAccount;
         }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task ReceiveAccountDeletionStream(CancellationToken cancellationToken, AsyncServerStreamingCall<StreamAccountDeleteResponse> stream)
-        {
-            await foreach(var accountDeletion in stream.ResponseStream.ReadAllAsync(cancellationToken))
-            {
-                if(_seenIds.Add(Guid.Parse(accountDeletion.AccountId)))
-                {
-                    IServiceScope freshScope = _serviceScopeFactory.CreateScope();
-
-                    IAuthRepo authRepo = freshScope.ServiceProvider.GetRequiredService<IAuthRepo>();
-
-                    await authRepo.RemoveAccountFromTablesViaId(Guid.Parse(accountDeletion.AccountId));
-                }
-            }
-        }
-
-   
     }
 }

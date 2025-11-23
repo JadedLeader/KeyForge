@@ -4,59 +4,49 @@ using Grpc.Core;
 using gRPCIntercommunicationService;
 using VaultAPI.Repos;
 using VaultAPI.Interfaces.RepoInterfaces;
+using KeyForgedShared.Generics;
 
 namespace VaultAPI.BackgroundConsumers
 {
-    public class DeleteAccountBackgroundConsumer : BackgroundService
+    public class DeleteAccountBackgroundConsumer : GenericGrpcConsumer<StreamAccountDeleteResponse, AccountDataModel>
     {
 
         private readonly Account.AccountClient _accountClient;
 
-        private IServiceScopeFactory _serviceScope;
-
-        private HashSet<Guid> _accountIds = new HashSet<Guid>();
-
-        public DeleteAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory serviceScope)
+        public DeleteAccountBackgroundConsumer(Account.AccountClient accountClient, IServiceScopeFactory serviceScope) : base(serviceScope)
         {
             _accountClient = accountClient;
-            _serviceScope = serviceScope;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        
+
+        protected override Task HandleMessage(IServiceProvider service, AccountDataModel model)
         {
-            
-            using IServiceScope createScope = _serviceScope.CreateScope();
+            var scope = service.GetRequiredService<IAccountRepo>();
 
-            IAccountRepo? getAccountRepoLifetime = createScope.ServiceProvider.GetRequiredService<IAccountRepo>();
-
-            if (getAccountRepoLifetime == null)
-            {
-                throw new Exception($"{this.GetType().Namespace} Could not find the designated lifetime for the account repo");
-            }
-
-            while(!stoppingToken.IsCancellationRequested)
-            {
-                await DeleteAccounts(getAccountRepoLifetime);
-            }
+            return scope.DeleteAsync(model);
         }
 
-
-        private async Task DeleteAccounts(IAccountRepo accountRepo)
+        protected override AccountDataModel MapToType(StreamAccountDeleteResponse responseType)
         {
-            var callOptions = new CallOptions().WithWaitForReady();
-            StreamAccountDeleteRequest streamAccountDeletions = new StreamAccountDeleteRequest();   
+            return MapResponseToModel(responseType);
+        }
 
-            var handler = _accountClient.StreamAccountDeletions(streamAccountDeletions, callOptions); 
+        protected override IAsyncEnumerable<StreamAccountDeleteResponse> OpenStream()
+        {
+            var client = _accountClient.StreamAccountDeletions(new StreamAccountDeleteRequest());
 
-            var responseStream = handler.ResponseStream.ReadAllAsync();
+            return client.ResponseStream.ReadAllAsync();
+        }
 
-            await foreach(StreamAccountDeleteResponse deletion in responseStream)
+        private AccountDataModel MapResponseToModel(StreamAccountDeleteResponse delete)
+        {
+            AccountDataModel newAccount = new AccountDataModel
             {
-                if (_accountIds.Add(Guid.Parse(deletion.AccountId)))
-                {
-                    await accountRepo.DeleteAccountViaAccountId(Guid.Parse(deletion.AccountId));
-                }
-            }
+                AccountId = Guid.Parse(delete.AccountId),
+            };
+
+            return newAccount;
         }
 
     }

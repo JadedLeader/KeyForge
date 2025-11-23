@@ -1,75 +1,58 @@
 ﻿
 using Grpc.Core;
 using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.Generics;
+using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using VaultKeysAPI.Repos;
+using Serilog;
 using VaultKeysAPI.Interfaces;
+using VaultKeysAPI.Repos;
 
 namespace VaultKeysAPI.BackgroundConsumers
 {
-    public class UpdateAuthBackgroundConsumer : BackgroundService
+    public class UpdateAuthBackgroundConsumer : GenericGrpcConsumer<StreamAuthUpdatesResponse, AuthDataModel>
     {
 
         private readonly Auth.AuthClient _authClient;
 
-        private readonly IServiceScopeFactory _serviceScope;
-
-        private HashSet<string> _authUpdates = new HashSet<string>();
-
-        public UpdateAuthBackgroundConsumer(Auth.AuthClient authClient, IServiceScopeFactory serviceScope)
+        public UpdateAuthBackgroundConsumer(Auth.AuthClient authClient, IServiceScopeFactory serviceScope) : base(serviceScope)
         {
             _authClient = authClient;
-            _serviceScope = serviceScope;
-        }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            
-            while(!stoppingToken.IsCancellationRequested)
-            {
-                await UpdateAuths();
-            }
         }
 
-
-        private async Task UpdateAuths()
+        protected override async Task HandleMessage(IServiceProvider service, AuthDataModel model)
         {
+            var scope = service.GetRequiredService<IAuthRepo>();
 
-            try
+            Log.Information($"{nameof(UpdateAuthBackgroundConsumer)}: Received update with ID: {model.AuthKey} ");
+
+            await scope.UpdateAsync(model);
+        }
+
+        protected override AuthDataModel MapToType(StreamAuthUpdatesResponse responseType)
+        {
+            return MapAuthUpdateToModel(responseType);
+        }
+
+        protected override IAsyncEnumerable<StreamAuthUpdatesResponse> OpenStream()
+        {
+            var client = _authClient.StreamAuthKeyUpdates(new StreamAuthUpdatesRequest());
+
+            return client.ResponseStream.ReadAllAsync();
+        }
+
+        private AuthDataModel MapAuthUpdateToModel(StreamAuthUpdatesResponse updates)
+        {
+            AuthDataModel model = new AuthDataModel
             {
-                var callOptions = new CallOptions().WithWaitForReady();
+                AccountId = Guid.Parse(updates.AccountId),
+                ShortLivedKey = updates.ShortLivedKey,
+                LongLivedKey = updates.LongLivedKey,
+                AuthKey = Guid.Parse(updates.AuthKey),
 
-                StreamAuthUpdatesRequest request = new StreamAuthUpdatesRequest();
+            };
 
-                var handler = _authClient.StreamAuthKeyUpdates(request, callOptions);
-
-                var responseStream = handler.ResponseStream.ReadAllAsync();
-
-                await foreach (StreamAuthUpdatesResponse authUpdate in responseStream)
-                {
-                    using IServiceScope getScope = _serviceScope.CreateScope();
-
-                    IAuthRepo authRepo = getScope.ServiceProvider.GetRequiredService<IAuthRepo>();
-
-                    if (authUpdate.UpdateType == UpdateType.ShortLivedUpdate)
-                    {
-                        if (_authUpdates.Add(authUpdate.UpdateId))
-                        {
-                            await authRepo.UpdateShortLivedKey(Guid.Parse(authUpdate.AccountId), authUpdate.ShortLivedKey);
-                        }
-                    }
-                    else if (authUpdate.UpdateType == UpdateType.LongLivedUpdate)
-                    {
-                        if (_authUpdates.Add(authUpdate.UpdateId))
-                        {
-                            await authRepo.UpdateLongLivedKey(Guid.Parse(authUpdate.AccountId), authUpdate.LongLivedKey);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                await Task.Delay(1000);
-            }
+            return model;
         }
     }
 }

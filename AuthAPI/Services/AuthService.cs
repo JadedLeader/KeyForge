@@ -10,6 +10,7 @@ using Serilog;
 using System.IdentityModel.Tokens.Jwt;
 using KeyForgedShared.Helpers;
 using KeyForgedShared.Interfaces;
+using System.Collections.Immutable;
 
 namespace AuthAPI.Services 
 {
@@ -120,7 +121,7 @@ namespace AuthAPI.Services
 
             string refreshedLongLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), null, refreshedLongLivedToken, UpdateType.LongLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), existingAuth.ShortLivedKey, refreshedLongLivedToken, UpdateType.LongLivedUpdate, existingAuth.AuthKey.ToString());
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
@@ -164,7 +165,7 @@ namespace AuthAPI.Services
 
             string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, currentLongLivedKey, UpdateType.ShortLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, currentLongLivedKey, UpdateType.ShortLivedUpdate, existingAuth.AuthKey.ToString());
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
@@ -306,13 +307,14 @@ namespace AuthAPI.Services
                 return serverResponse;
             }
 
+            AuthDataModel authAccount = await _authRepo.CheckForExistingAuthViaAccountId(Guid.Parse(accountIdFromToken));
+
             string? refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(accountIdFromToken, accountRoleFromToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, longLivedToken, UpdateType.ShortLivedUpdate);
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, longLivedToken, UpdateType.ShortLivedUpdate, authAccount.AuthKey.ToString());
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
-            AuthDataModel authAccount = await _authRepo.CheckForExistingAuthViaAccountId(Guid.Parse(accountIdFromToken));
 
             if (authAccount.AuthKey == Guid.Empty || string.IsNullOrEmpty(authAccount.LongLivedKey))
             {
@@ -337,29 +339,57 @@ namespace AuthAPI.Services
 
         public override async Task StreamAuthCreations(StreamAuthCreationsRequest request, IServerStreamWriter<StreamAuthCreationsResponse> responseStream, ServerCallContext context)
         {
-            foreach (var item in _transportationStorage.ReturnStreamAuthCreationsList())
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                Log.Information($"Sending auth item with auth key {item.AuthKey}");
 
-                await responseStream.WriteAsync(item);
+                var authCreation = _transportationStorage.ReturnStreamAuthCreationsList().ToImmutableList();
+
+                if (authCreation.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (var item in authCreation)
+                {
+                    Log.Information($"Sending auth item with auth key {item.AuthKey}");
+
+                    await responseStream.WriteAsync(item);
+                }
+
+                _transportationStorage.ClearAuthCreations();
             }
+
         }
 
         public override async Task StreamAuthKeyUpdates(StreamAuthUpdatesRequest request, IServerStreamWriter<StreamAuthUpdatesResponse> responseStream, ServerCallContext context)
         {
-            foreach (var item in _transportationStorage.ReturnStreamAuthUpdatesList())
+
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-                if (item.UpdateType == UpdateType.ShortLivedUpdate)
+                var authUpdates = _transportationStorage.ReturnStreamAuthUpdatesList().ToImmutableList();
+
+                if(authUpdates.Count == 0)
                 {
-                    Log.Information($"Sending auth update of type {item.UpdateType} with new token of {item.ShortLivedKey}");
-                }
-                else if (item.UpdateType == UpdateType.LongLivedUpdate)
-                {
-                    Log.Information($"Sending auth update of type {item.UpdateType} with new token of {item.LongLivedKey}");
+                    continue;
                 }
 
-                await responseStream.WriteAsync(item);
+                foreach (var item in authUpdates)
+                {
+                    if (item.UpdateType == UpdateType.ShortLivedUpdate)
+                    {
+                        Log.Information($"Sending auth update of type {item.UpdateType} with new token of {item.ShortLivedKey}");
+                    }
+                    else if (item.UpdateType == UpdateType.LongLivedUpdate)
+                    {
+                        Log.Information($"Sending auth update of type {item.UpdateType} with new token of {item.LongLivedKey}");
+                    }
+
+                    await responseStream.WriteAsync(item);
+                }
+
+                _transportationStorage.ClearAuthUpdates();
             }
+            
         }
 
         private async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
@@ -440,7 +470,7 @@ namespace AuthAPI.Services
             return newVaultResponse;
         }
 
-        private StreamAuthUpdatesResponse MapToStreamAuthUpdates(string accountId, string? shortLivedKey, string? longLivedKey, UpdateType updateType)
+        private StreamAuthUpdatesResponse MapToStreamAuthUpdates(string accountId, string? shortLivedKey, string? longLivedKey, UpdateType updateType, string authKey)
         {
             StreamAuthUpdatesResponse streamAuthUpdate = new StreamAuthUpdatesResponse
             {
@@ -448,7 +478,8 @@ namespace AuthAPI.Services
                 AccountId = accountId,
                 ShortLivedKey = shortLivedKey,
                 LongLivedKey = longLivedKey,
-                UpdateType = updateType
+                UpdateType = updateType,
+                AuthKey = authKey
             };
 
             return streamAuthUpdate;

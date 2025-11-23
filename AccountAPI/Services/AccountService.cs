@@ -11,6 +11,7 @@ using KeyForgedShared.Interfaces;
 using KeyForgedShared.ReturnTypes.Accounts;
 using System.Data.SqlTypes;
 using KeyForgedShared.DTO_s.AccountDTO_s;
+using System.Collections.Immutable;
 
 namespace AccountAPI.Services
 {
@@ -76,7 +77,15 @@ namespace AccountAPI.Services
         {
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                foreach (StreamAccountResponse item in _streamStorage.ReturnAccountCreationStream())
+
+                var getAccountStreams = _streamStorage.ReturnAccountCreationStream().ToImmutableList();
+
+                if(getAccountStreams.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (StreamAccountResponse item in getAccountStreams)
                 {
                     Log.Information($"streaming requets {item} to auth");
 
@@ -122,7 +131,15 @@ namespace AccountAPI.Services
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                foreach (Guid accountDeletionId in _streamStorage.ReturnAccountDeletionList())
+
+                var getAccountDeletions = _streamStorage.ReturnAccountDeletionList().ToImmutableList();
+
+                if(getAccountDeletions.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (Guid accountDeletionId in getAccountDeletions)
                 {
                     StreamAccountDeleteResponse newDeleteResponse = new StreamAccountDeleteResponse
                     {

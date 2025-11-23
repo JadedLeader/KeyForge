@@ -14,7 +14,6 @@ namespace AuthAPI.BackgroundConsumer
 
         private readonly Account.AccountClient _accountClient;
 
-
         public AccountBackgroundConsumer(Account.AccountClient client, IServiceScopeFactory scopeFactory) : base(scopeFactory) 
         {
             _accountClient  = client;

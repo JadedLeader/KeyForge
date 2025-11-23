@@ -25,6 +25,11 @@ namespace VaultKeysAPI.Repos
             return base.AddAsync(databaseModel);
         }
 
+        public override Task<AuthDataModel> UpdateAsync(AuthDataModel databaseModel)
+        {
+            return base.UpdateAsync(databaseModel);
+        }
+
         public async Task UpdateShortLivedKey(Guid accountId, string newShortLivedKey)
         {
             AuthDataModel? authAccount = await FindAuthAccountViaId(accountId);

@@ -10,6 +10,7 @@ using VaultAPI.Repos;
 using VaultAPI.Storage;
 using KeyForgedShared.DTO_s.VaultDTO_s;
 using KeyForgedShared.ReturnTypes.Vaults;
+using System.Collections.Immutable;
 
 namespace VaultAPI.Services
 {
@@ -230,7 +231,13 @@ namespace VaultAPI.Services
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                var creations = _vaultActionsStorage.ReturnVaultCreations();
+
+                var creations = _vaultActionsStorage.ReturnVaultCreations().ToImmutableList();
+
+                if(creations.Count == 0)
+                {
+                    continue;
+                }
 
                 foreach (var vaultCreation in creations)
                 {
@@ -253,7 +260,12 @@ namespace VaultAPI.Services
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                var deletions = _vaultActionsStorage.ReturnVaultDeletions();
+                var deletions = _vaultActionsStorage.ReturnVaultDeletions().ToImmutableList();
+
+                if(deletions.Count == 0)
+                {
+                    continue;
+                }
 
                 foreach (var deletion in deletions)
                 {
@@ -275,7 +287,12 @@ namespace VaultAPI.Services
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                var updates = _vaultActionsStorage.ReturnVaultUpdates();
+                var updates = _vaultActionsStorage.ReturnVaultUpdates().ToImmutableList();
+
+                if(updates.Count == 0)
+                {
+                    continue;
+                }
 
                 foreach (var vaultUpdate in updates)
                 {

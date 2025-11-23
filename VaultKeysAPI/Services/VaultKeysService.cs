@@ -405,7 +405,6 @@ namespace VaultKeysAPI.Services
 
         }
 
-
         private string EncryptVaultKey(string keyToEncrypt)
         {
            

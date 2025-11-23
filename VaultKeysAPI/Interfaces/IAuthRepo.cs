@@ -15,5 +15,8 @@ namespace VaultKeysAPI.Interfaces
 
         public Task<AuthDataModel> FindAuthAccountViaId(Guid accountId);
 
+
+        public Task<AuthDataModel> UpdateAsync(AuthDataModel databaseModel);
+
     }
 }

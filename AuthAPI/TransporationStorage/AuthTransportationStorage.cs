@@ -30,5 +30,15 @@ namespace AuthAPI.TransporationStorage
             return StreamAuthUpdates;
         }
 
+        public void ClearAuthCreations()
+        {
+            StreamAuthCreations.Clear();
+        }
+
+        public void ClearAuthUpdates()
+        {
+            StreamAuthUpdates.Clear();
+        }
+
     }
 }
