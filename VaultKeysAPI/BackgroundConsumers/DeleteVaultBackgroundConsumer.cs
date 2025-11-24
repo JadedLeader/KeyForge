@@ -1,49 +1,54 @@
 ﻿
 using Grpc.Core;
 using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.Generics;
+using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using Serilog;
 using VaultKeysAPI.Interfaces;
 
 namespace VaultKeysAPI.BackgroundConsumers
 {
-    public class DeleteVaultBackgroundConsumer : BackgroundService
+    public class DeleteVaultBackgroundConsumer : GenericGrpcConsumer<StreamVaultDeletionsResponse, VaultDataModel>
     {
 
         private readonly Vault.VaultClient _vaultClient;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public DeleteVaultBackgroundConsumer(IServiceScopeFactory serviceScopeFactory, Vault.VaultClient vaultClient)
+        public DeleteVaultBackgroundConsumer(IServiceScopeFactory serviceScopeFactory, Vault.VaultClient vaultClient) : base(serviceScopeFactory)
         {
-            _serviceScopeFactory = serviceScopeFactory;
             _vaultClient = vaultClient;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task HandleMessage(IServiceProvider service, VaultDataModel model)
         {
-            Log.Information("DeleteVaultBackgroundConsumer started. Connecting to gRPC stream...");
+            Log.Information($"{nameof(DeleteVaultBackgroundConsumer)}: received vault deletion {model.VaultId}");
 
-            var request = new StreamVaultDeletionsRequest();
-            var call = _vaultClient.StreamVaultDeletions(request, cancellationToken: stoppingToken);
+            var scope = service.GetRequiredService<IVaultRepo>();
 
-            await foreach (var vaultDeletions in call.ResponseStream.ReadAllAsync(stoppingToken))
+            await scope.DeleteVaultViaVaultId(model.VaultId);
+        }
+
+        protected override VaultDataModel MapToType(StreamVaultDeletionsResponse responseType)
+        {
+            return MapStreamToVault(responseType);
+        }
+
+        protected override IAsyncEnumerable<StreamVaultDeletionsResponse> OpenStream()
+        {
+            var client = _vaultClient.StreamVaultDeletions(new StreamVaultDeletionsRequest());
+
+            return client.ResponseStream.ReadAllAsync();
+        }
+
+        private VaultDataModel MapStreamToVault(StreamVaultDeletionsResponse vaultDeletion)
+        {
+            VaultDataModel newVault = new VaultDataModel
             {
-                Log.Information($"Received vault delete request: {vaultDeletions.VaultId}");
+                VaultId = Guid.Parse(vaultDeletion.VaultId)
+            };
 
-                using var scope = _serviceScopeFactory.CreateScope();
-                var vaultRepo = scope.ServiceProvider.GetRequiredService<IVaultRepo>();
 
-                var deletedVault = await vaultRepo.DeleteVaultViaVaultId(Guid.Parse(vaultDeletions.VaultId));
-
-                if (deletedVault != null)
-                {
-                    Log.Information($"Deleted vault: {deletedVault.VaultId} : {deletedVault.VaultName}");
-                }
-                else
-                {
-                   Log.Warning($"Vault {vaultDeletions.VaultId} not found in VaultKeysDB.");
-                }
-            }
+            return newVault;
         }
     }
 }

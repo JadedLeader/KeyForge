@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
@@ -10,6 +12,7 @@ namespace KeyForgedShared.SharedDataModels
     public class TeamDataModel
     {
 
+        [Key]
         public Guid TeamId { get; set; }
 
         [ForeignKey("AccountId")]
@@ -17,7 +20,7 @@ namespace KeyForgedShared.SharedDataModels
 
         public string TeamName { get; set; }
 
-        public bool TeamAcceptingInvites { get; set; }
+        public string TeamAcceptingInvites { get; set; }
 
         public string CreatedBy { get; set; }
 

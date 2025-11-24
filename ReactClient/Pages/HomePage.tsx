@@ -63,6 +63,7 @@ import { GetUserAccountDetails } from "@/components/api/Account"
 import { SilentTokenRefresh } from "@/components/api/Auth"
 import { DeleteVault, CreateNewVault } from "@/components/api/Vault"
 import { DeleteAllKeysFromVault, DecryptVaultKey, CreateNewVaultKey, GetVaultsAndKeys, GetVaultWithAllDetails } from "@/components/api/VaultKeys"
+import {CreateTeamModal } from "@/components/Team/CreateTeamModal"
 
 
 interface CreateVaultWithKeysResponse { 
@@ -578,6 +579,8 @@ export function HomePage() {
     const [shortLivedToken, setShortLivedToken] = useState("");
     const [isCreateVaultDialogOpen, setIsCreateVaultDialogOpen] = useState(false);
     const [vaultDropdownOpen, setVaultDropDownOpen] = useState(false);
+    const [createTeamOpen, setIsCreateTeamOpen] = useState(false);
+    const [teamVaults, setTeamVaults] = useState("");
 
    
     useEffect(() => {
@@ -648,7 +651,7 @@ export function HomePage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className="w-56 px-4" align="start">
 
-                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                    <DropdownMenuItem className="bg-transparent text-white hover:underline" onClick={() => setIsCreateTeamOpen(true)} >
                                         Create Team
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
@@ -681,7 +684,9 @@ export function HomePage() {
 
                         setVaults(getVaults);
                     } 
-                    }  />
+                    } />
+
+                    <CreateTeamModal isOpen={createTeamOpen} setIsOpen={setIsCreateTeamOpen} />
 
                 </ResizablePanel >
       

@@ -6,51 +6,39 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Client;
 using Serilog;
 using VaultKeysAPI.Interfaces;
+using KeyForgedShared.Generics;
 
 namespace VaultKeysAPI.BackgroundConsumers
 {
-    public class AddVaultBackgroundConsumer : BackgroundService
+    public class AddVaultBackgroundConsumer : GenericGrpcConsumer<StreamVaultCreationsResponse, VaultDataModel>
     {
 
         private readonly Vault.VaultClient _vaultClient;
 
-        private readonly HashSet<Guid> vaultHashset = new HashSet<Guid>();
-
-        private readonly IServiceScopeFactory _scopeFactory;
-        public AddVaultBackgroundConsumer(IServiceScopeFactory scopeFactory, Vault.VaultClient vaultClient)
+        public AddVaultBackgroundConsumer(IServiceScopeFactory scopeFactory, Vault.VaultClient vaultClient) : base(scopeFactory)
         {
-            _scopeFactory = scopeFactory;
             _vaultClient = vaultClient;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        { 
-                await ConsumeVaultCreations();
+        protected override async Task HandleMessage(IServiceProvider service, VaultDataModel model)
+        {
+            var scope = service.GetRequiredService<IVaultRepo>();
+
+            Log.Information($"{nameof(AddVaultBackgroundConsumer)}: received create vault request: {model.VaultId}");
+
+            await scope.AddAsync(model);
         }
 
-        private async Task ConsumeVaultCreations()
+        protected override VaultDataModel MapToType(StreamVaultCreationsResponse responseType)
         {
-         
+            return MapVaultStreamToVaultModel(responseType);
+        }
 
-            StreamVaultCreationsRequest vaultCreationsRequest = new StreamVaultCreationsRequest();
+        protected override IAsyncEnumerable<StreamVaultCreationsResponse> OpenStream()
+        {
+            var client = _vaultClient.StreamVaultCreations(new StreamVaultCreationsRequest()); 
 
-            var vaultStream = _vaultClient.StreamVaultCreations(vaultCreationsRequest);
-
-            var vaultStreamResponses = vaultStream.ResponseStream.ReadAllAsync();
-
-            await foreach(var vaultStreamResponse in vaultStreamResponses)
-            {
-                Log.Information($"Received vault creation with ID: {vaultStreamResponse.VaultId}");
-
-                using IServiceScope createScope = _scopeFactory.CreateScope();
-
-                IVaultRepo vaultRepo = createScope.ServiceProvider.GetRequiredService<IVaultRepo>();
-               
-                VaultDataModel streamToVaultModel = MapVaultStreamToVaultModel(vaultStreamResponse);
-
-                await vaultRepo.AddAsync(streamToVaultModel);
-             
-            }
+            return client.ResponseStream.ReadAllAsync();
         }
 
         private VaultDataModel MapVaultStreamToVaultModel(StreamVaultCreationsResponse vaultCreationsResponse)
