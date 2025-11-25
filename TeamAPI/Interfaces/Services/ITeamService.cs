@@ -12,5 +12,7 @@ namespace TeamAPI.Interfaces.Services
 
         public Task<DeleteTeamReturn> DeleteTeam(DeleteTeamDto deleteTeamRequest, string shortLivedToken);
 
+        public Task<UpdateTeamReturn> UpdateTeam(UpdateTeamDto updateTeamRequest, string shortLivedToken);
+
     }
 }

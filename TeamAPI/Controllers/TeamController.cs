@@ -74,5 +74,23 @@ namespace TeamAPI.Controllers
             return Unauthorized();
         }
 
+        [HttpPut]
+        public async Task<IActionResult> UpdateTeam([FromBody] UpdateTeamDto updateTeam)
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                UpdateTeamReturn updatedTeam = await _teamService.UpdateTeam(updateTeam, cookie);
+
+                if (!updatedTeam.Success)
+                {
+                    return BadRequest(updatedTeam);
+                }
+
+                return Ok(updatedTeam);
+            }
+
+            return Unauthorized();
+        }
+
     }
 }

@@ -16,6 +16,34 @@ interface CreateTeamResponse {
     success: boolean;
 }
 
+interface DeleteTeamRequest { 
+
+    teamId: string;
+
+}
+
+interface DeleteTeamResponse { 
+
+    teamId: string; 
+    teamName: string; 
+    success: boolean;
+
+}
+
+interface UpdateTeamRequest { 
+    teamId: string; 
+    newTeamName: string; 
+    teamAcceptingInvites: string; 
+    memberCap: number;
+}
+
+interface UpdateTeamResponse { 
+    teamName: string; 
+    teamAcceptingInvites: string; 
+    memberCap: number; 
+    success: boolean;
+}
+
 type Teams = { 
 
     teamName: string; 
@@ -105,5 +133,110 @@ export async function GetTeams() : Promise<Teams[]> {
     const data: Teams[] = await getTeams.json();
 
     return data;
+
+}
+
+function BuildDeleteTeamRequest(teamId: string) : DeleteTeamRequest { 
+
+    const deleteTeam: DeleteTeamRequest = {
+        teamId: teamId
+    }; 
+
+    return deleteTeam;
+
+}
+
+function BuildDeleteTeamResponse(teamId: string, teamName: string, success: boolean) : DeleteTeamResponse { 
+
+    const deleteTeamResponse: DeleteTeamResponse = {
+        teamId: teamId,
+        teamName: teamName,
+        success: success
+    }; 
+
+    return deleteTeamResponse;
+
+}
+
+export async function DeleteTeam(teamId: string) : Promise<DeleteTeamResponse> { 
+
+    const buildRequest = BuildDeleteTeamRequest(teamId);
+
+    const deletedTeam = await fetch("/Team/DeleteTeam", {
+        method: "DELETE",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(buildRequest)
+    });
+
+    if (!deletedTeam.ok) { 
+
+        const errorText = await deletedTeam.text();
+
+        throw new Error(errorText);
+    }
+
+
+    const jsonBody = await deletedTeam.json();
+
+    const response = BuildDeleteTeamResponse(jsonBody.teamId, jsonBody.teamName, jsonBody.success);
+
+    return response;
+
+}
+
+function BuildUpdateTeamRequest(teamId: string, newTeamName: string, teamAcceptingInvites: string, memberCap: number, ): UpdateTeamRequest { 
+
+    const teamRequest: UpdateTeamRequest = {
+        teamId: teamId,
+        newTeamName: newTeamName,
+        teamAcceptingInvites: teamAcceptingInvites,
+        memberCap: memberCap
+    }; 
+
+    return teamRequest;
+
+}
+
+function BuildUpdateTeamResponse(teamName: string, teamAcceptingInvites: string, memberCap: number, success: boolean): UpdateTeamResponse { 
+
+    const updateTeamResponse: UpdateTeamResponse = {
+        teamName: teamName,
+        teamAcceptingInvites: teamAcceptingInvites,
+        memberCap: memberCap,
+        success: success
+    }; 
+
+    return updateTeamResponse;
+
+}
+
+export async function UpdateTeam(teamId: string, newTeamName: string, teamAcceptingInvites: string, memberCap: number) { 
+
+    const buildRequest = BuildUpdateTeamRequest(teamId, newTeamName, teamAcceptingInvites, memberCap); 
+
+    const updatedTeam = await fetch("/Team/UpdateVault", {
+        method: "PUT",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(buildRequest)
+
+    });
+
+    if (!updatedTeam.ok) { 
+        const errorText = await updatedTeam.text();
+
+        throw new Error(errorText);
+    }
+
+    const jsonBody = await updatedTeam.json();
+
+    const response = BuildUpdateTeamResponse(jsonBody.teamName, jsonBody.teamAcceptingInvites, jsonBody.memberCap, jsonBody.success);
+
+    return response;
 
 }

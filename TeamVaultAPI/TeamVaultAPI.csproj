@@ -1,36 +1,31 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>efe9d13b-693d-4b00-8fa3-4821cfe2e156</UserSecretsId>
+    <UserSecretsId>6b8720b0-4005-42f9-9c0f-09ecd31d2b8e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
 	<ItemGroup>
 		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Account.proto" GrpcServices="Client" />
-		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Team.proto" GrpcServices="Server" />
-		
+		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Team.proto" GrpcServices="Client" />
 	</ItemGroup>
 
   <ItemGroup>

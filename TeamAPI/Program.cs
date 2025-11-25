@@ -2,12 +2,14 @@
 using KeyForgedShared.Helpers;
 using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using TeamAPI.BackgroundConsumers;
 using TeamAPI.DataContext;
 using TeamAPI.Interfaces.Repos;
 using TeamAPI.Interfaces.Services;
 using TeamAPI.Repos;
 using TeamAPI.Services;
+using TeamAPI.Storage;
 
 namespace TeamAPI
 {
@@ -18,11 +20,11 @@ namespace TeamAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGrpc();
 
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {
@@ -51,6 +53,15 @@ namespace TeamAPI
             builder.Services.AddHostedService<AddAccount>(); 
             builder.Services.AddHostedService<DeleteAccount>();
 
+            builder.Services.AddSingleton<StreamingStorage>();
+            builder.Services.AddScoped<ITeamService, TeamService>();
+            builder.Services.AddScoped<IStreamingService, StreamingService>();
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -64,6 +75,7 @@ namespace TeamAPI
 
             app.UseAuthorization();
 
+            app.MapGrpcService<StreamingService>();
 
             app.MapControllers();
 

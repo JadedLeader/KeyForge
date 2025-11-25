@@ -4,10 +4,14 @@ using KeyForgedShared.ReturnTypes.Team;
 using KeyForgedShared.SharedDataModels;
 using TeamAPI.Interfaces.Repos;
 using TeamAPI.Interfaces.Services;
+using gRPCIntercommunicationService;
+using Grpc.Core;
+using TeamAPI.Storage;
+using System.Collections.Immutable;
 
 namespace TeamAPI.Services
 {
-    public class TeamService : ITeamService
+    public class TeamService : Team.TeamBase, ITeamService
     {
 
         private readonly IAccountRepo _accountRepo;
@@ -15,11 +19,17 @@ namespace TeamAPI.Services
         private readonly ITeamRepo _teamRepo;
 
         private readonly IJwtHelper _jwtHelper;
-        public TeamService(IAccountRepo accountRepo, ITeamRepo teamRepo, IJwtHelper jwtHelper)
+
+        private readonly IStreamingService _streamingService;
+
+        private readonly StreamingStorage _streamingStorage;
+        public TeamService(IAccountRepo accountRepo, ITeamRepo teamRepo, IJwtHelper jwtHelper, IStreamingService streamingService, StreamingStorage streamingStorage)
         {
             _accountRepo = accountRepo;
             _teamRepo = teamRepo;
             _jwtHelper = jwtHelper;
+            _streamingService = streamingService;
+            _streamingStorage = streamingStorage;
         }
 
         public async Task<CreateTeamReturn> CreateTeam(CreateTeamDto createTeam, string shortLivedToken)
@@ -54,6 +64,10 @@ namespace TeamAPI.Services
             TeamDataModel createdTeam = MapToTeamDataModel(accountId, createTeam.TeamName, createTeam.TeamAcceptingInvites, accountId.ToString(), createTeam.MemberCap);
 
             await _teamRepo.AddAsync(createdTeam);
+
+            StreamTeamCreationResponse streamTeamResponse = MapTeamToStream(createdTeam);
+
+            _streamingStorage.AddToTeamCreation(streamTeamResponse);
 
             return MapTeamToTeamReturn(createdTeam);
 
@@ -123,11 +137,31 @@ namespace TeamAPI.Services
 
             TeamDataModel team = await _teamRepo.GetTeamViaId(updateTeamRequest.TeamId);
 
-            throw new NotImplementedException();
+            if (!string.IsNullOrWhiteSpace(updateTeamRequest.NewTeamName))
+            {
+                team.TeamName = updateTeamRequest.NewTeamName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateTeamRequest.TeamAcceptingInvites))
+            {
+                team.TeamAcceptingInvites = updateTeamRequest.TeamAcceptingInvites;
+            }
+
+            if(updateTeamRequest.MemberCap != 0)
+            {
+                team.MemberCap = updateTeamRequest.MemberCap;
+            }
+
+            await _teamRepo.UpdateAsync(team);
+
+            updateTeamResponse.Success = true; 
+            updateTeamResponse.TeamAcceptingInvites = team.TeamAcceptingInvites;
+            updateTeamResponse.TeamName = team.TeamName;
+            updateTeamResponse.MemberCap = team.MemberCap;
+
+            return updateTeamResponse;
 
         }
-
-
 
         public async Task<GetTeamsReturn> GetTeamsForAccount(string shortLivedToken)
         {
@@ -151,7 +185,6 @@ namespace TeamAPI.Services
 
 
         }
-
 
         private TeamDataModel MapToTeamDataModel(Guid accountId, string teamName, string teamAcceptingInvites, string createdBy, int memberCap )
         {
@@ -186,6 +219,24 @@ namespace TeamAPI.Services
 
             return teamReturn;
 
+
+        }
+
+        private StreamTeamCreationResponse MapTeamToStream(TeamDataModel team)
+        {
+
+            StreamTeamCreationResponse stream = new StreamTeamCreationResponse
+            {
+                AccountId = team.AccountId.ToString(),
+                TeamAcceptingInvites = team.TeamAcceptingInvites,
+                CreatedBy = team.CreatedBy,
+                CreatedAt = team.CreatedAt.ToString(),
+                MemberCap = team.MemberCap,
+                TeamId = team.TeamId.ToString(),
+                TeamName = team.TeamName,
+            };
+
+            return stream;
 
         }
 
