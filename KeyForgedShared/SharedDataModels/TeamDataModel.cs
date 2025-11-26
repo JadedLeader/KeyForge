@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KeyForgedShared.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -9,11 +10,13 @@ using System.Threading.Tasks;
 
 namespace KeyForgedShared.SharedDataModels
 {
-    public class TeamDataModel
+    public class TeamDataModel : IEntity
     {
 
         [Key]
         public Guid TeamId { get; set; }
+
+        public Guid Id => TeamId;
 
         [ForeignKey("AccountId")]
         public Guid AccountId { get; set; }

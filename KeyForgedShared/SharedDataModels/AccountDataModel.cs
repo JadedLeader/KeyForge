@@ -1,13 +1,17 @@
 ﻿
+using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace KeyForgedShared.SharedDataModels
 {
-    public class AccountDataModel
+    public class AccountDataModel : IEntity
     {
+
         [Key]
         public Guid AccountId { get; set; }
+
+        public Guid Id => AccountId;
 
         [Required]
         public string Username { get; set; }

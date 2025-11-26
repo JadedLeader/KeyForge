@@ -1,4 +1,5 @@
 ﻿using KeyForgedShared.Generics;
+using KeyForgedShared.Interfaces;
 using KeyForgedShared.SharedDataModels;
 using TeamVaultAPI.DataContext;
 using TeamVaultAPI.Interfaces.Repos;
@@ -28,6 +29,11 @@ namespace TeamVaultAPI.Repos
         public override Task<TeamDataModel> UpdateAsync(TeamDataModel databaseModel)
         {
             return base.UpdateAsync(databaseModel);
+        }
+
+        public override Task<bool> HasModel<T>(Guid id) where T: class
+        {
+            return base.HasModel<T>(id);
         }
 
     }

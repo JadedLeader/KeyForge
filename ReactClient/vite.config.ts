@@ -39,7 +39,8 @@ const apiTargets = {
     auth: 'https://localhost:7010',
     vault: 'https://localhost:7149',
     vaultKeys: 'https://localhost:7130',
-    Team: 'https://localhost:7285'
+    Team: 'https://localhost:7285', 
+    TeamVault: 'https://localhost:7040'
 };
 
 
@@ -77,6 +78,11 @@ export default defineConfig({
                 target: apiTargets.vault,
                 changeOrigin: true,
                 secure: false,
+            },
+            '/TeamVault': { 
+                target: apiTargets.TeamVault, 
+                changeOrigin: true,
+                secure: false
             },
             '/Team': { 
                 target: apiTargets.Team, 

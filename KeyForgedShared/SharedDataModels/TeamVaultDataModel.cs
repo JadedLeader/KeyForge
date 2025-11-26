@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KeyForgedShared.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,11 +9,13 @@ using System.Threading.Tasks;
 
 namespace KeyForgedShared.SharedDataModels
 {
-    public class TeamVaultDataModel
+    public class TeamVaultDataModel: IEntity
     {
 
         [Key]
         public Guid TeamVaultId { get; set; }
+
+        public Guid Id => TeamVaultId;
 
         [ForeignKey("TeamId")]
         public Guid TeamId { get; set; }

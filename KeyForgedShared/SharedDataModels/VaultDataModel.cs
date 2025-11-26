@@ -1,15 +1,18 @@
 ﻿
+using KeyForgedShared.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KeyForgedShared.SharedDataModels
 {
-    public class VaultDataModel
+    public class VaultDataModel: IEntity
     {
 
         [Key]
 
         public Guid VaultId { get; set; }
+
+        public Guid Id => VaultId;
 
         [ForeignKey("AccountId")]
         public Guid AccountId { get; set; }

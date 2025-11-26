@@ -1,6 +1,10 @@
 
+using gRPCIntercommunicationService;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using TeamVaultAPI.BackgroundConsumers;
 using TeamVaultAPI.DataContext;
 using TeamVaultAPI.Interfaces.Repos;
 using TeamVaultAPI.Interfaces.Services;
@@ -27,6 +31,11 @@ namespace TeamVaultAPI
                 options.Address = new Uri("https://localhost:7003");
             });
 
+            builder.Services.AddGrpcClient<Team.TeamClient>(options =>
+            {
+                options.Address = new Uri("https://localhost:7285");
+            });
+
             builder.Services.AddDbContext<TeamVaultDataContext>(options =>
             {
                 string? connectionString = builder.Configuration["ConnectionStrings:TeamVaultAPIConnection"];
@@ -38,6 +47,11 @@ namespace TeamVaultAPI
             builder.Services.AddScoped<ITeamRepo, TeamRepo>();
             builder.Services.AddScoped<ITeamVaultRepo, TeamVaultRepo>();
             builder.Services.AddScoped<ITeamVaultService, TeamVaultService>();
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
+
+            builder.Services.AddHostedService<CreateAccount>(); 
+            builder.Services.AddHostedService<DeleteAccount>();
+            builder.Services.AddHostedService<CreateTeam>();
 
             var app = builder.Build();
 

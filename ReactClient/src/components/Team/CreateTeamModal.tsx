@@ -22,6 +22,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
+import { CreateTeamVault } from "@/components/api/TeamVault"
 
 interface CreateTeamProps { 
     isOpen: boolean; 

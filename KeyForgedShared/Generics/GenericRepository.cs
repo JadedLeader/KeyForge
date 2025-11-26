@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KeyForgedShared.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 
 namespace KeyForgedShared.Generics
@@ -39,6 +41,41 @@ namespace KeyForgedShared.Generics
 
             return databaseModel;
         }
+
+        public virtual async Task<T?> FindSingleRecordViaId<T>(Guid id) where T : IEntity
+        {
+            T? model = await _dbContext.Set<T>().Where(t => t.Id == id).FirstOrDefaultAsync();
+
+            if (model == null)
+            {
+                Log.Information($"{typeof(T)} has failed to find the record");
+
+                return model;
+            }
+
+            return model;
+        }
+
+        public virtual async Task<List<T>> FindAllRecordsViaId<T>(Guid id) where T: IEntity
+        {
+            List<T> modelList = await _dbContext.Set<T>().Where(t => t.Id == id).ToListAsync();
+
+            return modelList;
+        }
+
+        public virtual async Task<bool> HasModel<T>(Guid id) where T: IEntity
+        {
+            bool hasRecord = await _dbContext.Set<T>().AnyAsync(x => x.Id == id);
+
+            if (!hasRecord)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
 
      
 
