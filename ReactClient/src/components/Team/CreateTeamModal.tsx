@@ -3,15 +3,13 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogHeader,
     DialogTitle,
-    DialogTrigger,
     DialogFooter, 
     DialogClose
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { useState, useEffect } from "react"
+import { useState} from "react"
 import { Input } from "@/components/ui/input"
 import { CreateTeam } from "@/components/api/Team"
 import {
@@ -35,6 +33,10 @@ export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
     const [invites, setInvites] = useState("");
     const [memberCap, setMemberCap] = useState<number>(0);
     const [inviteDropOpen, setInviteDropOpen] = useState<Boolean>();
+    const [teamVaultDescription, setTeamVaultDescription] = useState("");
+    const [teamVaultName, setTeamVaultName] = useState(""); 
+    const [currentState, setCurrentState] = useState("");
+    const [stateDropOpen, setStateDropOpen] = useState<boolean>();
 
     function HandleTeamNameChange(teamName: React.ChangeEvent<HTMLInputElement>) { 
 
@@ -45,13 +47,15 @@ export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
         setMemberCap(Number(memberCap.target.value));
     }
 
-    function HandleInvitesChange(invite: React.ChangeEvent<HTMLInputElement>) { 
-        setInvites(invite.target.value)
+    function HandleTeamVaultNameChange(teamVaultName: React.ChangeEvent<HTMLInputElement>) { 
+        setTeamVaultName(teamVaultName.target.value);
+
     }
 
-    function HandleInviteDrop() { 
-        setInviteDropOpen(true);
+    function HandleTeamVaultDescriptionChange(teamVaultDescription: React.ChangeEvent<HTMLInputElement>) { 
+        setTeamVaultDescription(teamVaultDescription.target.value);
     }
+
 
   return (
    
@@ -72,12 +76,16 @@ export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
 
               </DialogDescription>
 
-              <Label className="normal-text">Team Name:</Label>
-              <Input value={teamName} placeholder="Team Name" onChange={HandleTeamNameChange} type="text"  ></Input>
+              <Label className="title-text">Team Name:</Label>
+              <Input value={teamName} placeholder="Team Name" onChange={HandleTeamNameChange} type="text" ></Input>
 
-              <Label className="normal-text">Invites:</Label>
-              <div className={inviteDropOpen ? "mb-20" : "mb-4"} >
-                  <Select value={invites} onOpenChange={() => setInviteDropOpen(true)} onValueChange={(value) => setInvites(value)} >
+              <Label className="title-text">Invites:</Label>
+              <div className={inviteDropOpen ? "mb-15" : "mb-4"} >
+                  <Select value={invites} onOpenChange={(open) => setInviteDropOpen(open)} onValueChange={(value) =>
+                  {
+                      setInvites(value); 
+                      setInviteDropOpen(false);
+                  }} >
 
                   <SelectTrigger>
 
@@ -86,16 +94,44 @@ export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
 
                       <SelectContent >
 
-                      <SelectItem className="normal-text bg-transparent hover::underline border-0" value="closed">Closed</SelectItem>
-                      <SelectItem className="normal-text bg-transparent hover::underline border-0" value="open">Open</SelectItem>
+                            <SelectItem className="normal-text bg-transparent hover::underline border-0" value="closed">Closed</SelectItem>
+                            <SelectItem className="normal-text bg-transparent hover::underline border-0" value="open">Open</SelectItem>
 
-                  </SelectContent>
+                      </SelectContent>
 
                   </Select>
               </div>
 
-              <Label className="normal-text">Maximum Allowed Members:</Label>
+              <Label className="title-text">Maximum Allowed Members:</Label>
               <Input value={memberCap} placeholder="Member Capacity" onChange={HandleMemberCapChange} type="number" ></Input>
+
+              <Label className="title-text">Team Vault Name:</Label>
+              <Input value={teamVaultName} onChange={HandleTeamVaultNameChange} type="text" ></Input>
+
+              <Label className="title-text">Team Vault Description:</Label>
+              <Input value={teamVaultDescription} onChange={HandleTeamVaultDescriptionChange} type="text" ></Input>
+
+              <div className={stateDropOpen ? "mb-15" : "mb-4"} >
+                  <Select value={currentState} onOpenChange={(open) => setStateDropOpen(open)} onValueChange={(state) =>
+                  {
+                      setCurrentState(state);
+                      setStateDropOpen(false);
+                  }} >
+
+                      <SelectTrigger>
+                          <SelectValue placeholder="Vault Status" />
+                      </SelectTrigger>
+
+                      <SelectContent  >
+
+                          <SelectItem className="normal-text bg-transparent hover::underline border-0" value="read only">Read only</SelectItem>
+                          <SelectItem className="normal-text bg-transparent hover::underline border-0" value="Editable">Editable</SelectItem>
+
+                      </SelectContent>
+
+
+                    </Select>
+              </div>
 
               <DialogFooter >
 
@@ -108,9 +144,12 @@ export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
                   <Button className="bg-blue-600 text-white hover::underline" variant="outline" onClick={async () => {
 
 
-                      const teamCreated = await CreateTeam(teamName, invites, memberCap)
+                      const teamCreated = await CreateTeam(teamName, invites, memberCap);
 
-                      if (teamCreated.success) {
+                      const teamVaultCreated = await CreateTeamVault(teamCreated.teamId, teamVaultDescription, teamVaultName, currentState);
+                      
+
+                      if (teamCreated.success && teamVaultCreated.success) {
                           toast.success("Team created successfully!");
 
                           setIsOpen(false);

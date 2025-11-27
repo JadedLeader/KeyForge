@@ -45,7 +45,7 @@ namespace TeamVaultAPI.BackgroundConsumers
                 CreatedBy = teamCreation.CreatedBy,
                 MemberCap = teamCreation.MemberCap,
                 TeamAcceptingInvites = teamCreation.TeamAcceptingInvites,
-                TeamId = Guid.Parse(teamCreation.TeamId),
+                Id = Guid.Parse(teamCreation.TeamId),
                 TeamName = teamCreation.TeamName,
             };
 

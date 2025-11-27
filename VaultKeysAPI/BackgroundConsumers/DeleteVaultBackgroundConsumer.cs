@@ -21,11 +21,11 @@ namespace VaultKeysAPI.BackgroundConsumers
 
         protected override async Task HandleMessage(IServiceProvider service, VaultDataModel model)
         {
-            Log.Information($"{nameof(DeleteVaultBackgroundConsumer)}: received vault deletion {model.VaultId}");
+            Log.Information($"{nameof(DeleteVaultBackgroundConsumer)}: received vault deletion {model.Id}");
 
             var scope = service.GetRequiredService<IVaultRepo>();
 
-            await scope.DeleteVaultViaVaultId(model.VaultId);
+            await scope.DeleteVaultViaVaultId(model.Id);
         }
 
         protected override VaultDataModel MapToType(StreamVaultDeletionsResponse responseType)
@@ -44,7 +44,7 @@ namespace VaultKeysAPI.BackgroundConsumers
         {
             VaultDataModel newVault = new VaultDataModel
             {
-                VaultId = Guid.Parse(vaultDeletion.VaultId)
+                Id = Guid.Parse(vaultDeletion.VaultId)
             };
 
 

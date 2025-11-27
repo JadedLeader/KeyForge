@@ -18,7 +18,7 @@ namespace VaultKeysAPI.Repos
         public override async Task<AccountDataModel> AddAsync(AccountDataModel databaseModel)
         {
 
-            bool doesAccountExist = await _vaultKeysDataContext.Account.AnyAsync(u => u.AccountId == databaseModel.AccountId);
+            bool doesAccountExist = await _vaultKeysDataContext.Account.AnyAsync(u => u.Id == databaseModel.Id);
 
             if (doesAccountExist)
             {
@@ -35,7 +35,7 @@ namespace VaultKeysAPI.Repos
 
         public async Task<AccountDataModel> DeleteAccountViaAccountId(Guid accountId)
         {
-            AccountDataModel? account = await _vaultKeysDataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+            AccountDataModel? account = await _vaultKeysDataContext.Account.Where(ac => ac.Id == accountId).FirstOrDefaultAsync();
 
             if (account == null)
             {

@@ -42,7 +42,7 @@ namespace TeamVaultAPI.Services
 
             bool hasAccount = await _accountRepo.HasModel<AccountDataModel>(accountId);   
 
-            bool hasTeam = await _teamRepo.HasModel<TeamDataModel>(accountId);
+            bool hasTeam = await _teamRepo.HasModel<TeamDataModel>(Guid.Parse(createTeamVault.TeamId));
 
             if(!hasAccount || !hasTeam)
             {
@@ -56,7 +56,7 @@ namespace TeamVaultAPI.Services
             await _teamVaultRepo.AddAsync(createdTeamVault);
 
             teamVaultResponse.TeamId = createdTeamVault.TeamId;
-            teamVaultResponse.TeamVaultId = createdTeamVault.TeamVaultId;
+            teamVaultResponse.TeamVaultId = createdTeamVault.Id;
             teamVaultResponse.TeamVaultDescription = createdTeamVault.TeamVaultDescription;
             teamVaultResponse.TeamVaultName = createdTeamVault.TeamVaultName;
             teamVaultResponse.CurrentStatus = createdTeamVault.CurrentStatus;
@@ -82,7 +82,7 @@ namespace TeamVaultAPI.Services
             TeamVaultDataModel teamVault = new TeamVaultDataModel
             {
                 TeamId = Guid.Parse(createTeamVault.TeamId),
-                TeamVaultId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 TeamVaultName = createTeamVault.TeamVaultName,
                 CurrentStatus = createTeamVault.CurrentStatus,
                 CreatedAt = DateTime.Now.ToString(),

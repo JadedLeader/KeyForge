@@ -24,7 +24,7 @@ namespace VaultKeysAPI.BackgroundConsumers
         {
             var scope = service.GetRequiredService<IAuthRepo>();
 
-            Log.Information($"{nameof(UpdateAuthBackgroundConsumer)}: Received update with ID: {model.AuthKey} ");
+            Log.Information($"{nameof(UpdateAuthBackgroundConsumer)}: Received update with ID: {model.Id} ");
 
             await scope.UpdateAsync(model);
         }
@@ -48,7 +48,7 @@ namespace VaultKeysAPI.BackgroundConsumers
                 AccountId = Guid.Parse(updates.AccountId),
                 ShortLivedKey = updates.ShortLivedKey,
                 LongLivedKey = updates.LongLivedKey,
-                AuthKey = Guid.Parse(updates.AuthKey),
+                Id = Guid.Parse(updates.AuthKey),
 
             };
 

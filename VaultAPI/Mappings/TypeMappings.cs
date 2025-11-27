@@ -11,7 +11,7 @@ namespace VaultAPI.Mappings
         {
             StreamVaultCreationsResponse newVaultCreationResponse = new StreamVaultCreationsResponse
             {
-                VaultId = vaultModel.VaultId.ToString(),
+                VaultId = vaultModel.Id.ToString(),
                 AccountId = vaultModel.AccountId.ToString(),
                 VaultName = vaultModel.VaultName,
                 VaultCreatedAt = vaultModel.VaultCreatedAt.ToString(),
@@ -26,7 +26,7 @@ namespace VaultAPI.Mappings
         {
             VaultDataModel newVault = new VaultDataModel
             {
-                VaultId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 AccountId = accountId,
                 VaultName = vaultName,
                 VaultType = vaultType,
@@ -41,7 +41,7 @@ namespace VaultAPI.Mappings
         {
             StreamVaultDeletionsResponse newVaultDeletionResponse = new StreamVaultDeletionsResponse
             {
-                VaultId = vaultModel.VaultId.ToString()
+                VaultId = vaultModel.Id.ToString()
             }; 
 
             return newVaultDeletionResponse;
@@ -54,7 +54,7 @@ namespace VaultAPI.Mappings
                 UniqueVaultUpdateId = Guid.NewGuid().ToString(),
                 AccountId = vaultModel.AccountId.ToString(),
                 VaultName = vaultModel.VaultName,
-                VaultId = vaultModel.VaultId.ToString(),
+                VaultId = vaultModel.Id.ToString(),
 
             };
 

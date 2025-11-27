@@ -43,7 +43,7 @@ namespace VaultAPI.BackgroundConsumers
         {
             AccountDataModel newAccount = new AccountDataModel
             {
-                AccountId = Guid.Parse(delete.AccountId),
+                Id = Guid.Parse(delete.AccountId),
             };
 
             return newAccount;

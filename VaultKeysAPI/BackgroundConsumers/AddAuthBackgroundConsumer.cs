@@ -43,7 +43,7 @@ namespace VaultKeysAPI.BackgroundConsumers
         {
             AuthDataModel newAuthDataModel = new AuthDataModel
             {
-                AuthKey = Guid.Parse(streamAuthCreation.AuthKey),
+                Id = Guid.Parse(streamAuthCreation.AuthKey),
                 AccountId = Guid.Parse(streamAuthCreation.AccountId),
                 ShortLivedKey = streamAuthCreation.ShortLivedKey,
                 LongLivedKey = streamAuthCreation.LongLivedKey,

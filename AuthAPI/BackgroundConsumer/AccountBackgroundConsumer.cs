@@ -22,7 +22,7 @@ namespace AuthAPI.BackgroundConsumer
 
         protected override async Task HandleMessage(IServiceProvider service, AccountDataModel model)
         {
-            Log.Information($"Received {model.AccountId} for creation within auth API");
+            Log.Information($"Received {model.Id} for creation within auth API");
 
             var accountRepo = service.GetRequiredService<IAuthRepo>();
 
@@ -34,7 +34,7 @@ namespace AuthAPI.BackgroundConsumer
         {
             AccountDataModel newAccountDataModel = new AccountDataModel
             {
-                AccountId = Guid.Parse(responseType.AccountId),
+                Id = Guid.Parse(responseType.AccountId),
                 Username = responseType.Username,
                 Password = responseType.Password,
                 Email = responseType.Email,

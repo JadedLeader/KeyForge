@@ -23,7 +23,7 @@ namespace VaultAPI.BackgroundConsumers
         protected override async Task HandleMessage(IServiceProvider service, AuthDataModel model)
         {
 
-            Log.Information($"{nameof(AddAuthBackgroundConsumer)}: has received auth creation request with {model.AuthKey}");
+            Log.Information($"{nameof(AddAuthBackgroundConsumer)}: has received auth creation request with {model.Id}");
 
             var scope = service.GetRequiredService<IAuthRepo>(); 
 
@@ -46,7 +46,7 @@ namespace VaultAPI.BackgroundConsumers
         {
             AuthDataModel newAuthDataModel = new AuthDataModel
             {
-                AuthKey = Guid.Parse(streamAuthCreation.AuthKey),
+                Id = Guid.Parse(streamAuthCreation.AuthKey),
                 AccountId = Guid.Parse(streamAuthCreation.AccountId),
                 ShortLivedKey = streamAuthCreation.ShortLivedKey,
                 LongLivedKey = streamAuthCreation.LongLivedKey,

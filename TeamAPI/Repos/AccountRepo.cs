@@ -32,7 +32,7 @@ namespace TeamAPI.Repos
 
         public async Task<bool> hasAccount(Guid accountId)
         {
-            bool accountExists = await _dbContext.Account.AnyAsync(x => x.AccountId == accountId);
+            bool accountExists = await _dbContext.Account.AnyAsync(x => x.Id == accountId);
 
             if (!accountExists)
             {

@@ -40,7 +40,7 @@ namespace AccountAPI.Repos
 
         public async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
         {
-           AccountDataModel? retrievedAccount = await _accountDataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+           AccountDataModel? retrievedAccount = await _accountDataContext.Account.Where(ac => ac.Id == accountId).FirstOrDefaultAsync();
 
             if(retrievedAccount == null)
             {
@@ -56,7 +56,7 @@ namespace AccountAPI.Repos
 
         public async Task<GetAccountDetailsReturn> GetUserAccount(Guid accountId)
         {
-            GetAccountDetailsReturn? getUser = await _accountDataContext.Account.Where(x => x.AccountId == accountId)
+            GetAccountDetailsReturn? getUser = await _accountDataContext.Account.Where(x => x.Id == accountId)
                 .Select(x => new GetAccountDetailsReturn
                 {
                     Username = x.Username,
@@ -75,7 +75,7 @@ namespace AccountAPI.Repos
         public async Task<string> GetHashedPassword(Guid accountId)
         {
 
-            string? getPasswordForUser = await _accountDataContext.Account.Where(x => x.AccountId == accountId)
+            string? getPasswordForUser = await _accountDataContext.Account.Where(x => x.Id == accountId)
                 .Select(x => x.Password).FirstOrDefaultAsync();
 
             if(getPasswordForUser == string.Empty)

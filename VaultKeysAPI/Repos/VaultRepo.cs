@@ -24,7 +24,7 @@ namespace VaultKeysAPI.Repos
 
             Log.Information($"adding vault to the database");
 
-            bool entityExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == databaseModel.VaultId);
+            bool entityExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.Id == databaseModel.Id);
 
             if (entityExists)
             {
@@ -46,14 +46,14 @@ namespace VaultKeysAPI.Repos
 
         public async Task<VaultDataModel?> DeleteVaultViaVaultId(Guid vaultId)
         {
-            bool vaultExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.VaultId == vaultId);
+            bool vaultExists = await _vaultKeysDataContext.Vault.AnyAsync(x => x.Id == vaultId);
 
             if (!vaultExists)
             {
                 return null;
             }
 
-            VaultDataModel? vaultToDelete = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+            VaultDataModel? vaultToDelete = await _vaultKeysDataContext.Vault.Where(x => x.Id == vaultId).FirstOrDefaultAsync();
 
             _vaultKeysDataContext.Vault.Remove(vaultToDelete);
 
@@ -78,7 +78,7 @@ namespace VaultKeysAPI.Repos
 
         public async Task<bool> HasVault(Guid userId, Guid vaultId)
         {
-            bool userHasVaults = await _vaultKeysDataContext.Vault.AnyAsync(x => x.AccountId == userId && x.VaultId == vaultId);
+            bool userHasVaults = await _vaultKeysDataContext.Vault.AnyAsync(x => x.AccountId == userId && x.Id == vaultId);
 
             if (!userHasVaults)
             {
@@ -91,7 +91,7 @@ namespace VaultKeysAPI.Repos
         public async Task<VaultDataModel> GetVaultByVaultId(Guid vaultId)
         {
 
-            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.Id == vaultId).FirstOrDefaultAsync();
 
             if(getVault == null)
             {
@@ -104,7 +104,7 @@ namespace VaultKeysAPI.Repos
 
         public async Task<VaultDataModel> CascadeDeleteIntoVaultKeys(Guid vaultId)
         {
-            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.Id == vaultId).FirstOrDefaultAsync();
 
             if(getVault == null)
             {
@@ -134,7 +134,7 @@ namespace VaultKeysAPI.Repos
         public async Task<VaultDataModel> UpdateVaultKeyName(Guid vaultId, string newKeyName)
         {
 
-            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+            VaultDataModel? getVault = await _vaultKeysDataContext.Vault.Where(x => x.Id == vaultId).FirstOrDefaultAsync();
 
             if(getVault == null)
             {

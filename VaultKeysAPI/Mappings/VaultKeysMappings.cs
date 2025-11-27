@@ -12,8 +12,8 @@ namespace VaultKeysAPI.Mappings
         {
             VaultKeysDataModel newVaultKeys = new VaultKeysDataModel
             {
-                VaultKeyId = Guid.NewGuid(),
-                VaultId = vault.VaultId,
+                Id = Guid.NewGuid(),
+                VaultId = vault.Id,
                 HashedVaultKey = hashedVaultKey,
                 Vault = vault,
                 DateTimeVaultKeyCreated = DateTime.Now.ToString(),
@@ -31,7 +31,7 @@ namespace VaultKeysAPI.Mappings
             {
                 AccountId = projection.VaultDataModelWithAllKeys.AccountId.ToString(),
                 VaultCreatedAt = projection.VaultDataModelWithAllKeys.VaultCreatedAt.ToString(),
-                VaultId = projection.VaultDataModelWithAllKeys.VaultId.ToString(),
+                VaultId = projection.VaultDataModelWithAllKeys.Id.ToString(),
                 VaultName = projection.VaultDataModelWithAllKeys.VaultName,
                 VaultType = projection.VaultDataModelWithAllKeys.VaultType,
                 VaultKeys = projection.VaultDataModelWithAllKeys.VaultKeys.ToList(),

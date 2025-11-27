@@ -107,7 +107,7 @@ namespace TeamAPI.Services
             }
 
             deleteTeamResponse.Success = true;
-            deleteTeamResponse.TeamId = team.TeamId.ToString(); 
+            deleteTeamResponse.TeamId = team.Id.ToString(); 
             deleteTeamResponse.TeamName = team.TeamName;
 
             return deleteTeamResponse;
@@ -191,7 +191,7 @@ namespace TeamAPI.Services
             TeamDataModel newTeam = new TeamDataModel
             {
                 AccountId = accountId,
-                TeamId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 TeamName = teamName,
                 TeamAcceptingInvites = teamAcceptingInvites,
                 CreatedBy = createdBy,
@@ -206,7 +206,7 @@ namespace TeamAPI.Services
         {
             CreateTeamReturn teamReturn = new CreateTeamReturn
             {
-                TeamId = team.TeamId.ToString(),
+                TeamId = team.Id.ToString(),
                 TeamName = team.TeamName,
                 TeamAcceptingInvites = team.TeamAcceptingInvites,
                 CreatedBy = team.CreatedBy,
@@ -232,7 +232,7 @@ namespace TeamAPI.Services
                 CreatedBy = team.CreatedBy,
                 CreatedAt = team.CreatedAt.ToString(),
                 MemberCap = team.MemberCap,
-                TeamId = team.TeamId.ToString(),
+                TeamId = team.Id.ToString(),
                 TeamName = team.TeamName,
             };
 

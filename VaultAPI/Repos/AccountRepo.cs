@@ -32,7 +32,7 @@ namespace VaultAPI.Repos
 
         public async Task<AccountDataModel> DeleteAccountViaAccountId(Guid accountId)
         {
-            AccountDataModel? account = await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+            AccountDataModel? account = await _dataContext.Account.Where(ac => ac.Id == accountId).FirstOrDefaultAsync();
 
             if (account == null)
             {
@@ -46,7 +46,7 @@ namespace VaultAPI.Repos
 
         public async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
         {
-            AccountDataModel? getAccount = await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+            AccountDataModel? getAccount = await _dataContext.Account.Where(ac => ac.Id == accountId).FirstOrDefaultAsync();
 
             if(getAccount == null)
             {

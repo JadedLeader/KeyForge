@@ -29,7 +29,7 @@ namespace AuthAPI.Repos
 
         public async Task<AccountDataModel> RemoveAccountFromTable(AccountDataModel accountModel)
         {
-            AccountDataModel accountViaId = await _dataContext.Account.Where(ac => ac.AccountId == accountModel.AccountId).FirstOrDefaultAsync();
+            AccountDataModel accountViaId = await _dataContext.Account.Where(ac => ac.Id == accountModel.Id).FirstOrDefaultAsync();
 
             if(accountViaId == null)
             {
@@ -57,11 +57,11 @@ namespace AuthAPI.Repos
 
             AccountDataModel checkingForExistingAccount = await CheckForExistingAccount(id);
 
-            if(checkingForExistingAuth.AccountId == Guid.Empty && checkingForExistingAccount.AccountId == Guid.Empty)
+            if(checkingForExistingAuth.AccountId == Guid.Empty && checkingForExistingAccount.Id == Guid.Empty)
             {
                 Log.Information($"No accounts can be found in either tables of these records that require deletion");
             }
-            else if(checkingForExistingAccount.AccountId != Guid.Empty && checkingForExistingAuth.AccountId == Guid.Empty)
+            else if(checkingForExistingAccount.Id != Guid.Empty && checkingForExistingAuth.AccountId == Guid.Empty)
             {
                 Log.Information($"Account with ID {id} has been found for deletion within both tables"); 
 
@@ -75,7 +75,7 @@ namespace AuthAPI.Repos
 
         public async Task<AccountDataModel> CheckForExistingAccount(Guid accountId)
         {
-            AccountDataModel? existingAccount = await _dataContext.Account.Where(ac => ac.AccountId == accountId).FirstOrDefaultAsync();
+            AccountDataModel? existingAccount = await _dataContext.Account.Where(ac => ac.Id == accountId).FirstOrDefaultAsync();
 
             if(existingAccount == null)
             {
@@ -114,9 +114,9 @@ namespace AuthAPI.Repos
 
         public async Task<Guid> RemoveAuthFromTable(AuthDataModel authDataModel)
         {
-            AuthDataModel checkingForAuth = await CheckForExistingAuth(authDataModel.AuthKey);
+            AuthDataModel checkingForAuth = await CheckForExistingAuth(authDataModel.Id);
 
-            if(checkingForAuth.AuthKey == Guid.Empty)
+            if(checkingForAuth.Id == Guid.Empty)
             {
                 return Guid.Empty;
             }
@@ -125,7 +125,7 @@ namespace AuthAPI.Repos
 
             await _dataContext.SaveChangesAsync();
 
-            return checkingForAuth.AuthKey;
+            return checkingForAuth.Id;
         }
 
         public async Task<AuthDataModel> UpdateLongLivedToken(AuthDataModel authDataModel, string refreshedLongLivedToken)
@@ -180,7 +180,7 @@ namespace AuthAPI.Repos
                 .Select(account =>
                 new AccountDataModel
                 {
-                    AccountId = account.AccountId, 
+                    Id = account.Id, 
                     Username = account.Username,
                     Password = account.Password,
                     
@@ -197,7 +197,7 @@ namespace AuthAPI.Repos
 
         public async Task<AccountDataModel> RetrieveRoleFromAccount(Guid accountId)
         {
-            AccountDataModel? retrievingRole = await _dataContext.Account.Where(ac => ac.AccountId == accountId)
+            AccountDataModel? retrievingRole = await _dataContext.Account.Where(ac => ac.Id == accountId)
                 .Select(account =>
                 new AccountDataModel
                 {

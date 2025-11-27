@@ -97,7 +97,7 @@ export function SignInPage() {
         setShortLivedToken(authResponse.shortLivedToken);
         setLongLivedToken(authResponse.longLivedToken);
 
-        if (authResponse.accountId != null && authResponse.successful == true) { 
+        if (authResponse.accountId != null && authResponse.success == true) { 
 
             const buildRefreshAuthTokenRequest = BuildShortLivedTokenRequest(loginResponse.accountId);
 

@@ -24,7 +24,7 @@ namespace VaultKeysAPI.Repos
         public override async Task<VaultKeysDataModel> AddAsync(VaultKeysDataModel databaseModel)
         {
 
-            bool vaultKeyExists = await _vaultKeysDataContext.VaultKeys.AnyAsync(x => x.VaultKeyId == databaseModel.VaultKeyId);
+            bool vaultKeyExists = await _vaultKeysDataContext.VaultKeys.AnyAsync(x => x.Id == databaseModel.Id);
 
             if (vaultKeyExists)
             {
@@ -48,7 +48,7 @@ namespace VaultKeysAPI.Repos
         public async Task<VaultKeysDataModel> RemoveVaultKeyViaKeyId(Guid vaultKeyId, Guid vaultId)
         {
 
-            VaultKeysDataModel? removeVaultKey = await _vaultKeysDataContext.VaultKeys.FirstOrDefaultAsync(x => x.VaultKeyId == vaultKeyId && x.VaultId == vaultId);
+            VaultKeysDataModel? removeVaultKey = await _vaultKeysDataContext.VaultKeys.FirstOrDefaultAsync(x => x.Id == vaultKeyId && x.VaultId == vaultId);
 
             if (removeVaultKey == null)
             {
@@ -68,13 +68,13 @@ namespace VaultKeysAPI.Repos
                 .Select(x => new GetAllVaultsDto
                 {
                     VaultCreatedAt = x.VaultCreatedAt, 
-                    VaultId = x.VaultId,
+                    VaultId = x.Id,
                     VaultName = x.VaultName,
                     VaultType = (KeyForgedShared.ReturnTypes.Vaults.VaultType)x.VaultType, 
                     Keys = x.VaultKeys.Select(k => new VaultKeyDto 
                     {  
 
-                        VaultKeyId = k.VaultKeyId,
+                        VaultKeyId = k.Id,
                         DateTimeVaultKeyCreated = k.DateTimeVaultKeyCreated, 
                         HashedVaultKey = k.HashedVaultKey,
                         KeyName = k.KeyName,
@@ -142,13 +142,13 @@ namespace VaultKeysAPI.Repos
 
         public async Task<GetSingleVaultWithAllKeysAndDetailsProjection> GetAllDetailsForVault(Guid vaultId)
         {
-            GetSingleVaultWithAllKeysAndDetailsProjection? singleVaultAllDetails = await _vaultKeysDataContext.Vault.Where(v => v.VaultId == vaultId)
+            GetSingleVaultWithAllKeysAndDetailsProjection? singleVaultAllDetails = await _vaultKeysDataContext.Vault.Where(v => v.Id == vaultId)
                 .Include(v => v.VaultKeys)
                 .Select(v => new GetSingleVaultWithAllKeysAndDetailsProjection
                 {
                     VaultDataModelWithAllKeys = new VaultDataModel
                     {
-                        VaultId = v.VaultId,
+                        Id = v.Id,
                         AccountId = v.AccountId,
                         VaultCreatedAt = v.VaultCreatedAt,
                         VaultName = v.VaultName,
@@ -192,7 +192,7 @@ namespace VaultKeysAPI.Repos
         public async Task<VaultDataModel> RemoveVault(Guid vaultId)
         {
 
-            VaultDataModel? removedVault = await _vaultKeysDataContext.Vault.Where(x => x.VaultId == vaultId).FirstOrDefaultAsync();
+            VaultDataModel? removedVault = await _vaultKeysDataContext.Vault.Where(x => x.Id == vaultId).FirstOrDefaultAsync();
 
             if(removedVault == null)
             {
@@ -211,7 +211,7 @@ namespace VaultKeysAPI.Repos
 
         public async Task<VaultKeysDataModel> GetAndUpdateVaultKeys(Guid vaultKeysId, string? newEncryedKey, string? newKeyName)
         {
-            VaultKeysDataModel? getVaultKeys = await _vaultKeysDataContext.VaultKeys.Where(x => x.VaultKeyId == vaultKeysId).FirstOrDefaultAsync();
+            VaultKeysDataModel? getVaultKeys = await _vaultKeysDataContext.VaultKeys.Where(x => x.Id == vaultKeysId).FirstOrDefaultAsync();
 
             if(getVaultKeys == null)
             {

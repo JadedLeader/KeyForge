@@ -60,7 +60,7 @@ namespace TeamAPI.Repos
 
         public async Task<TeamDataModel> DeleteTeamViaId(Guid teamId)
         {
-            TeamDataModel? team = await _dbContext.Team.Where(x => x.TeamId == teamId).FirstOrDefaultAsync();    
+            TeamDataModel? team = await _dbContext.Team.Where(x => x.Id == teamId).FirstOrDefaultAsync();    
 
             if(team == null)
             {
@@ -72,7 +72,7 @@ namespace TeamAPI.Repos
 
         public async Task<TeamDataModel> GetTeamViaId(Guid teamId)
         {
-            TeamDataModel? team = await _dbContext.Team.FirstOrDefaultAsync(x => x.TeamId == teamId);
+            TeamDataModel? team = await _dbContext.Team.FirstOrDefaultAsync(x => x.Id == teamId);
 
             if (team == null)
             {

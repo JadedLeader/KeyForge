@@ -1,11 +1,6 @@
-
-interface SilentTokenCycleRequest {
-
-}
-
 interface SilentTokenCycleResponse {
     refreshedToken: string;
-    successful: boolean;
+    success: boolean;
 }
 
 interface RefreshShortLivedTokenRequest {
@@ -15,7 +10,7 @@ interface RefreshShortLivedTokenRequest {
 interface RefreshShortLivedTokenResponse {
 
     accountId: string;
-    successful: boolean;
+    success: boolean;
     refreshedToken: string;
 }
 
@@ -29,7 +24,7 @@ interface BuildTokenGenerationResponse {
     accountId: string;
     shortLivedToken: string;
     longLivedToken: string;
-    successful: boolean;
+    success: boolean;
     details: string;
 
 }
@@ -45,29 +40,15 @@ interface UserLoginResponse {
     accountId: string;
 }
 
-function BuildSilentCycleRequest(): SilentTokenCycleRequest {
-
-
-    const newCycleRequest: SilentTokenCycleRequest = {
-
-    };
-
-    return newCycleRequest;
-}
-
-
 export async function SilentTokenRefresh(): Promise<SilentTokenCycleResponse> {
 
 
-    const buildingRequest = BuildSilentCycleRequest();
-
     const silentTokenResponse = await fetch("/Auth/SilentShortLivedTokenRefresh", {
-        method: "POST",
+        method: "GET",
         headers: {
             "Content-Type": "application/json",
         },
-        credentials: "include",
-        body: JSON.stringify(buildingRequest),
+        credentials: "include"
     });
 
     if (!silentTokenResponse.ok) {

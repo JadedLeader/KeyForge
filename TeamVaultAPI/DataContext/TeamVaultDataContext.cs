@@ -25,6 +25,11 @@ namespace TeamVaultAPI.DataContext
             optionsBuilder.UseSqlServer(connectionString);
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            
+        }
+
         public DbSet<AccountDataModel> Account { get; set; }
 
         public DbSet<TeamDataModel> Team { get; set; }

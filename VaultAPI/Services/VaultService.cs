@@ -68,7 +68,7 @@ namespace VaultAPI.Services
 
             AccountDataModel? doesAccountExist = await _accountRepo.CheckForExistingAccount(parsedAccountId);
 
-            if (doesAccountExist.AccountId == Guid.Empty)
+            if (doesAccountExist.Id == Guid.Empty)
             {
                 Log.Warning($"No account can be identified within the database based off the provided ID");
 
@@ -89,7 +89,7 @@ namespace VaultAPI.Services
             vaultReturn.AccountId = createNewVault.AccountId.ToString();
             vaultReturn.VaultName = createNewVault.VaultName;
             vaultReturn.VaultType = (KeyForgedShared.ReturnTypes.Vaults.VaultType)createNewVault.VaultType;
-            vaultReturn.VaultId = createNewVault.VaultId.ToString();
+            vaultReturn.VaultId = createNewVault.Id.ToString();
             vaultReturn.Sucessful = true;
 
             StreamVaultCreationsResponse newVaultCreationResponse = _typeMappings.MapVaultModelToStreamVault(createNewVault);
@@ -132,7 +132,7 @@ namespace VaultAPI.Services
 
             VaultDataModel checkForExistingVault = await _vaultRepo.GetVaultViaVaultId(Guid.Parse(request.VaultId));
 
-            if (doesAccountExist.AccountId == Guid.Empty || checkForExistingVault.VaultId == Guid.Empty)
+            if (doesAccountExist.Id == Guid.Empty || checkForExistingVault.Id == Guid.Empty)
             {
                 Log.Warning($"account doesn't exist in the database");
 
@@ -145,7 +145,7 @@ namespace VaultAPI.Services
 
             await _vaultRepo.DeleteAsync(checkForExistingVault);
 
-            serverResponse.VaultId = checkForExistingVault.VaultId.ToString();
+            serverResponse.VaultId = checkForExistingVault.Id.ToString();
             serverResponse.AccountId = checkForExistingVault.AccountId.ToString();
             serverResponse.Sucessful = true;
 
@@ -186,7 +186,7 @@ namespace VaultAPI.Services
 
             VaultDataModel existingVault = await _vaultRepo.GetVaultViaVaultId(Guid.Parse(request.VaultId));
 
-            if(existingVault.VaultId == Guid.Empty)
+            if(existingVault.Id == Guid.Empty)
             {
                 Log.Warning($"No vault found, cannot update vault name without a designated vault for account {getAccountIdFromToken}");
 
@@ -199,7 +199,7 @@ namespace VaultAPI.Services
 
             await _vaultRepo.UpdateVaultName(existingVault, request.VaultName);
 
-            serverResponse.VaultId = existingVault.VaultId.ToString();
+            serverResponse.VaultId = existingVault.Id.ToString();
             serverResponse.UpdatedVaultName = request.VaultName;
             serverResponse.Sucessful = true;
 

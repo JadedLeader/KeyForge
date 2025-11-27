@@ -33,7 +33,7 @@ namespace VaultAPI.Repos
 
         public async Task<VaultDataModel> GetVaultViaVaultId(Guid vaultId)
         {
-            VaultDataModel? vault = await _dataContext.Vault.Where(v => v.VaultId == vaultId).FirstOrDefaultAsync();
+            VaultDataModel? vault = await _dataContext.Vault.Where(v => v.Id == vaultId).FirstOrDefaultAsync();
 
             if(vault == null)
             {

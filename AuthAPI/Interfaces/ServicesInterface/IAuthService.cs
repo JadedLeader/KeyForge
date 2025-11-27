@@ -1,22 +1,24 @@
 ﻿using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.DTO_s.AuthDTO_s;
+using KeyForgedShared.ReturnTypes.Auth;
 
 namespace AuthAPI.Interfaces.ServicesInterface
 {
     public interface IAuthService
     {
-        public Task<CreateAuthAccountResponse> CreateAuthAccount(CreateAuthAccountRequest request);
+        public Task<CreateAuthReturn> CreateAuthAccount(CreateAuthDto request);
 
-        public Task<RefreshLongLivedTokenResponse> RefreshLongLivedToken(RefreshLongLivedTokenRequest request);
+        public Task<RefreshLongLivedTokenReturn> RefreshLongLivedToken(RefreshLongLivedTokenDto request);
 
-        public Task<RefreshShortLivedTokenResponse> RefreshShortLivedToken(RefreshShortLivedTokenRequest request);
+        public Task<RefreshShortLivedTokenReturn> RefreshShortLivedToken(RefreshShortLivedTokenDto request);
 
-        public Task<RevokeLongLivedTokenResponse> RevokeLongLivedToken(RevokeLongLivedTokenRequest request);
+        public Task<RevokeLongLivedTokenReturn> RevokeLongLivedToken(RevokeLongLivedTokenDto request);
 
-        public Task<LoginResponse> Login(LoginRequest request);
+        public Task<LoginReturn> Login(LoginDto request);
 
-        public Task<ReinstateAuthKeyResponse> ReinstantiateAuthKey(ReinstateAuthKeyRequest request);
+        public Task<ReinstateAuthKeyReturn> ReinstantiateAuthKey(ReinstateAuthKeyDto request);
 
-        public Task<SilentShortLivedTokenRefreshResponse> SilentTokenCycle(SilentShortLivedTokenRefreshRequest request, string longLivedToken);
+        public Task<SilentShortLivedTokenRefreshReturn> SilentTokenCycle(string longLivedToken);
 
     }
 }

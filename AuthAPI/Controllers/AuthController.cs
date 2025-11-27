@@ -1,5 +1,7 @@
 ﻿using AuthAPI.Interfaces.ServicesInterface;
 using gRPCIntercommunicationService.Protos;
+using KeyForgedShared.DTO_s.AuthDTO_s;
+using KeyForgedShared.ReturnTypes.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -21,9 +23,9 @@ namespace AuthAPI.Controllers
       
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> CreateInitialKey([FromBody] CreateAuthAccountRequest createAuthAccountRequest)
+        public async Task<IActionResult> CreateInitialKey([FromBody] CreateAuthDto createAuthAccountRequest)
         {
-            CreateAuthAccountResponse? creatingInitialAuth = await _authService.CreateAuthAccount(createAuthAccountRequest);
+            CreateAuthReturn? creatingInitialAuth = await _authService.CreateAuthAccount(createAuthAccountRequest);
 
             Response.Cookies.Append("LongLivedToken", creatingInitialAuth.LongLivedToken, 
                 new CookieOptions
@@ -35,7 +37,7 @@ namespace AuthAPI.Controllers
                 }
             );
 
-            if(creatingInitialAuth.Successful == false)
+            if(!creatingInitialAuth.Success)
             {
                 Log.Error($"{this.GetType().Namespace} An error occurred when creating an inital auth key");
                 return BadRequest(creatingInitialAuth);
@@ -46,11 +48,11 @@ namespace AuthAPI.Controllers
 
         [HttpPut]
         [AllowAnonymous]
-        public async Task<IActionResult> UpdateShortLivedKey([FromBody] RefreshShortLivedTokenRequest refreshShortLivedTokenRequest)
+        public async Task<IActionResult> UpdateShortLivedKey([FromBody] RefreshShortLivedTokenDto refreshShortLivedTokenRequest)
         {
-            RefreshShortLivedTokenResponse refreshedShortLivedToken = await _authService.RefreshShortLivedToken(refreshShortLivedTokenRequest);
+            RefreshShortLivedTokenReturn refreshedShortLivedToken = await _authService.RefreshShortLivedToken(refreshShortLivedTokenRequest);
 
-            if(refreshedShortLivedToken.Successful == false)
+            if(!refreshedShortLivedToken.Success)
             {
                 Log.Error($"{this.GetType().Namespace} An error ocurred while refreshing the short lived key");
                 return BadRequest(refreshedShortLivedToken);
@@ -61,11 +63,11 @@ namespace AuthAPI.Controllers
 
         [HttpPut]
         [AllowAnonymous]
-        public async Task<IActionResult> UpdateLongLivedKey([FromBody] RefreshLongLivedTokenRequest refreshLongLivedTokenRequest)
+        public async Task<IActionResult> UpdateLongLivedKey([FromBody] RefreshLongLivedTokenDto refreshLongLivedTokenRequest)
         {
-            RefreshLongLivedTokenResponse refreshedLongLivedToken = await _authService.RefreshLongLivedToken(refreshLongLivedTokenRequest);
+            RefreshLongLivedTokenReturn refreshedLongLivedToken = await _authService.RefreshLongLivedToken(refreshLongLivedTokenRequest);
 
-            if(refreshedLongLivedToken.Successful == false)
+            if(!refreshedLongLivedToken.Success)
             {
 
                 Log.Error($"{this.GetType().Namespace} An error occurred while updating the long lived key");
@@ -77,11 +79,11 @@ namespace AuthAPI.Controllers
 
         [HttpPut]
         
-        public async Task<IActionResult> RevokeLongLivedKey([FromBody] RevokeLongLivedTokenRequest revokeLongLivedTokenRequest)
+        public async Task<IActionResult> RevokeLongLivedKey([FromBody] RevokeLongLivedTokenDto revokeLongLivedTokenRequest)
         {
-            RevokeLongLivedTokenResponse revokedTokens = await _authService.RevokeLongLivedToken(revokeLongLivedTokenRequest);
+            RevokeLongLivedTokenReturn revokedTokens = await _authService.RevokeLongLivedToken(revokeLongLivedTokenRequest);
 
-            if(revokedTokens.Successful == false)
+            if(!revokedTokens.Success)
             {
                 Log.Error($"{this.GetType().Namespace} An error ocurred when revoking account keys, this is due to an auth not existing");
 
@@ -92,11 +94,11 @@ namespace AuthAPI.Controllers
         }
 
         [HttpPost] 
-        public async Task<IActionResult> UserLogin([FromBody] LoginRequest loginRequest)
+        public async Task<IActionResult> UserLogin([FromBody] LoginDto loginRequest)
         {
-            LoginResponse newLogin = await _authService.Login(loginRequest);
+            LoginReturn newLogin = await _authService.Login(loginRequest);
 
-            if(newLogin.Successful == false)
+            if(!newLogin.Success)
             {
                 Log.Error($"{this.GetType().Namespace} An error occurred when logging in to the account");
 
@@ -110,11 +112,11 @@ namespace AuthAPI.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> ReinstateAuthKeys([FromBody] ReinstateAuthKeyRequest reinstateAuthKeyRequest)
+        public async Task<IActionResult> ReinstateAuthKeys([FromBody] ReinstateAuthKeyDto reinstateAuthKeyRequest)
         {
-            ReinstateAuthKeyResponse reinstateAuthKey = await _authService.ReinstantiateAuthKey(reinstateAuthKeyRequest);
+            ReinstateAuthKeyReturn reinstateAuthKey = await _authService.ReinstantiateAuthKey(reinstateAuthKeyRequest);
 
-            if(reinstateAuthKey.Successful == false)
+            if(!reinstateAuthKey.Success)
             {
 
                 Log.Error($"{this.GetType().Namespace} An error occurred when trying to reinstantiate the keys");
@@ -125,14 +127,14 @@ namespace AuthAPI.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> SilentShortLivedTokenRefresh([FromBody] SilentShortLivedTokenRefreshRequest silentTokenCycleRequest)
+        [HttpGet]
+        public async Task<IActionResult> SilentShortLivedTokenRefresh()
         {
             if(Request.Cookies.TryGetValue("LongLivedToken", out string? cookieValue))
             {
-                SilentShortLivedTokenRefreshResponse silentRefresh = await _authService.SilentTokenCycle(silentTokenCycleRequest, cookieValue);
+                SilentShortLivedTokenRefreshReturn silentRefresh = await _authService.SilentTokenCycle(cookieValue);
 
-                if(silentRefresh.Successful == false)
+                if(!silentRefresh.Success)
                 {
                     return BadRequest(silentRefresh);
                 }

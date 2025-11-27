@@ -243,7 +243,7 @@ namespace VaultKeysAPI.Services
 
             VaultDataModel cascadeDelete = await _vaultRepo.CascadeDeleteIntoVaultKeys(Guid.Parse(cascadeVaultDeleteRequest.VaultId));
 
-            cascadeDeleteResponse.VaultId = cascadeDelete.VaultId.ToString();
+            cascadeDeleteResponse.VaultId = cascadeDelete.Id.ToString();
             cascadeDeleteResponse.Success = true; 
 
             return cascadeDeleteResponse;

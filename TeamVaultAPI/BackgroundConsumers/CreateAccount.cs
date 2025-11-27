@@ -21,7 +21,7 @@ namespace TeamVaultAPI.BackgroundConsumers
         {
             AccountDataModel newAccountDataModel = new AccountDataModel
             {
-                AccountId = Guid.Parse(responseType.AccountId),
+                Id = Guid.Parse(responseType.AccountId),
                 Username = responseType.Username,
                 Password = responseType.Password,
                 Email = responseType.Email,
@@ -42,7 +42,7 @@ namespace TeamVaultAPI.BackgroundConsumers
 
         protected override async Task HandleMessage(IServiceProvider service, AccountDataModel model)
         {
-            Log.Information($"Received {model.AccountId} to be created");
+            Log.Information($"Received {model.Id} to be created");
 
             var serviceScope = service.GetRequiredService<IAccountRepo>();
 

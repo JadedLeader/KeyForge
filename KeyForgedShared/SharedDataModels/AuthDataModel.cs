@@ -8,9 +8,8 @@ namespace KeyForgedShared.SharedDataModels
     {
 
         [Key]
-        public Guid AuthKey { get; set; }
-
-        public Guid Id => AuthKey;
+        [Column("AuthKey")]
+        public Guid Id { get; set; }
 
         [ForeignKey("AccountId")]
         public Guid AccountId { get; set; }

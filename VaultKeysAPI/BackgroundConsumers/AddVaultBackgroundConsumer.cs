@@ -24,7 +24,7 @@ namespace VaultKeysAPI.BackgroundConsumers
         {
             var scope = service.GetRequiredService<IVaultRepo>();
 
-            Log.Information($"{nameof(AddVaultBackgroundConsumer)}: received create vault request: {model.VaultId}");
+            Log.Information($"{nameof(AddVaultBackgroundConsumer)}: received create vault request: {model.Id}");
 
             await scope.AddAsync(model);
         }
@@ -47,7 +47,7 @@ namespace VaultKeysAPI.BackgroundConsumers
             {
                 AccountId = Guid.Parse(vaultCreationsResponse.AccountId),
                 VaultCreatedAt = DateTime.Parse(vaultCreationsResponse.VaultCreatedAt),
-                VaultId = Guid.Parse(vaultCreationsResponse.VaultId),
+                Id = Guid.Parse(vaultCreationsResponse.VaultId),
                 VaultName = vaultCreationsResponse.VaultName,
                 VaultType = (KeyForgedShared.SharedDataModels.VaultType)vaultCreationsResponse.VaultType,
             };

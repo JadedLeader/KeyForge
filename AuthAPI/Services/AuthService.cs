@@ -11,6 +11,8 @@ using System.IdentityModel.Tokens.Jwt;
 using KeyForgedShared.Helpers;
 using KeyForgedShared.Interfaces;
 using System.Collections.Immutable;
+using KeyForgedShared.DTO_s.AuthDTO_s;
+using KeyForgedShared.ReturnTypes.Auth;
 
 namespace AuthAPI.Services 
 {
@@ -38,34 +40,34 @@ namespace AuthAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<CreateAuthAccountResponse> CreateAuthAccount(CreateAuthAccountRequest request)
+        public async Task<CreateAuthReturn> CreateAuthAccount(CreateAuthDto request)
         {
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
             AccountDataModel? existingAccount = await CheckForExistingAccount(Guid.Parse(request.AccountId));
 
-            CreateAuthAccountResponse serverResponse = new CreateAuthAccountResponse();
+            CreateAuthReturn serverResponse = new CreateAuthReturn();
 
-            string shortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAccount.AccountId.ToString(), existingAccount.AuthorisationLevel.ToString());
-            string longLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAccount.AccountId.ToString(), existingAccount.AuthorisationLevel.ToString());
+            string shortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAccount.Id.ToString(), existingAccount.AuthorisationLevel.ToString());
+            string longLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAccount.Id.ToString(), existingAccount.AuthorisationLevel.ToString());
 
             AuthDataModel creatingAuthModel = CreateAuthToAuthModel(request, existingAccount, shortLivedToken, longLivedToken);
 
-            if (existingAccount.AccountId == Guid.Empty)
+            if (existingAccount.Id == Guid.Empty)
             {
                 Log.Warning($"No account can be found, generating authentication token failed");
 
                 serverResponse.AccountId = "";
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
                 serverResponse.ShortLivedToken = "";
                 serverResponse.LongLivedToken = "";
 
                 return serverResponse;
             }
-            else if(existingAccount.AccountId != Guid.Empty && existingAuth.AccountId == Guid.Empty)
+            else if(existingAccount.Id != Guid.Empty && existingAuth.AccountId == Guid.Empty)
             {
-                Log.Information($"{existingAccount.AccountId} generated short lived token: {shortLivedToken}");
-                Log.Information($"{existingAccount.AccountId} generated long lived token: {longLivedToken}");
+                Log.Information($"{existingAccount.Id} generated short lived token: {shortLivedToken}");
+                Log.Information($"{existingAccount.Id} generated long lived token: {longLivedToken}");
 
                 await _authRepo.AddAuthToTable(creatingAuthModel);
 
@@ -76,18 +78,17 @@ namespace AuthAPI.Services
                 serverResponse.AccountId = creatingAuthModel.AccountId.ToString();
                 serverResponse.ShortLivedToken = shortLivedToken;
                 serverResponse.LongLivedToken = longLivedToken;
-                serverResponse.Successful = true;
+                serverResponse.Success = true;
 
             }
-            else if(existingAccount.AccountId != Guid.Empty && existingAuth.AccountId != Guid.Empty)
+            else if(existingAccount.Id != Guid.Empty && existingAuth.AccountId != Guid.Empty)
             {
                 Log.Information($"Account exists and already has allocated auth tokens");
 
-                serverResponse.AccountId = existingAccount.AccountId.ToString(); 
-                serverResponse.Successful = true;
+                serverResponse.AccountId = existingAccount.Id.ToString(); 
+                serverResponse.Success = true;
                 serverResponse.ShortLivedToken = existingAuth.ShortLivedKey;
                 serverResponse.LongLivedToken = existingAuth.LongLivedKey;
-                serverResponse.Details = "Keys already allocated";
             }
 
             return serverResponse;
@@ -99,21 +100,21 @@ namespace AuthAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<RefreshLongLivedTokenResponse> RefreshLongLivedToken(RefreshLongLivedTokenRequest request)
+        public async Task<RefreshLongLivedTokenReturn> RefreshLongLivedToken(RefreshLongLivedTokenDto request)
         {
             
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
             string? retrieveRoleFromCurrentToken = _jwtHelper.ReturnRoleFromToken(existingAuth.LongLivedKey);
 
-            RefreshLongLivedTokenResponse serverResponse = new RefreshLongLivedTokenResponse();
+            RefreshLongLivedTokenReturn serverResponse = new RefreshLongLivedTokenReturn();
 
-            if(existingAuth.AuthKey == Guid.Empty || existingAuth.AccountId == Guid.Empty)
+            if(existingAuth.Id == Guid.Empty || existingAuth.AccountId == Guid.Empty)
             {
                 Log.Error("No valid auth has been previously setup, please ensure basic auth configuration has been carried out first");
 
                 serverResponse.AccountId = request.AccountId;
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
                 serverResponse.RefreshedToken = "";
 
                 return serverResponse;
@@ -121,14 +122,14 @@ namespace AuthAPI.Services
 
             string refreshedLongLivedToken = _tokenGeneratorService.GenerateLongLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), existingAuth.ShortLivedKey, refreshedLongLivedToken, UpdateType.LongLivedUpdate, existingAuth.AuthKey.ToString());
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), existingAuth.ShortLivedKey, refreshedLongLivedToken, UpdateType.LongLivedUpdate, existingAuth.Id.ToString());
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
             AuthDataModel updatedAuthModel = await _authRepo.UpdateLongLivedToken(existingAuth, refreshedLongLivedToken);
 
             serverResponse.AccountId = updatedAuthModel.AccountId.ToString();
-            serverResponse.Successful = true;
+            serverResponse.Success = true;
             serverResponse.RefreshedToken = refreshedLongLivedToken;
 
             return serverResponse;
@@ -140,13 +141,13 @@ namespace AuthAPI.Services
         /// <param name="request"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<RefreshShortLivedTokenResponse> RefreshShortLivedToken(RefreshShortLivedTokenRequest request)
+        public async Task<RefreshShortLivedTokenReturn> RefreshShortLivedToken(RefreshShortLivedTokenDto request)
         {
             AuthDataModel existingAuth = await CheckForExistingAuth(Guid.Parse(request.AccountId));
 
             string? retrieveRoleFromCurrentToken = _jwtHelper.ReturnRoleFromToken(existingAuth.LongLivedKey);
 
-            RefreshShortLivedTokenResponse serverResponse = new RefreshShortLivedTokenResponse();
+            RefreshShortLivedTokenReturn serverResponse = new RefreshShortLivedTokenReturn();
 
             string? currentLongLivedKey = existingAuth.LongLivedKey;
 
@@ -155,7 +156,7 @@ namespace AuthAPI.Services
                 Log.Error($"No valid auth has been previously setup or the long lived key is currently invalid");
 
                 serverResponse.AccountId = request.AccountId;
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
                 serverResponse.RefreshedToken = "";
 
                 return serverResponse;
@@ -165,14 +166,14 @@ namespace AuthAPI.Services
 
             string refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(existingAuth.AccountId.ToString(), retrieveRoleFromCurrentToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, currentLongLivedKey, UpdateType.ShortLivedUpdate, existingAuth.AuthKey.ToString());
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(existingAuth.AccountId.ToString(), refreshedShortLivedToken, currentLongLivedKey, UpdateType.ShortLivedUpdate, existingAuth.Id.ToString());
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
             AuthDataModel authRecord = await _authRepo.UpdateShortLivedToken(existingAuth, refreshedShortLivedToken); 
 
             serverResponse.AccountId = existingAuth.AccountId.ToString();
-            serverResponse.Successful = true;
+            serverResponse.Success = true;
             serverResponse.RefreshedToken = refreshedShortLivedToken;
 
             return serverResponse;
@@ -184,18 +185,18 @@ namespace AuthAPI.Services
         /// <param name="request"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<RevokeLongLivedTokenResponse> RevokeLongLivedToken(RevokeLongLivedTokenRequest request)
+        public async Task<RevokeLongLivedTokenReturn> RevokeLongLivedToken(RevokeLongLivedTokenDto request)
         {
             AuthDataModel existingAuth = await _authRepo.CheckForExistingAuth(Guid.Parse(request.AccountId));
 
-            RevokeLongLivedTokenResponse serverResponse = new RevokeLongLivedTokenResponse();
+            RevokeLongLivedTokenReturn serverResponse = new RevokeLongLivedTokenReturn();
 
             if (existingAuth.AccountId == Guid.Empty || string.IsNullOrEmpty(existingAuth.LongLivedKey))
             {
                 Log.Error($"No valid auth has previously been setup or registered"); 
 
                 serverResponse.AccountId = request.AccountId;
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
 
                 return serverResponse;
             }
@@ -205,7 +206,7 @@ namespace AuthAPI.Services
             Log.Information($"{this.GetType().Namespace} Keys have been revoked for account with ID {existingAuth.AccountId}");
 
             serverResponse.AccountId = existingAuth.AccountId.ToString();
-            serverResponse.Successful = true;
+            serverResponse.Success = true;
 
             return serverResponse;
         }
@@ -215,20 +216,20 @@ namespace AuthAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<LoginResponse> Login(LoginRequest request)
+        public async Task<LoginReturn> Login(LoginDto request)
         {
             
             AccountDataModel retrievingAccount = await _authRepo.CheckForExistingAccountViaUsername(request.Username);
 
-            LoginResponse serverResponse = new LoginResponse(); 
+            LoginReturn serverResponse = new LoginReturn(); 
 
-            if(retrievingAccount.AccountId == Guid.Empty)
+            if(retrievingAccount.Id == Guid.Empty)
             {
                 Log.Warning($"No account exists with username {request.Username}");
 
                 serverResponse.Username = request.Username;
                 serverResponse.AccountId = "";
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
 
                 return serverResponse;
             }
@@ -240,14 +241,14 @@ namespace AuthAPI.Services
             {
                 serverResponse.Username = request.Username;
                 serverResponse.AccountId = ""; 
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
 
                 return serverResponse;
             }
 
             serverResponse.Username = retrievingAccount.Username;
-            serverResponse.AccountId = retrievingAccount.AccountId.ToString();
-            serverResponse.Successful = true;
+            serverResponse.AccountId = retrievingAccount.Id.ToString();
+            serverResponse.Success = true;
 
             return serverResponse;
 
@@ -255,14 +256,14 @@ namespace AuthAPI.Services
 
         }
 
-        public async Task<ReinstateAuthKeyResponse> ReinstantiateAuthKey(ReinstateAuthKeyRequest request)
+        public async Task<ReinstateAuthKeyReturn> ReinstantiateAuthKey(ReinstateAuthKeyDto request)
         {
 
             AuthDataModel checkingForExistingKeys = await _authRepo.CheckForExistingAuth(Guid.Parse(request.AccountId));
 
             AccountDataModel? getRole = await _authRepo.RetrieveRoleFromAccount(checkingForExistingKeys.AccountId);
 
-            ReinstateAuthKeyResponse serverResponse = new ReinstateAuthKeyResponse();
+            ReinstateAuthKeyReturn serverResponse = new ReinstateAuthKeyReturn();
 
             if (checkingForExistingKeys.AccountId == Guid.Empty)
             {
@@ -271,7 +272,7 @@ namespace AuthAPI.Services
                 serverResponse.AccountId = request.AccountId;
                 serverResponse.ShortLivedKey = "";
                 serverResponse.LongLivedKey = "";
-                serverResponse.Successful = false;
+                serverResponse.Success = false;
 
                 return serverResponse;
 
@@ -286,15 +287,15 @@ namespace AuthAPI.Services
             serverResponse.AccountId = checkingForExistingKeys.AccountId.ToString();
             serverResponse.ShortLivedKey = generateShortLivedKey;
             serverResponse.LongLivedKey= generateLongLivedKey;
-            serverResponse.Successful = true;
+            serverResponse.Success = true;
          
             return serverResponse;
         }
 
-        public async Task<SilentShortLivedTokenRefreshResponse> SilentTokenCycle(SilentShortLivedTokenRefreshRequest request, string longLivedToken)
+        public async Task<SilentShortLivedTokenRefreshReturn> SilentTokenCycle(string longLivedToken)
         {
 
-            SilentShortLivedTokenRefreshResponse serverResponse = new SilentShortLivedTokenRefreshResponse();
+            SilentShortLivedTokenRefreshReturn serverResponse = new SilentShortLivedTokenRefreshReturn();
 
             string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(longLivedToken);
             string? accountRoleFromToken = _jwtHelper.ReturnRoleFromToken(longLivedToken);
@@ -302,7 +303,7 @@ namespace AuthAPI.Services
             if(accountIdFromToken == string.Empty || accountRoleFromToken == string.Empty)
             {
                 serverResponse.RefreshedShortLivedToken = "";
-                serverResponse.Successful = false; 
+                serverResponse.Success = false; 
 
                 return serverResponse;
             }
@@ -311,17 +312,17 @@ namespace AuthAPI.Services
 
             string? refreshedShortLivedToken = _tokenGeneratorService.GenerateShortLivedToken(accountIdFromToken, accountRoleFromToken);
 
-            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, longLivedToken, UpdateType.ShortLivedUpdate, authAccount.AuthKey.ToString());
+            StreamAuthUpdatesResponse mapToStreamUpdates = MapToStreamAuthUpdates(accountIdFromToken, refreshedShortLivedToken, longLivedToken, UpdateType.ShortLivedUpdate, authAccount.Id.ToString());
 
             _transportationStorage.AddToStreamAuthUpdatesList(mapToStreamUpdates);
 
 
-            if (authAccount.AuthKey == Guid.Empty || string.IsNullOrEmpty(authAccount.LongLivedKey))
+            if (authAccount.Id == Guid.Empty || string.IsNullOrEmpty(authAccount.LongLivedKey))
             {
                 Log.Information($"No account can be found with the provided account ID");
 
                 serverResponse.RefreshedShortLivedToken = "";
-                serverResponse.Successful = false; 
+                serverResponse.Success = false; 
 
                 return serverResponse;
             }
@@ -329,7 +330,7 @@ namespace AuthAPI.Services
             await _authRepo.UpdateShortLivedToken(authAccount, refreshedShortLivedToken);
 
             serverResponse.RefreshedShortLivedToken = refreshedShortLivedToken;
-            serverResponse.Successful = true;
+            serverResponse.Success = true;
 
             return serverResponse;
 
@@ -396,7 +397,7 @@ namespace AuthAPI.Services
         {
             AccountDataModel account = await _authRepo.CheckForExistingAccount(accountId);
 
-            if(account.AccountId == Guid.Empty)
+            if(account.Id == Guid.Empty)
             {
                 return new AccountDataModel();
             }
@@ -409,7 +410,7 @@ namespace AuthAPI.Services
         {
             AuthDataModel auth = await _authRepo.CheckForExistingAuth(accountId);
 
-            if(auth.AccountId == Guid.Empty || auth.AuthKey == Guid.Empty)
+            if(auth.AccountId == Guid.Empty || auth.Id == Guid.Empty)
             {
                 return new AuthDataModel();
             }
@@ -417,13 +418,13 @@ namespace AuthAPI.Services
             return auth;
         }
 
-        private AuthDataModel CreateAuthToAuthModel(CreateAuthAccountRequest createAuthRequest, AccountDataModel account, string shortLivedKey, string longLivedKey)
+        private AuthDataModel CreateAuthToAuthModel(CreateAuthDto createAuthRequest, AccountDataModel account, string shortLivedKey, string longLivedKey)
         {
             AuthDataModel authModel = new AuthDataModel
             {
                 AccountId = Guid.Parse(createAuthRequest.AccountId),
                 Account = account,
-                AuthKey = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 ShortLivedKey = shortLivedKey,
                 LongLivedKey = longLivedKey
             }; 
@@ -460,7 +461,7 @@ namespace AuthAPI.Services
           
             StreamAuthCreationsResponse newVaultResponse = new StreamAuthCreationsResponse
             {
-                AuthKey = authModel.AuthKey.ToString(),
+                AuthKey = authModel.Id.ToString(),
                 AccountId = authModel.AccountId.ToString(),
                 ShortLivedKey = authModel.ShortLivedKey,
                 LongLivedKey = authModel.LongLivedKey, 

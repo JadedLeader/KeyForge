@@ -2,6 +2,7 @@
 using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KeyForgedShared.SharedDataModels
 {
@@ -9,9 +10,8 @@ namespace KeyForgedShared.SharedDataModels
     {
 
         [Key]
-        public Guid AccountId { get; set; }
-
-        public Guid Id => AccountId;
+        [Column("AccountId")]
+        public Guid Id { get; set; }
 
         [Required]
         public string Username { get; set; }

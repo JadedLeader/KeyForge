@@ -36,7 +36,7 @@ namespace AuthAPI.BackgroundConsumer
 
         protected override async Task HandleMessage(IServiceProvider service, AccountDataModel model)
         {
-            Log.Information($"{typeof(DeleteAccountBackgroundConsumer)} recieved deleted request {model.AccountId}");
+            Log.Information($"{typeof(DeleteAccountBackgroundConsumer)} recieved deleted request {model.Id}");
 
             var scope = service.GetRequiredService<IAuthRepo>();
 
@@ -47,7 +47,7 @@ namespace AuthAPI.BackgroundConsumer
         {
             AccountDataModel newAccount = new AccountDataModel
             {
-                AccountId = Guid.Parse(delete.AccountId),
+                Id = Guid.Parse(delete.AccountId),
             };
 
             return newAccount;

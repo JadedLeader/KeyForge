@@ -103,7 +103,7 @@ namespace AccountAPI.Services
 
             DeleteAccountResponse serverResponse = new DeleteAccountResponse();
 
-            if (checkForExistingAccount.AccountId == Guid.Empty)
+            if (checkForExistingAccount.Id == Guid.Empty)
             {
                 Log.Error($"No Account with ID {request.AccountId} could be found"); 
 
@@ -114,11 +114,11 @@ namespace AccountAPI.Services
                 return serverResponse;
             }
 
-            _streamStorage.AddToAccountDeletionStream(checkForExistingAccount.AccountId);
+            _streamStorage.AddToAccountDeletionStream(checkForExistingAccount.Id);
 
             await _accountRepo.DeleteAccount(checkForExistingAccount);
 
-            serverResponse.AccountId = checkForExistingAccount.AccountId.ToString();
+            serverResponse.AccountId = checkForExistingAccount.Id.ToString();
             serverResponse.Username = checkForExistingAccount.Username;
             serverResponse.Successful = true;
 
@@ -260,7 +260,7 @@ namespace AccountAPI.Services
         {
             AccountDataModel newModel = new AccountDataModel
             {
-                AccountId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 Username = createAccountRequest.Username,
                 Password = createAccountRequest.Password,
                 AccountCreated = DateTime.Now,
@@ -281,7 +281,7 @@ namespace AccountAPI.Services
         {
             StreamAccountResponse response = new StreamAccountResponse
             {
-                AccountId = model.AccountId.ToString(),
+                AccountId = model.Id.ToString(),
                 Username = model.Username,
                 Password = model.Password,
                 Email = model.Email,
