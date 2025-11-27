@@ -50,6 +50,20 @@ Each API has its own database connection string. These **must be added locally**
 }
 ```
 
+### **Team API**
+```json
+"ConnectionStrings": {
+  "TeamApiConnection": ""
+}
+```
+
+### **Team Vault API**
+```json
+"ConnectionStrings": {
+  "TeamVaultAPIConnection": ""
+}
+```
+
 # Applying Entity Framework Core Migrations (Per API via .NET CLI)
 
 Each API in the solution maintains its own database.  
@@ -81,6 +95,15 @@ dotnet ef database update --project VaultAPI
 ```bash
 dotnet ef database update --project VaultKeysAPI
 ```
+### **Team API**
+```bash
+dotnet ef database update --project TeamAPI
+```
+### **Team Vault API**
+```bash
+dotnet ef database update --project TeamVaultAPI
+```
+
 # Current Working Build Projects
 
 ## **Steps to setup current build**
