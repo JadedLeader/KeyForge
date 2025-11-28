@@ -8,5 +8,9 @@ namespace TeamVaultAPI.Interfaces.Services
 
         public Task<CreateTeamVaultReturn> CreateTeamVault(CreateTeamVaultDto createTeamVault, string shortLivedToken);
 
+        public Task<GetTeamWithNoVaultsReturn> GetTeamsWithNoVaults(string shortLivedToken);
+
+        public Task<DeleteTeamVaultReturn> DeleteTeamVault(DeleteTeamVaultDto deleteTeamVault, string shortLivedToken);
+
     }
 }

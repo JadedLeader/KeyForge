@@ -32,5 +32,7 @@ namespace KeyForgedShared.SharedDataModels
 
         public AccountDataModel Account { get; set; }
 
+        public TeamVaultDataModel TeamVault { get; set; }
+
     }
 }

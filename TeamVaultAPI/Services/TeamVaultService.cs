@@ -1,5 +1,6 @@
 ﻿using KeyForgedShared.DTO_s.TeamVaultDTO_s;
 using KeyForgedShared.Interfaces;
+using KeyForgedShared.Projections.TeamVaultProjections;
 using KeyForgedShared.ReturnTypes.TeamVault;
 using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -67,9 +68,69 @@ namespace TeamVaultAPI.Services
 
         }
 
-        public async Task DeleteTeamVault(string shortLivedToken)
+        public async Task<GetTeamWithNoVaultsReturn> GetTeamsWithNoVaults(string shortLivedToken)
         {
-            throw new NotImplementedException();
+            GetTeamWithNoVaultsReturn teamsWithNoVaultsResponse = new GetTeamWithNoVaultsReturn();
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            if(accountId == Guid.Empty)
+            {
+                teamsWithNoVaultsResponse.Success = false;
+
+                return teamsWithNoVaultsResponse;
+            }
+
+            List<GetTeamWithNoVault> teamsWithNoVaults = await _teamVaultRepo.GetTeamsWithNoVaults(accountId); 
+
+            teamsWithNoVaultsResponse.TeamsWithNoVaults = teamsWithNoVaults;
+            teamsWithNoVaultsResponse.Success = true;
+
+            return teamsWithNoVaultsResponse;
+        }
+
+        public async Task<DeleteTeamVaultReturn> DeleteTeamVault(DeleteTeamVaultDto deleteTeamVault, string shortLivedToken)
+        {
+            DeleteTeamVaultReturn deleteTeamVaultResponse = new DeleteTeamVaultReturn();
+
+            if (string.IsNullOrWhiteSpace(deleteTeamVault.TeamVaultId))
+            {
+                deleteTeamVaultResponse.Success = false;
+
+                return deleteTeamVaultResponse;
+            }
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            if (accountId == Guid.Empty)
+            {
+                deleteTeamVaultResponse.Success = false;
+
+                return deleteTeamVaultResponse;
+            }
+
+            bool hasTeamVault = await _teamVaultRepo.HasModel<TeamVaultDataModel>(Guid.Parse(deleteTeamVault.TeamVaultId));
+
+            if (!hasTeamVault)
+            {
+                deleteTeamVaultResponse.Success = false;
+
+                return deleteTeamVaultResponse;
+            }
+
+            TeamVaultDataModel deletedTeamVault = await _teamVaultRepo.DeleteRecordViaId<TeamVaultDataModel>(Guid.Parse(deleteTeamVault.TeamVaultId));
+
+            if (deletedTeamVault == null)
+            {
+                deleteTeamVaultResponse.Success = false;
+
+                return deleteTeamVaultResponse;
+            }
+
+            deleteTeamVaultResponse.TeamVaultId = deleteTeamVault.TeamVaultId;
+            deleteTeamVaultResponse.Success = true; 
+
+            return deleteTeamVaultResponse;
         }
         
         public async Task UpdateTeamVault(string shortLivedToken)

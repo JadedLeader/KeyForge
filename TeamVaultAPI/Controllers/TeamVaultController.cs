@@ -37,5 +37,41 @@ namespace TeamVaultAPI.Controllers
             return Unauthorized();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetTeamsWithNoVaults()
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                GetTeamWithNoVaultsReturn? getTeam = await _teamVaultService.GetTeamsWithNoVaults(cookie);
+
+                if (!getTeam.Success)
+                {
+                    return BadRequest(getTeam);
+                }
+
+                return Ok(getTeam);
+            }
+
+            return Unauthorized();
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteTeamVault([FromBody] DeleteTeamVaultDto deleteTeamVault)
+        {
+            if(Request.Cookies.TryGetValue($"ShortLivedToken", out string? cookie))
+            {
+                DeleteTeamVaultReturn deletedTeamVault = await _teamVaultService.DeleteTeamVault(deleteTeamVault, cookie);
+
+                if (!deletedTeamVault.Success)
+                {
+                    return BadRequest(deletedTeamVault);
+                }
+                
+                return Ok(deletedTeamVault);
+            }
+
+            return Unauthorized();
+        }
+
     }
 }

@@ -75,6 +75,22 @@ namespace KeyForgedShared.Generics
             return true;
         }
 
+        public virtual async Task<T> DeleteRecordViaId<T>(Guid id) where T: IEntity
+        {
+            T? model = await _dbContext.Set<T>().Where(x  => x.Id == id).FirstOrDefaultAsync();  
+
+            if(model == null)
+            {
+                return null;
+            }
+
+            _dbContext.Set<T>().Remove(model);
+
+            await _dbContext.SaveChangesAsync();
+
+            return model;
+        }
+
 
 
      

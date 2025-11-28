@@ -46,12 +46,20 @@ interface UpdateTeamResponse {
 
 type Teams = { 
 
+    id: string;
     teamName: string; 
     teamAcceptingInvitations: string; 
     createdBy: string; 
     createdAt: string; 
     memberCap: Number;
 }
+
+interface GetTeamsResponse { 
+    teams: Teams[]; 
+    success: boolean;
+}
+
+
 
 function BuildCreateTeamRequest(teamName: string, teamAcceptingInvites: string, memberCap : number) : CreateTeamRequest { 
 
@@ -130,9 +138,9 @@ export async function GetTeams() : Promise<Teams[]> {
 
     }
 
-    const data: Teams[] = await getTeams.json();
+    const data: GetTeamsResponse = await getTeams.json();
 
-    return data;
+    return data.teams || [];
 
 }
 

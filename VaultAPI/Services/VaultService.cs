@@ -41,9 +41,8 @@ namespace VaultAPI.Services
             CreateVaultReturn vaultReturn = new CreateVaultReturn();
 
             bool vaultNameEmpty = string.IsNullOrWhiteSpace(request.VaultName);
-            bool vaultTypeEmpty = string.IsNullOrWhiteSpace(request.VaultType);
 
-            if(vaultNameEmpty || vaultTypeEmpty)
+            if(vaultNameEmpty)
             {
                 vaultReturn.Sucessful = false; 
                 return vaultReturn;
@@ -80,9 +79,7 @@ namespace VaultAPI.Services
                 return vaultReturn;
             }
 
-            var vaultType = (KeyForgedShared.SharedDataModels.VaultType) Enum.Parse(typeof(KeyForgedShared.SharedDataModels.VaultType), request.VaultType);
-
-            VaultDataModel createNewVault = _typeMappings.CreateVaultDataModel(Guid.Parse(accountIdFromToken), request.VaultName, vaultType, doesAccountExist);
+            VaultDataModel createNewVault = _typeMappings.CreateVaultDataModel(Guid.Parse(accountIdFromToken), request.VaultName, doesAccountExist);
 
             await _vaultRepo.AddAsync(createNewVault);
 

@@ -11,7 +11,6 @@ interface DeleteVaultResponse {
 interface CreateVaultRequest {
 
     vaultName: string;
-    vaultType: string;
 }
 
 interface CreateVaultResponse {
@@ -90,12 +89,11 @@ export async function DeleteVault(vaultId: string): Promise<DeleteVaultResponse>
 
 }
 
-function BuildCreateVaultRequest(vaultNameGiven: string, vaultTypeGiven: string): CreateVaultRequest {
+function BuildCreateVaultRequest(vaultNameGiven: string): CreateVaultRequest {
 
     const createNewVaultRequest: CreateVaultRequest = {
 
         vaultName: vaultNameGiven,
-        vaultType: vaultTypeGiven
     };
 
     return createNewVaultRequest;
@@ -115,9 +113,9 @@ function BuildCreateVaultResponse(vaultId: string, vaultName: string, sucessful:
 
 }
 
-export async function CreateNewVault(vaultName: string, vaultType: string): Promise<CreateVaultResponse> {
+export async function CreateNewVault(vaultName: string): Promise<CreateVaultResponse> {
 
-    const buildingCreateVaultRequest = BuildCreateVaultRequest(vaultName, vaultType);
+    const buildingCreateVaultRequest = BuildCreateVaultRequest(vaultName);
 
     const createNewVaultResponse = await fetch("/Vault/CreateVault", {
         method: "POST",
@@ -139,7 +137,7 @@ export async function CreateNewVault(vaultName: string, vaultType: string): Prom
 
     const returnJson = await createNewVaultResponse.json();
 
-    console.log("Submitting vault:", vaultName, vaultType, returnJson.vaultId);
+    console.log("Submitting vault:", vaultName,  returnJson.vaultId);
 
     const built = BuildCreateVaultResponse(returnJson.vaultId, returnJson.vaultName, returnJson.sucessful);
 

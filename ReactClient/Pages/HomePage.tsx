@@ -54,7 +54,19 @@ import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
+
 } from "@/components/ui/resizable"
+import {
+    Item,
+    ItemActions,
+    ItemContent,
+    ItemDescription,
+    ItemFooter,
+    ItemHeader,
+    ItemMedia,
+    ItemTitle,
+    ItemGroup
+} from "@/components/ui/item"
 import { Separator } from "../src/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
@@ -63,7 +75,10 @@ import { GetUserAccountDetails } from "@/components/api/Account"
 import { SilentTokenRefresh } from "@/components/api/Auth"
 import { DeleteVault, CreateNewVault } from "@/components/api/Vault"
 import { DeleteAllKeysFromVault, DecryptVaultKey, CreateNewVaultKey, GetVaultsAndKeys, GetVaultWithAllDetails } from "@/components/api/VaultKeys"
-import {CreateTeamModal } from "@/components/Team/CreateTeamModal"
+import { CreateTeamModal } from "@/components/Team/CreateTeamModal"
+import { GetTeamsWithNoVaults } from "@/components/api/TeamVault"
+import {GetTeams } from "@/components/api/Team"
+import TeamVaultDashboard from "../src/components/Team/TeamVaultDashboard"
 
 
 interface CreateVaultWithKeysResponse { 
@@ -95,6 +110,11 @@ type VaultKey = {
     keyName: string; 
     hashedVaultKey: string; 
     dateTimeVaultKeyCreated: string;
+}
+
+type Team = {
+    id: string;
+    teamName: string;
 }
 
 interface SetPropsForDeletionVerificaitonModal { 
@@ -386,9 +406,12 @@ interface BuildCreateVaultModalProps {
     setDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
     reloadVaults: () => void;
+
+    teams: Team[];
+
 }
 
-export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults } : BuildCreateVaultModalProps)  { 
+export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults, teams} : BuildCreateVaultModalProps)  { 
 
 
     const [vaultName, setVaultName] = useState("");
@@ -396,7 +419,6 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults } 
     const [keyName, setKeyName] = useState("");
     const [keyPassword, setKeyPassword] = useState("");
     const [dropDownOpen, setDropdownOpen] = useState(false);
-    
     function HandleKeyNameChanged(e: React.ChangeEvent<HTMLInputElement>) { 
         setKeyName(e.target.value);
     }
@@ -436,9 +458,9 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults } 
 
     
 
-    async function CreateVaultWithKey(vaultName: string, vaultType: string, keyName: string, keyPassword: string): Promise<CreateVaultWithKeysResponse> { 
+    async function CreateVaultWithKey(vaultName: string, keyName: string, keyPassword: string): Promise<CreateVaultWithKeysResponse> { 
 
-        const buildVault = await CreateNewVault(vaultName, vaultType);
+        const buildVault = await CreateNewVault(vaultName);
 
         const buildKeys = await CreateNewVaultKey(keyName, keyPassword, buildVault.vaultId);
 
@@ -463,21 +485,7 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults } 
                     <Label>Vault Name</Label>
                 <Input value={vaultName} onChange={HandleVaultNameChanged} maxLength={20} />
 
-                    <Label>Vault Type</Label>
-
-                    <div className={dropDownOpen ? "mb-20" : "mb-4"} >
-                        <Select value={vaultType} onValueChange={HandleVaultTypeChanged} onOpenChange={() => HandleDropdownOpen(true)} >
-                            <SelectTrigger className="border-0 hover:underline" >
-                                <SelectValue placeholder="Select vault type" className="Textplaceholder::placeholder text-white bg-transparent" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-transparent border-0 hover:underline">
-                                <SelectItem className="text-white bg-transparent hover::underline" value="Personal">Personal</SelectItem>
-                                <SelectItem className="text-white bg-transparent hover::underline" value="Team">Team</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <Label>Key Name</Label>
+                <Label>Key Name</Label>
                 <Input value={keyName} onChange={HandleKeyNameChanged} maxLength={20} />
 
                     <Label>Password</Label>
@@ -495,29 +503,31 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults } 
                         variant="outline"
                         onClick={async () => {
 
-                            const result = await CreateVaultWithKey(vaultName, vaultType, keyName, keyPassword);
-                            if (result.success) {
+                           
+                                const result = await CreateVaultWithKey(vaultName, keyName, keyPassword);
 
-                                console.log("Vault created");
+                                if (result.success) {
 
-                                toast.success("Vault has been created!");
+                                    console.log("Vault created");
 
-                                HandleDropdownOpen(false);
+                                    toast.success("Vault has been created!");
 
-                                setDialogOpen(false);
+                                    HandleDropdownOpen(false);
 
-                                reloadVaults();
+                                    setDialogOpen(false);
 
-                                setVaultName("");
-                                setVaultType("");
-                                setKeyName("");
-                                setKeyPassword("");
+                                    reloadVaults();
+
+                                    setVaultName("");
+                                    setVaultType("");
+                                    setKeyName("");
+                                    setKeyPassword("");
 
 
-                            } else {
-                                console.log("Vault did not create");
-                                toast.error("Oops, creating a vault didn’t work.");
-                            }
+                                }
+                           
+                            
+                            
                         }}
                     >
                         Create Vault
@@ -580,7 +590,11 @@ export function HomePage() {
     const [isCreateVaultDialogOpen, setIsCreateVaultDialogOpen] = useState(false);
     const [vaultDropdownOpen, setVaultDropDownOpen] = useState(false);
     const [createTeamOpen, setIsCreateTeamOpen] = useState(false);
-    const [teamVaults, setTeamVaults] = useState("");
+    const [teamsWithNoVaults, setTeamsWithNoVaults] = useState<Team[]>([]);
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [teamDropDownOpen, setTeamDropDownOpen] = useState(false);
+    const [vaultOverviewOpen, setVaultOverviewOpen] = useState(true);
+    const [teamViewOpen, setTeamViewOpen] = useState(false);
 
    
     useEffect(() => {
@@ -595,8 +609,9 @@ export function HomePage() {
 
             setVaults(vaults);
 
-            
+            const teamResponse = await GetTeams();
 
+            setTeams(teamResponse);
         }; 
 
         fetchToken();
@@ -608,117 +623,183 @@ export function HomePage() {
 
 
     return (
-
         <div className="flex relative h-screen">
+            <ResizablePanelGroup direction="horizontal" className="h-full overflow-hidden">
 
-            <ResizablePanelGroup direction="horizontal" className="h-full">
-
-                <ResizablePanel defaultSize={10} className="sidepanel-theme sidepanel-theme-hover ">
-
+                <ResizablePanel defaultSize={10} className="sidepanel-theme sidepanel-theme-hover overflow-hidden">
                     <div className="flex flex-col h-full">
 
-                        <div>
+                        <div className="flex flex-col">
 
                             <BuildAvatarAndUsernameSideBarSegment />
 
-                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
 
-                            <div className={`${vaultDropdownOpen ? "mb-40" : "mb-4"}`}> 
+                            <div className={vaultDropdownOpen ? "mb-20" : "mb-6" }>
+                                <Label className="title-text px-2 mb-1 block">Dashboard</Label>
 
-                            <DropdownMenu onOpenChange={setVaultDropDownOpen}>
-                                <DropdownMenuTrigger className="justify-start text-blue-500 hover:underline text-left text-white px-4">
-                                    Vaults
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56 px-4" align="start">
-                                    <DropdownMenuSeparator className="border-neutral-700" />
-                                    <DropdownMenuItem
-                                        onClick={() => setIsCreateVaultDialogOpen(true)}
-                                        className="bg-transparent text-white hover:underline"
-                                    >
-                                        Create Vault
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                </DropdownMenuContent>
+                                <DropdownMenu onOpenChange={setVaultDropDownOpen}>
+                                    <DropdownMenuTrigger className="justify-start text-blue-500 text-left text-white px-4 hover:underline">
+                                        My Personal Vaults
+                                    </DropdownMenuTrigger>
+
+                                    <DropdownMenuContent className="w-56 px-4" align="start"  >
+                                        <DropdownMenuSeparator className="border-neutral-700" />
+                                        <DropdownMenuItem
+                                            onClick={() => setIsCreateVaultDialogOpen(true)}
+                                            className="bg-transparent text-white hover:underline"
+                                        >
+                                            Create Vault
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem
+                                            className="bg-transparent text-white hover:underline"
+                                        >
+                                            Vault Overview
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
                                 </DropdownMenu>
+                            </div>
+
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
+
+
+                            <div className={teamDropDownOpen ? "mb-45" : "mb-6" }>
+                                <Label className="title-text px-2 mb-1 block">Teams</Label>
+
+                                <DropdownMenu onOpenChange={(open) => setTeamDropDownOpen(open)} >
+                                    <DropdownMenuTrigger className="justify-start text-blue-500 text-left text-white px-4 hover:underline">
+                                        Manage Teams
+                                    </DropdownMenuTrigger>
+
+                                    <DropdownMenuContent className="w-56 px-4" align="start">
+                                        <DropdownMenuItem
+                                            className="bg-transparent text-white hover:underline"
+                                            onClick={() => setIsCreateTeamOpen(true)}
+                                        >
+                                            Create Team
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                            Add Team Member
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                            Team Invitations
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+
+                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                            Remove Team Member
+                                        </DropdownMenuItem>
+
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+
+                             
+                            </div>
+
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
+
+                            <div>
+                                <Label className="title-text mb-6 px-2">Team Vaults:</Label>
+
+                                <ItemGroup className="flex flex-col p-1 ">
+                                    {teams.map((team) => (
+                                        
+
+                                        <Item
+                                            key={team.id}
+                                            asChild
+                                            className="normal-text bg-transparent hover:underline"
+                                        >
+
+                                            <Button className="justify-start text-left normal-text">{team.teamName}</Button>
+
+                                        </Item>
+                                    ))}
+                                </ItemGroup>
 
                             </div>
 
-                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
-
-                            <DropdownMenu>
-                                <DropdownMenuTrigger className="justify-start text-blue-500 hover:underline text-left text-white px-4">
-                                    Teams
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56 px-4" align="start">
-
-                                    <DropdownMenuItem className="bg-transparent text-white hover:underline" onClick={() => setIsCreateTeamOpen(true)} >
-                                        Create Team
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
-                                        Add Team Member
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
-                                        Team Invitations
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="bg-transparent text-white hover:underline">
-                                        Remove Team Member
-                                    </DropdownMenuItem>
-
-                                </DropdownMenuContent>
-
-                            </DropdownMenu>
-
-                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" orientation="horizontal" />
-
                         </div>
 
+                        <div className="mt-auto px-2 pb-4">
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
+
+                            <Label className="title-text px-2 mb-2 block">Settings</Label>
+
+                            <Button
+                                className="w-full justify-start text-left px-4 py-2 text-blue-500 text-white hover:underline"
+                                onClick={() => console.log("Open Settings")}
+                            >
+                                Account Settings
+                            </Button>
+
+                            <Button
+                                className="w-full justify-start text-left px-4 py-2 text-blue-500 text-white hover:underline"
+                                onClick={() => console.log("Open Preferences")}
+                            >
+                                Preferences
+                            </Button>
+                        </div>
                     </div>
 
-                    <BuildCeateVaultModal dialogOpen={isCreateVaultDialogOpen} setDialogOpen={setIsCreateVaultDialogOpen} reloadVaults={async () =>
-                    {
+             
+                    <BuildCeateVaultModal
+                        teams={teamsWithNoVaults}
+                        dialogOpen={isCreateVaultDialogOpen}
+                        setDialogOpen={setIsCreateVaultDialogOpen}
+                        reloadVaults={async () => {
+                            const getVaults = await GetVaultsAndKeys();
+                            setVaults(getVaults);
+                        }}
+                    />
 
-                        const getVaults = await GetVaultsAndKeys();
+                    <CreateTeamModal
+                        isOpen={createTeamOpen}
+                        setIsOpen={setIsCreateTeamOpen}
+                        reloadTeams={async () => { 
+                            const reloadTeams = await GetTeams();
 
-                        setVaults(getVaults);
-                    } 
-                    } />
+                            setTeams(reloadTeams);
+                        } }
+                    />
 
-                    <CreateTeamModal isOpen={createTeamOpen} setIsOpen={setIsCreateTeamOpen} />
+                </ResizablePanel>
 
-                </ResizablePanel >
-      
                 <ResizableHandle className="bg-neutral-900" />
 
-                <ResizablePanel defaultSize={90} >
+                <ResizablePanel defaultSize={90}>
 
                     <div className="top-0 z-20 p-4 h-24 justify-between">
-     
-                        <h1 className="font-semibold text-neutral-50 text-xl p-2 transition hover:[text-shadow:0_0_15px_#48abe0]">Dashboard</h1>
-
+                        <h1 className="font-semibold text-neutral-50 text-xl p-2 transition hover:[text-shadow:0_0_15px_#48abe0]">
+                            Dashboard
+                        </h1>
                     </div>
 
-                    <div >
+                    <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
 
-                        <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
-                            <VaultDashboard vaults={vaults} reloadVaults={async () =>
-                            {
-                                const reload = await GetVaultsAndKeys(); 
+                        {vaultOverviewOpen ? (
+                            <VaultDashboard
+                                vaults={vaults}
+                                reloadVaults={async () => {
+                                    const reload = await GetVaultsAndKeys();
+                                    setVaults(reload);
+                                }}
+                            />
+                        ) : (
+                            <TeamVaultDashboard />
+                        )}
 
-                                setVaults(reload);
-                            }} />
-                        </div>
                     </div>
 
                 </ResizablePanel>
-               
-
-            </ResizablePanelGroup >
+            </ResizablePanelGroup>
         </div>
-            
-        
     );
 
 

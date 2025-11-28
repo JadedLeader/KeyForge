@@ -26,8 +26,10 @@ interface CreateTeamProps {
     isOpen: boolean; 
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
+    reloadTeams: () => void;
+
 }
-export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
+export function CreateTeamModal({isOpen, setIsOpen, reloadTeams } : CreateTeamProps) {
 
     const [teamName, setTeamName] = useState("");
     const [invites, setInvites] = useState("");
@@ -151,6 +153,17 @@ export function CreateTeamModal({isOpen, setIsOpen } : CreateTeamProps) {
 
                       if (teamCreated.success && teamVaultCreated.success) {
                           toast.success("Team created successfully!");
+
+
+
+                          reloadTeams();
+
+                          setTeamName(""); 
+                          setInvites(""); 
+                          setMemberCap(0); 
+                          setTeamVaultDescription("");
+                          setTeamVaultName("");
+                          setCurrentState("");
 
                           setIsOpen(false);
                       }

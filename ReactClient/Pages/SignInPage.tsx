@@ -24,8 +24,8 @@ interface RefreshShortLivedTokenRequest {
 export function SignInPage() {
 
     const [username, setUsername] = useState(""); 
-    const [password, setPassword] = useState("");
     const [accountId, setAccountId] = useState("");
+    const [password, setPassword] = useState("");
     const [shortLivedToken, setShortLivedToken] = useState(""); 
     const [longLivedToken, setLongLivedToken] = useState("");
     const [NavToHomePage, setNavToHomePage] = useState(false); 

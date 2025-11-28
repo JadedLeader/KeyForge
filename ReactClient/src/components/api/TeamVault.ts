@@ -14,6 +14,27 @@ interface CreateTeamVaultResponse {
     success: boolean;
 }
 
+interface GetTeamsWithNoVaultsResponse { 
+
+    teamsWithNoVaults: Team[];
+    success: boolean;
+
+}
+
+type Team = { 
+    id: string; 
+    teamName: string;
+}
+
+interface DeleteTeamVaultRequest { 
+    teamVaultId: string;
+}
+
+interface DeleteTeamVaultResponse { 
+    teamVaultId: string;
+    success: boolean;
+}
+
 function BuildCreateTeamRequest(teamId: string, teamVaultDescription: string, teamVaultName: string, currentStatus: string): CreateTeamVaultRequest { 
 
     const createTeam: CreateTeamVaultRequest = {
@@ -69,3 +90,93 @@ export async function CreateTeamVault(teamId: string, teamVaultDescription: stri
 
     return response;
 }
+
+function BuildGetTeamsWithNoVaultsResponse(teamsWithNoVaults : Team[], success: boolean) { 
+
+    const response: GetTeamsWithNoVaultsResponse = {
+        teamsWithNoVaults: teamsWithNoVaults,
+        success: success
+    }; 
+
+    return response;
+
+}
+
+export async function GetTeamsWithNoVaults() : Promise<GetTeamsWithNoVaultsResponse> { 
+
+    const getTeamsNoVaults = await fetch("/TeamVault/GetTeamsWithNoVaults", {
+        method: "GET",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include"
+    }); 
+
+    if (!getTeamsNoVaults.ok) { 
+
+        const errorText = await getTeamsNoVaults.text();
+
+        throw new Error(errorText);
+    }
+
+    const jsonBody = await getTeamsNoVaults.json();
+
+    const response = BuildGetTeamsWithNoVaultsResponse(jsonBody.teamsWithNoVaults, jsonBody.success); 
+
+    return response;
+
+
+
+}
+
+function BuildDeleteTeamVaultRequest(teamVaultId: string): DeleteTeamVaultRequest { 
+
+    const request: DeleteTeamVaultRequest = {
+        teamVaultId: teamVaultId
+    }; 
+
+    return request;
+
+}
+
+function BuildDeleteTeamVaultResponse(teamVaultId: string, success: boolean): DeleteTeamVaultResponse { 
+
+    const response: DeleteTeamVaultResponse = {
+        teamVaultId: teamVaultId,
+        success: success
+    }; 
+
+    return response;
+
+}
+
+export async function DeleteTeamVault(teamVaultId: string): Promise<DeleteTeamVaultResponse> { 
+
+    const buildRequest = BuildDeleteTeamVaultRequest(teamVaultId);
+
+    const deleteTeamVault = await fetch("/TeamVault/DeleteTeamVault", {
+        method: "DELETE",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(buildRequest)
+    }); 
+
+    if (!deleteTeamVault.ok) { 
+
+        const errorText = await deleteTeamVault.text();
+
+        throw new Error(errorText);
+
+    }
+
+    const jsonBody = await deleteTeamVault.json();
+
+    const response = BuildDeleteTeamVaultResponse(jsonBody.teamVaultId, jsonBody.success); 
+
+    return response;
+
+}
+
+ 

@@ -4,14 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KeyForgedShared.DTO_s.VaultDTO_s
+namespace KeyForgedShared.DTO_s.TeamVaultDTO_s
 {
-    public class CreateVaultDto
+    public class DeleteTeamVaultDto
     {
 
-        public string VaultName { get; set; }   
+        public string TeamVaultId { get; set; }
 
     }
-
-   
 }
