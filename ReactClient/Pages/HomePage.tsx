@@ -76,7 +76,6 @@ import { SilentTokenRefresh } from "@/components/api/Auth"
 import { DeleteVault, CreateNewVault } from "@/components/api/Vault"
 import { DeleteAllKeysFromVault, DecryptVaultKey, CreateNewVaultKey, GetVaultsAndKeys, GetVaultWithAllDetails } from "@/components/api/VaultKeys"
 import { CreateTeamModal } from "@/components/Team/CreateTeamModal"
-import { GetTeamsWithNoVaults } from "@/components/api/TeamVault"
 import {GetTeams } from "@/components/api/Team"
 import TeamVaultDashboard from "../src/components/Team/TeamVaultDashboard"
 
@@ -639,7 +638,7 @@ export function HomePage() {
                                 <Label className="title-text px-2 mb-1 block">Dashboard</Label>
 
                                 <DropdownMenu onOpenChange={setVaultDropDownOpen}>
-                                    <DropdownMenuTrigger className="justify-start text-blue-500 text-left text-white px-4 hover:underline">
+                                    <DropdownMenuTrigger className="justify-start text-blue-500 text-left normal-text px-4 hover:underline">
                                         My Personal Vaults
                                     </DropdownMenuTrigger>
 
@@ -647,14 +646,14 @@ export function HomePage() {
                                         <DropdownMenuSeparator className="border-neutral-700" />
                                         <DropdownMenuItem
                                             onClick={() => setIsCreateVaultDialogOpen(true)}
-                                            className="bg-transparent text-white hover:underline"
+                                            className="bg-transparent normal-text hover:underline"
                                         >
                                             Create Vault
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
 
                                         <DropdownMenuItem
-                                            className="bg-transparent text-white hover:underline"
+                                            className="bg-transparent normal-text hover:underline"
                                         >
                                             Vault Overview
                                         </DropdownMenuItem>
@@ -669,30 +668,30 @@ export function HomePage() {
                                 <Label className="title-text px-2 mb-1 block">Teams</Label>
 
                                 <DropdownMenu onOpenChange={(open) => setTeamDropDownOpen(open)} >
-                                    <DropdownMenuTrigger className="justify-start text-blue-500 text-left text-white px-4 hover:underline">
+                                    <DropdownMenuTrigger className="justify-start text-blue-500 text-left normal-text px-4 hover:underline">
                                         Manage Teams
                                     </DropdownMenuTrigger>
 
                                     <DropdownMenuContent className="w-56 px-4" align="start">
                                         <DropdownMenuItem
-                                            className="bg-transparent text-white hover:underline"
+                                            className="bg-transparent normal-text hover:underline"
                                             onClick={() => setIsCreateTeamOpen(true)}
                                         >
                                             Create Team
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        <DropdownMenuItem className="bg-transparent normal-text hover:underline">
                                             Add Team Member
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        <DropdownMenuItem className="bg-transparent normal-text hover:underline">
                                             Team Invitations
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
 
-                                        <DropdownMenuItem className="bg-transparent text-white hover:underline">
+                                        <DropdownMenuItem className="bg-transparent normal-text hover:underline">
                                             Remove Team Member
                                         </DropdownMenuItem>
 
@@ -717,7 +716,7 @@ export function HomePage() {
                                             className="normal-text bg-transparent hover:underline"
                                         >
 
-                                            <Button className="justify-start text-left normal-text">{team.teamName}</Button>
+                                            <Button onClick={() => console.log("Team id clicked", team.id)} className="justify-start text-left normal-text">{team.teamName}</Button>
 
                                         </Item>
                                     ))}

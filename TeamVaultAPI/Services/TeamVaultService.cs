@@ -133,9 +133,59 @@ namespace TeamVaultAPI.Services
             return deleteTeamVaultResponse;
         }
         
-        public async Task UpdateTeamVault(string shortLivedToken)
+        public async Task<UpdateTeamVaultReturn> UpdateTeamVault(UpdateTeamVaultDto updateTeamVault, string shortLivedToken)
         {
-            throw new NotImplementedException();
+            UpdateTeamVaultReturn updateTeamVaultResponse = new UpdateTeamVaultReturn();
+
+            if(string.IsNullOrWhiteSpace(updateTeamVault.TeamVaultId) && string.IsNullOrWhiteSpace(updateTeamVault.TeamVaultName) && 
+                string.IsNullOrWhiteSpace(updateTeamVault.TeamVaultDescription) && string.IsNullOrWhiteSpace(updateTeamVault.CurrentStatus))
+            {
+                updateTeamVaultResponse.Success = false;
+
+                return updateTeamVaultResponse;
+            }
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            if(accountId == Guid.Empty)
+            {
+                updateTeamVaultResponse.Success = false; 
+
+                return updateTeamVaultResponse;
+            }
+
+            TeamVaultDataModel? teamVault = await _teamVaultRepo.FindSingleRecordViaId<TeamVaultDataModel>(Guid.Parse(updateTeamVault.TeamVaultId));
+
+            if(teamVault == null)
+            {
+                updateTeamVaultResponse.Success = false;
+
+                return updateTeamVaultResponse;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateTeamVault.TeamVaultName))
+            {
+                teamVault.TeamVaultName = updateTeamVault.TeamVaultName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateTeamVault.TeamVaultDescription))
+            {
+                teamVault.TeamVaultDescription = updateTeamVault.TeamVaultDescription;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateTeamVault.CurrentStatus))
+            {
+                teamVault.CurrentStatus = updateTeamVault.CurrentStatus;   
+            }
+
+            await _teamVaultRepo.UpdateAsync(teamVault);
+
+            updateTeamVaultResponse.Success = true; 
+            updateTeamVaultResponse.CurrentStatus = teamVault.CurrentStatus;
+            updateTeamVaultResponse.TeamVaultName = teamVault.TeamVaultName;
+            updateTeamVaultResponse.TeamVaultDescription = teamVault.TeamVaultDescription;
+           
+            return updateTeamVaultResponse;
         }
 
         private TeamVaultDataModel MapInputToTeamVault(CreateTeamVaultDto createTeamVault)

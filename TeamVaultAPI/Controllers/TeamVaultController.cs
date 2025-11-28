@@ -73,5 +73,23 @@ namespace TeamVaultAPI.Controllers
             return Unauthorized();
         }
 
+        [HttpPut]
+        public async Task<IActionResult> UpdateTeamVault([FromBody] UpdateTeamVaultDto updateTeamVault)
+        {
+            if(Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                UpdateTeamVaultReturn updatedTeamVault = await _teamVaultService.UpdateTeamVault(updateTeamVault, cookie);
+
+                if (!updatedTeamVault.Success)
+                {
+                    return BadRequest(updatedTeamVault);
+                }
+
+                return Ok(updatedTeamVault);
+            }
+
+            return Unauthorized();
+        }
+
     }
 }

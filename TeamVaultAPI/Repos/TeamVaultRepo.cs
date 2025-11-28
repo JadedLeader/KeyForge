@@ -56,5 +56,10 @@ namespace TeamVaultAPI.Repos
             return base.DeleteRecordViaId<T>(id);
         }
 
+        public override Task<T?> FindSingleRecordViaId<T>(Guid id) where T : class
+        {
+            return base.FindSingleRecordViaId<T>(id);
+        }
+
     }
 }

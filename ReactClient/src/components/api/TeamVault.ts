@@ -35,6 +35,20 @@ interface DeleteTeamVaultResponse {
     success: boolean;
 }
 
+interface UpdateTeamVaultRequest { 
+    teamVaultId: string; 
+    teamVaultName: string; 
+    teamVaultDescription: string; 
+    currentStatus: string;
+}
+
+interface UpdateTeamVaultResponse { 
+    teamVaultName: string; 
+    teamVaultDescription: string; 
+    currentStatus: string; 
+    success: boolean;
+}
+
 function BuildCreateTeamRequest(teamId: string, teamVaultDescription: string, teamVaultName: string, currentStatus: string): CreateTeamVaultRequest { 
 
     const createTeam: CreateTeamVaultRequest = {
@@ -179,4 +193,58 @@ export async function DeleteTeamVault(teamVaultId: string): Promise<DeleteTeamVa
 
 }
 
- 
+function BuildUpdateTeamVaultRequest(teamVaultId: string, teamVaultName: string, teamVaultDescription: string, currentStatus: string): UpdateTeamVaultRequest { 
+
+    const teamVault: UpdateTeamVaultRequest = {
+        teamVaultId: teamVaultId,
+        teamVaultName: teamVaultName,
+        teamVaultDescription: teamVaultDescription,
+        currentStatus: currentStatus
+    }; 
+
+    return teamVault;
+
+}
+
+function BuildUpdateTeamVaultResponse(teamVaultName: string, teamVaultDescription: string, currentStatus: string, success: boolean): UpdateTeamVaultResponse { 
+
+    const response: UpdateTeamVaultResponse = {
+        teamVaultName: teamVaultName,
+        teamVaultDescription: teamVaultDescription,
+        currentStatus: currentStatus,
+        success: success
+    }; 
+
+    return response;
+
+}
+
+export async function UpdateTeamVault(teamVaultId: string, teamVaultName: string, teamVaultDescription: string, currentStatus: string): Promise<UpdateTeamVaultResponse> { 
+
+    const requestBody = BuildUpdateTeamVaultRequest(teamVaultId, teamVaultName, teamVaultDescription, currentStatus);
+
+    const updateRequest = await fetch("/TeamVault/UpdateTeamVault", {
+        method: "PUT",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(requestBody)
+
+    }); 
+
+    if (!updateRequest.ok) { 
+
+
+        const errorText = await updateRequest.text();
+
+        throw new Error(errorText);
+    }
+
+    const jsonBody = await updateRequest.json();
+
+    const buildResponse = BuildUpdateTeamVaultResponse(jsonBody.teamVaultName, jsonBody.teamVaultDescription, jsonBody.currentStatus, jsonBody.success); 
+
+    return buildResponse;
+
+}

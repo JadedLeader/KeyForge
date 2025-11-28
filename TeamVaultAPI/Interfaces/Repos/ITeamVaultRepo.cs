@@ -20,6 +20,8 @@ namespace TeamVaultAPI.Interfaces.Repos
 
         public Task<T> DeleteRecordViaId<T>(Guid id) where T : IEntity;
 
+        public Task<T?> FindSingleRecordViaId<T>(Guid id) where T : IEntity;
+
 
     }
 }

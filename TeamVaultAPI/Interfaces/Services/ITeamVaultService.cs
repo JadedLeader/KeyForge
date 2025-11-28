@@ -12,5 +12,7 @@ namespace TeamVaultAPI.Interfaces.Services
 
         public Task<DeleteTeamVaultReturn> DeleteTeamVault(DeleteTeamVaultDto deleteTeamVault, string shortLivedToken);
 
+        public Task<UpdateTeamVaultReturn> UpdateTeamVault(UpdateTeamVaultDto updateTeamVault, string shortLivedToken);
+
     }
 }
