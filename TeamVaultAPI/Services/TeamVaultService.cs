@@ -1,11 +1,14 @@
-﻿using KeyForgedShared.DTO_s.TeamVaultDTO_s;
+﻿using gRPCIntercommunicationService;
+using KeyForgedShared.DTO_s.TeamVaultDTO_s;
 using KeyForgedShared.Interfaces;
 using KeyForgedShared.Projections.TeamVaultProjections;
 using KeyForgedShared.ReturnTypes.TeamVault;
 using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Identity.Client;
 using TeamVaultAPI.Interfaces.Repos;
 using TeamVaultAPI.Interfaces.Services;
+using TeamVaultAPI.Storage;
 
 namespace TeamVaultAPI.Services
 {
@@ -19,12 +22,16 @@ namespace TeamVaultAPI.Services
         private readonly ITeamVaultRepo _teamVaultRepo;
 
         private readonly IJwtHelper _jwtHelper;
-        public TeamVaultService(IAccountRepo accountRepo, ITeamRepo teamRepo, ITeamVaultRepo teamVaultRepo, IJwtHelper jwtHelper)
+
+        private readonly StreamingStorage _streamingStorage;
+
+        public TeamVaultService(IAccountRepo accountRepo, ITeamRepo teamRepo, ITeamVaultRepo teamVaultRepo, IJwtHelper jwtHelper, StreamingStorage streamingStorage)
         {
             _accountRepo = accountRepo;
             _teamRepo = teamRepo;
             _teamVaultRepo = teamVaultRepo;
             _jwtHelper = jwtHelper;
+            _streamingStorage = streamingStorage;
         }
 
         public async Task<CreateTeamVaultReturn> CreateTeamVault(CreateTeamVaultDto createTeamVault, string shortLivedToken)
@@ -56,6 +63,8 @@ namespace TeamVaultAPI.Services
 
             await _teamVaultRepo.AddAsync(createdTeamVault);
 
+            _streamingStorage.AddToSteamTeamVaultCreations(MapTeamVaultToStream(createdTeamVault));
+
             teamVaultResponse.TeamId = createdTeamVault.TeamId;
             teamVaultResponse.TeamVaultId = createdTeamVault.Id;
             teamVaultResponse.TeamVaultDescription = createdTeamVault.TeamVaultDescription;
@@ -64,8 +73,6 @@ namespace TeamVaultAPI.Services
             teamVaultResponse.Success = true;
 
             return teamVaultResponse;
-
-
         }
 
         public async Task<GetTeamWithNoVaultsReturn> GetTeamsWithNoVaults(string shortLivedToken)
@@ -127,6 +134,8 @@ namespace TeamVaultAPI.Services
                 return deleteTeamVaultResponse;
             }
 
+            _streamingStorage.AddToStreamTeamVaultDeletions(new StreamTeamVaultDeletionsResponse { TeamVaultId = deletedTeamVault.Id.ToString() });
+
             deleteTeamVaultResponse.TeamVaultId = deleteTeamVault.TeamVaultId;
             deleteTeamVaultResponse.Success = true; 
 
@@ -178,7 +187,11 @@ namespace TeamVaultAPI.Services
                 teamVault.CurrentStatus = updateTeamVault.CurrentStatus;   
             }
 
+            teamVault.LastTeamUpdate = DateTime.Now.ToString();
+
             await _teamVaultRepo.UpdateAsync(teamVault);
+
+            _streamingStorage.AddToStreamTeamVaultUpdates(MapTeamVaultToStreamUpdate(teamVault));
 
             updateTeamVaultResponse.Success = true; 
             updateTeamVaultResponse.CurrentStatus = teamVault.CurrentStatus;
@@ -186,6 +199,36 @@ namespace TeamVaultAPI.Services
             updateTeamVaultResponse.TeamVaultDescription = teamVault.TeamVaultDescription;
            
             return updateTeamVaultResponse;
+        }
+
+        public async Task<GetTeamVaultReturn> GetTeamVault(GetTeamVaultDto getTeamVault, string shortLivedToken)
+        {
+            GetTeamVaultReturn getTeamVaultResponse = new GetTeamVaultReturn();
+
+            if (string.IsNullOrWhiteSpace(getTeamVault.TeamVaultId))
+            {
+                getTeamVaultResponse.Success = false; 
+
+                return getTeamVaultResponse;
+            }
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            TeamVaultDataModel? teamVault = await _teamVaultRepo.FindSingleRecordViaId<TeamVaultDataModel>(Guid.Parse(getTeamVault.TeamVaultId));
+
+            if (teamVault == null)
+            {
+                getTeamVaultResponse.Success = false;
+
+                return getTeamVaultResponse;
+            }
+
+            getTeamVaultResponse.TeamVaultName = teamVault.TeamVaultName; 
+            getTeamVaultResponse.TeamVaultDescription = teamVault.TeamVaultDescription;
+            getTeamVaultResponse.CurrentStatus = teamVault.CurrentStatus;
+            getTeamVaultResponse.Success = true; 
+
+            return getTeamVaultResponse;
         }
 
         private TeamVaultDataModel MapInputToTeamVault(CreateTeamVaultDto createTeamVault)
@@ -205,6 +248,37 @@ namespace TeamVaultAPI.Services
             return teamVault;
 
 
+        }
+
+        private StreamTeamVaultCreationResponse MapTeamVaultToStream(TeamVaultDataModel teamVault)
+        {
+            StreamTeamVaultCreationResponse newResponse = new StreamTeamVaultCreationResponse
+            {
+                TeamId = teamVault.TeamId.ToString(),
+                CurrentStatus = teamVault.CurrentStatus,
+                CreatedAt = teamVault.CreatedAt.ToString(),
+                LastTeamUpdate = teamVault.LastTeamUpdate.ToString(),
+                TeamVaultDescription = teamVault.TeamVaultDescription,
+                TeamVaultId = teamVault.Id.ToString(),
+                TeamVaultName = teamVault.TeamVaultName,
+
+            };
+
+            return newResponse;
+        }
+
+        private StreamTeamVaultUpdatesResponse MapTeamVaultToStreamUpdate(TeamVaultDataModel teamVault)
+        {
+            StreamTeamVaultUpdatesResponse newUpdate = new StreamTeamVaultUpdatesResponse
+            {
+                CurrentStatus = teamVault.CurrentStatus,
+                LastTeamUpdate = teamVault.LastTeamUpdate,
+                TeamVaultDescription = teamVault.TeamVaultDescription,
+                TeamVaultId = teamVault.Id.ToString(),
+                TeamVaultName = teamVault.TeamVaultName,
+            }; 
+
+            return newUpdate;
         }
 
     }

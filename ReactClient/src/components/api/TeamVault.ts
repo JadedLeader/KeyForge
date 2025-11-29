@@ -49,6 +49,17 @@ interface UpdateTeamVaultResponse {
     success: boolean;
 }
 
+interface GetTeamVaultRequest { 
+    teamVaultId: string; 
+}
+
+interface GetTeamVaultResponse { 
+    teamVaultName: string; 
+    teamVaultDescription: string; 
+    currentStatus: string; 
+    success: boolean;
+}
+
 function BuildCreateTeamRequest(teamId: string, teamVaultDescription: string, teamVaultName: string, currentStatus: string): CreateTeamVaultRequest { 
 
     const createTeam: CreateTeamVaultRequest = {
@@ -246,5 +257,53 @@ export async function UpdateTeamVault(teamVaultId: string, teamVaultName: string
     const buildResponse = BuildUpdateTeamVaultResponse(jsonBody.teamVaultName, jsonBody.teamVaultDescription, jsonBody.currentStatus, jsonBody.success); 
 
     return buildResponse;
+
+}
+
+function BuildGetTeamVaultRequest(teamVaultId: string): GetTeamVaultRequest { 
+
+    const newRequest: GetTeamVaultRequest = {
+        teamVaultId: teamVaultId
+    }; 
+
+    return newRequest;
+
+}
+
+function BuildGetTeamVaultResponse(teamVaultName: string,teamVaultDescription: string,currentStatus: string, success: boolean): GetTeamVaultResponse { 
+    const newResponse: GetTeamVaultResponse = {
+        teamVaultName: teamVaultName,
+        teamVaultDescription: teamVaultDescription,
+        currentStatus: currentStatus,
+        success: success
+    }; 
+
+    return newResponse;
+}
+
+export async function GetTeamVault(teamVaultId: string): Promise<GetTeamVaultResponse> { 
+
+    const requestBody = BuildGetTeamVaultRequest(teamVaultId);
+
+    const fetchTeamVault = await fetch("/TeamVault/GetTeamVault", {
+        method: "POST",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(requestBody)
+    }); 
+
+    if (!fetchTeamVault.ok) { 
+        const errorText = await fetchTeamVault.text();
+
+        throw new Error(errorText);
+    }
+
+    const jsonBody = await fetchTeamVault.json();
+
+    const response = BuildGetTeamVaultResponse(jsonBody.teamVaultName, jsonBody.teamVaultDescription, jsonBody.currentStatus, jsonBody.success);
+
+    return response;
 
 }

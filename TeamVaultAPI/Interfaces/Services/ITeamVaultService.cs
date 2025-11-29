@@ -14,5 +14,7 @@ namespace TeamVaultAPI.Interfaces.Services
 
         public Task<UpdateTeamVaultReturn> UpdateTeamVault(UpdateTeamVaultDto updateTeamVault, string shortLivedToken);
 
+        public Task<GetTeamVaultReturn> GetTeamVault(GetTeamVaultDto getTeamVault, string shortLivedToken);
+
     }
 }

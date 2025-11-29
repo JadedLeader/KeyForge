@@ -10,6 +10,7 @@ using TeamVaultAPI.Interfaces.Repos;
 using TeamVaultAPI.Interfaces.Services;
 using TeamVaultAPI.Repos;
 using TeamVaultAPI.Services;
+using TeamVaultAPI.Storage;
 
 namespace TeamVaultAPI
 {
@@ -25,6 +26,7 @@ namespace TeamVaultAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGrpc();
 
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {
@@ -53,6 +55,9 @@ namespace TeamVaultAPI
             builder.Services.AddHostedService<DeleteAccount>();
             builder.Services.AddHostedService<CreateTeam>();
 
+            builder.Services.AddSingleton<StreamingStorage>();
+            builder.Services.AddScoped<StreamingTeamVaultService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -66,6 +71,7 @@ namespace TeamVaultAPI
 
             app.UseAuthorization();
 
+            app.MapGrpcService<StreamingTeamVaultService>();
 
             app.MapControllers();
 

@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCIntercommunicationService";
+
+
+service TeamVault{ 
+	rpc StreamTeamVaultCreations(StreamTeamVaultCreationRequest) returns (stream StreamTeamVaultCreationResponse);
+	rpc StreamTeamVaultDeletions(StreamTeamVaultDeletionsRequest) returns (stream StreamTeamVaultDeletionsResponse); 
+	rpc StreamTeamVaultUpdates(StreamTeamVaultUpdatesRequest) returns(stream StreamTeamVaultUpdatesResponse);
+}
+
+message StreamTeamVaultCreationRequest{ 
+
+}
+
+message StreamTeamVaultCreationResponse{ 
+
+	string teamVaultId = 1; 
+	string teamId = 2; 
+	string teamVaultDescription = 3; 
+	string teamVaultName = 4; 
+	string createdAt = 5;
+	string lastTeamUpdate = 6; 
+	string currentStatus = 7;
+
+}
+
+message StreamTeamVaultDeletionsRequest{ 
+
+}
+
+message StreamTeamVaultDeletionsResponse{ 
+	string teamVaultId = 1;
+}
+
+message StreamTeamVaultUpdatesRequest{ 
+	
+}
+
+message StreamTeamVaultUpdatesResponse{ 
+	string teamVaultId = 1;
+	string teamVaultDescription = 2; 
+	string teamVaultName = 3; 
+	string lastTeamUpdate = 4; 
+	string currentStatus = 5;
+}

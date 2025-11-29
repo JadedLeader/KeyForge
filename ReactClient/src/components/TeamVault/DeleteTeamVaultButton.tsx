@@ -16,16 +16,13 @@ import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { Trash } from "lucide-react" 
-import {UpdateTeamVault, DeleteTeamVault } from "@/components/api/TeamVault"
+import { DeleteTeamVault } from "@/components/api/TeamVault"
 
 interface DeleteTeamVaultButtonProps { 
     teamVaultId: string;
 }
 
 function DeleteTeamVaultButton({teamVaultId } : DeleteTeamVaultButtonProps) {
-
-
-
 
     return (
 

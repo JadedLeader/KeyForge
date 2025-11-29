@@ -125,7 +125,6 @@ namespace AccountAPI.Services
             return serverResponse;
         }
 
-
         public override async Task StreamAccountDeletions(StreamAccountDeleteRequest request, IServerStreamWriter<StreamAccountDeleteResponse> responseStream, ServerCallContext context)
         {
 
@@ -235,12 +234,6 @@ namespace AccountAPI.Services
 
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="userPassword"></param>
-        /// <returns></returns>
         private string EncryptPassword(string userPassword)
         {
             return BCrypt.Net.BCrypt.EnhancedHashPassword(userPassword, 10);
@@ -251,11 +244,6 @@ namespace AccountAPI.Services
             return BCrypt.Net.BCrypt.EnhancedVerify(passwordToCheck, hashToCheck);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="createAccountRequest"></param>
-        /// <returns></returns>
         private AccountDataModel MapRequestToAccount(CreateAccountRequest createAccountRequest)
         {
             AccountDataModel newModel = new AccountDataModel
@@ -271,12 +259,6 @@ namespace AccountAPI.Services
             return newModel;
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
         private StreamAccountResponse MapAccountModelToStream(AccountDataModel model)
         {
             StreamAccountResponse response = new StreamAccountResponse
