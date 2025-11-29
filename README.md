@@ -117,6 +117,8 @@ dotnet ef database update --project TeamVaultAPI
 8. Under "Action" select "Start" on the VaultAPI
 9. Under "Action" select "Start" on the VaultKeysAPI
 10. Under "Action" select "Start" on the "ReactClient"
+11. Under "Action" select "Start" on the "TeamAPI"
+12. Under "Action" select "Start" on the "TeamVaultAPI"
    
 
 
