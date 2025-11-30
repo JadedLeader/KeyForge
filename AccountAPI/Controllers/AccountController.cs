@@ -23,11 +23,11 @@ namespace AccountAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> CreateAccounts([FromBody] CreateAccountRequest request)
+        public async Task<IActionResult> CreateAccounts([FromBody] CreateAccountDto request)
         {
-            CreateAccountResponse serviceResponse = await _accountService.CreateAccount(request);
+            CreateAccountReturn serviceResponse = await _accountService.CreateAccount(request);
 
-            if (serviceResponse.Successful == false)
+            if (!serviceResponse.Success)
             {
                 return BadRequest(serviceResponse);
             }
@@ -39,11 +39,11 @@ namespace AccountAPI.Controllers
 
         [AllowAnonymous]
         [HttpDelete]
-        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest deleteAccountRequest)
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto deleteAccountRequest)
         {
-            DeleteAccountResponse deleteAccount = await _accountService.RemoveAccount(deleteAccountRequest);
+            DeleteAccountReturn deleteAccount = await _accountService.RemoveAccount(deleteAccountRequest);
 
-            if (deleteAccount.Successful == false)
+            if (!deleteAccount.Success)
             {
                 Log.Error($"{this.GetType().Namespace} An error occurred when trying to delete an account");
 

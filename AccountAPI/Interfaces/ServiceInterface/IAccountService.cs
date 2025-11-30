@@ -7,9 +7,11 @@ namespace AccountAPI.Interfaces.ServiceInterface
     public interface IAccountService
     {
 
-        public Task<CreateAccountResponse> CreateAccount(CreateAccountRequest request);
+     
 
-        public Task<DeleteAccountResponse> RemoveAccount(DeleteAccountRequest request);
+        public Task<CreateAccountReturn> CreateAccount(CreateAccountDto request);
+
+        public Task<DeleteAccountReturn> RemoveAccount(DeleteAccountDto request);
 
         public Task<GetAccountDetailsReturn> GetAccountDetails(string shortLivedToken);
 

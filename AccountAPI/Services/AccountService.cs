@@ -38,20 +38,18 @@ namespace AccountAPI.Services
         /// <param name="request">The request containing the details sent from the front end, typically containing user data</param>
         /// <param name="context">Server call context, containing any metadata</param>
         /// <returns>A create account response, returning the username added and the password</returns>
-        public async Task<CreateAccountResponse> CreateAccount(CreateAccountRequest request)
+        public async Task<CreateAccountReturn> CreateAccount(CreateAccountDto request)
         {
 
             AccountDataModel mappingRequestToAccount = MapRequestToAccount(request);
 
-            CreateAccountResponse createdAccount = new CreateAccountResponse();
-
-            Log.Information($"ENDPOINT HIT");
+            CreateAccountReturn createdAccount = new CreateAccountReturn();
 
             if(mappingRequestToAccount.Username == string.Empty || request.Password == string.Empty)
             {
                 createdAccount.Username = "";
                 createdAccount.Password = "";
-                createdAccount.Successful = false;
+                createdAccount.Success = false;
             }
 
             string passwordEncrypted = EncryptPassword(request.Password);
@@ -62,13 +60,12 @@ namespace AccountAPI.Services
 
             createdAccount.Username = mappingRequestToAccount.Username;
             createdAccount.Password = passwordEncrypted;
-            createdAccount.Successful = true;
+            createdAccount.Success = true;
 
             StreamAccountResponse addingToChannel = MapAccountModelToStream(mappingRequestToAccount);
 
             _streamStorage.AddToAccountCreationStream(addingToChannel);
-            int length = _streamStorage.AccountCreationStreamTotal();
-
+     
             return createdAccount;
 
         }
@@ -97,19 +94,16 @@ namespace AccountAPI.Services
             
         }
 
-        public async Task<DeleteAccountResponse> RemoveAccount(DeleteAccountRequest request)
+        public async Task<DeleteAccountReturn> RemoveAccount(DeleteAccountDto request)
         {
             AccountDataModel checkForExistingAccount = await _accountRepo.CheckForExistingAccount(Guid.Parse(request.AccountId));
 
-            DeleteAccountResponse serverResponse = new DeleteAccountResponse();
+            DeleteAccountReturn serverResponse = new DeleteAccountReturn();
 
             if (checkForExistingAccount.Id == Guid.Empty)
             {
                 Log.Error($"No Account with ID {request.AccountId} could be found"); 
-
-                serverResponse.AccountId = request.AccountId;
-                serverResponse.Username = "";
-                serverResponse.Successful = false; 
+                serverResponse.Success = false; 
                 
                 return serverResponse;
             }
@@ -119,8 +113,7 @@ namespace AccountAPI.Services
             await _accountRepo.DeleteAccount(checkForExistingAccount);
 
             serverResponse.AccountId = checkForExistingAccount.Id.ToString();
-            serverResponse.Username = checkForExistingAccount.Username;
-            serverResponse.Successful = true;
+            serverResponse.Success = true;
 
             return serverResponse;
         }
@@ -244,7 +237,7 @@ namespace AccountAPI.Services
             return BCrypt.Net.BCrypt.EnhancedVerify(passwordToCheck, hashToCheck);
         }
 
-        private AccountDataModel MapRequestToAccount(CreateAccountRequest createAccountRequest)
+        private AccountDataModel MapRequestToAccount(CreateAccountDto createAccountRequest)
         {
             AccountDataModel newModel = new AccountDataModel
             {

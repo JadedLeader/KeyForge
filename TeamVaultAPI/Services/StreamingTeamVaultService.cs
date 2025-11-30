@@ -52,9 +52,21 @@ namespace TeamVaultAPI.Services
             }
         }
 
-        public override Task StreamTeamVaultUpdates(StreamTeamVaultUpdatesRequest request, IServerStreamWriter<StreamTeamVaultUpdatesResponse> responseStream, ServerCallContext context)
+        public override async Task StreamTeamVaultUpdates(StreamTeamVaultUpdatesRequest request, IServerStreamWriter<StreamTeamVaultUpdatesResponse> responseStream, ServerCallContext context)
         {
-            return base.StreamTeamVaultUpdates(request, responseStream, context);
+            while (!context.CancellationToken.IsCancellationRequested)
+            {
+                ImmutableList<StreamTeamVaultUpdatesResponse> vaultUpdates = _streamingStorage.ReturnSteamTeamVaultUpdates();
+
+                foreach(StreamTeamVaultUpdatesResponse updatedVault in vaultUpdates)
+                {
+
+                    await responseStream.WriteAsync(updatedVault);
+
+                }
+
+                _streamingStorage.ClearStreamTeamVaultUpdates();
+            }
         }
 
     }

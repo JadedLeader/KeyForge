@@ -28,7 +28,7 @@ namespace TeamVaultAPI
             builder.Services.AddSwaggerGen();
             builder.Services.AddGrpc();
 
-            builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
+            builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7003");
             });
