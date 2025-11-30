@@ -36,6 +36,10 @@ namespace TeamInviteAPI.DataContext
                         .WithMany()
                         .HasForeignKey(i => i.TeamVaultId)
                         .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TeamInviteDataModel>()
+                        .Property(x => x.InviteStatus)
+                         .HasConversion<string>();
         }
 
         public DbSet<AccountDataModel> Account { get; set; }

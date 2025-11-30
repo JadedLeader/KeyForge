@@ -1,5 +1,6 @@
 ﻿using KeyForgedShared.Generics;
 using KeyForgedShared.SharedDataModels;
+using Microsoft.EntityFrameworkCore;
 using TeamInviteAPI.DataContext;
 using TeamInviteAPI.Interfaces.Repos;
 
@@ -49,5 +50,18 @@ namespace TeamInviteAPI.Repos
         {
             return base.UpdateAsync(databaseModel);
         }
+
+        public async Task<AccountDataModel> FindAccountByEmailAddress(string email)
+        {
+            AccountDataModel? account = await _accountRepo.Account.Where(e => e.Email == email).FirstOrDefaultAsync();
+
+            if(account == null)
+            {
+                return null;
+            }
+
+            return account;
+        }
+
     }
 }

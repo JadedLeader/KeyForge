@@ -9,7 +9,7 @@ namespace KeyForgedShared.DTO_s.TeamVaultDTO_s
     public class GetTeamVaultDto
     {
 
-        public string TeamVaultId { get; set; }
+        public string TeamId { get; set; }
 
     }
 }

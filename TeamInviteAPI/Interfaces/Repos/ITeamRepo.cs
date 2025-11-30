@@ -12,5 +12,7 @@ namespace TeamInviteAPI.Interfaces.Repos
         Task<T?> FindSingleRecordViaId<T>(Guid id) where T : IEntity;
         Task<bool> HasModel<T>(Guid id) where T : IEntity;
         Task<TeamDataModel> UpdateAsync(TeamDataModel databaseModel);
+
+        Task<bool> HasTeamVaultAndTeamInvitesOpen(Guid teamVaultId);
     }
 }

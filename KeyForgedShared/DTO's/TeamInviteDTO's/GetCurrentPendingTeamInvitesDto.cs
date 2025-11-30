@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace KeyForgedShared.DTO_s.TeamInviteDTO_s
 {
-    public class CreateTeamInviteDto
+    public class GetCurrentPendingTeamInvitesDto
     {
 
+
         public string TeamVaultId { get; set; }
-        public string InviteRecipient { get; set; }
 
     }
 }

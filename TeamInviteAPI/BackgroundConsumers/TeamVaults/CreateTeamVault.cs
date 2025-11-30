@@ -2,6 +2,7 @@
 using gRPCIntercommunicationService;
 using KeyForgedShared.Generics;
 using KeyForgedShared.SharedDataModels;
+using Serilog;
 using TeamInviteAPI.Interfaces.Repos;
 
 namespace TeamInviteAPI.BackgroundConsumers.TeamVaults
@@ -18,6 +19,8 @@ namespace TeamInviteAPI.BackgroundConsumers.TeamVaults
 
         protected override async Task HandleMessage(IServiceProvider service, TeamVaultDataModel model)
         {
+            Log.Information($"Received {model.TeamVaultName} to be created");
+
             var teamVaultRepo = service.GetRequiredService<ITeamVaultRepo>();
 
             await teamVaultRepo.AddAsync(model);

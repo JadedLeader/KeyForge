@@ -61,5 +61,17 @@ namespace TeamVaultAPI.Repos
             return base.FindSingleRecordViaId<T>(id);
         }
 
+        public async Task<TeamVaultDataModel> FindTeamVaultViaTeamId(Guid teamId)
+        {
+            TeamVaultDataModel? teamVault = await _dbContext.TeamVault.Where(x => x.TeamId == teamId).FirstOrDefaultAsync();
+
+            if(teamVault == null)
+            {
+                return null;
+            }
+
+            return teamVault;
+        }
+
     }
 }

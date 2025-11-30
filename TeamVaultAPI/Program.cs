@@ -4,6 +4,7 @@ using KeyForgedShared.Helpers;
 using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
+using Serilog;
 using TeamVaultAPI.BackgroundConsumers;
 using TeamVaultAPI.DataContext;
 using TeamVaultAPI.Interfaces.Repos;
@@ -27,6 +28,11 @@ namespace TeamVaultAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddGrpc();
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
 
             builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {

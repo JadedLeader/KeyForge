@@ -1,5 +1,6 @@
 ﻿using KeyForgedShared.Generics;
 using KeyForgedShared.SharedDataModels;
+using Microsoft.EntityFrameworkCore;
 using TeamInviteAPI.DataContext;
 using TeamInviteAPI.Interfaces.Repos;
 
@@ -49,5 +50,19 @@ namespace TeamInviteAPI.Repos
         {
             return base.UpdateAsync(databaseModel);
         }
+
+        public async Task<bool> HasTeamVaultAndTeamInvitesOpen(Guid teamVaultId)
+        {
+            TeamDataModel? hasModelWithOpenInvites = await _teamRepo.Team.Where(x => x.TeamAcceptingInvites == "open" && x.TeamVault.Id == teamVaultId).FirstOrDefaultAsync();
+
+            if(hasModelWithOpenInvites == null)
+            {
+                return false;
+            }
+
+            return true;
+
+        }
+
     }
 }

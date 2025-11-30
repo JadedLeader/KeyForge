@@ -1,5 +1,6 @@
 ﻿using KeyForgedShared.Generics;
 using KeyForgedShared.SharedDataModels;
+using Microsoft.EntityFrameworkCore;
 using TeamInviteAPI.DataContext;
 using TeamInviteAPI.Interfaces.Repos;
 
@@ -42,12 +43,16 @@ namespace TeamInviteAPI.Repos
 
         public override Task<bool> HasModel<T>(Guid id) where T : class
         {
+          
             return base.HasModel<T>(id);
+            
         }
 
         public override Task<TeamVaultDataModel> UpdateAsync(TeamVaultDataModel databaseModel)
         {
             return base.UpdateAsync(databaseModel);
         }
+
+        
     }
 }

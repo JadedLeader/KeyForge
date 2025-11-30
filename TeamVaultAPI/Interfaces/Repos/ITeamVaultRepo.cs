@@ -22,6 +22,8 @@ namespace TeamVaultAPI.Interfaces.Repos
 
         public Task<T?> FindSingleRecordViaId<T>(Guid id) where T : IEntity;
 
+        public Task<TeamVaultDataModel> FindTeamVaultViaTeamId(Guid teamId);
+
 
     }
 }

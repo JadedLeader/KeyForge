@@ -1,5 +1,8 @@
-﻿using KeyForgedShared.Generics;
+﻿using KeyForgedShared.Enums;
+using KeyForgedShared.Generics;
+using KeyForgedShared.Projections.TeamInviteProjections;
 using KeyForgedShared.SharedDataModels;
+using Microsoft.EntityFrameworkCore;
 using TeamInviteAPI.DataContext;
 using TeamInviteAPI.Interfaces.Repos;
 
@@ -48,6 +51,28 @@ namespace TeamInviteAPI.Repos
         public override Task<TeamInviteDataModel> UpdateAsync(TeamInviteDataModel databaseModel)
         {
             return base.UpdateAsync(databaseModel);
+        }
+
+        public async Task<List<PendingTeamInvitesProjection>> GetTeamVaultPendingInvites(Guid teamVaultId)
+        {
+
+            List<PendingTeamInvitesProjection>? pendingInvites = await _teamInviteRepo.TeamInvite.Where(x => x.TeamVaultId == teamVaultId && x.InviteStatus == InviteStatus.Pending.ToString())
+                .Select(x => new PendingTeamInvitesProjection
+                {
+                    InviteRecipient = x.InviteRecipient,
+                    InviteSentBy = x.InviteSentBy,
+                    InviteCreatedAt = x.InviteCreatedAt
+                }).ToListAsync();
+
+            if(pendingInvites == null)
+            {
+                return null;
+            }
+
+            return pendingInvites;
+
+
+
         }
     }
 }

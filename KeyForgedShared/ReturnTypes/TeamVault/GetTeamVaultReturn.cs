@@ -9,6 +9,7 @@ namespace KeyForgedShared.ReturnTypes.TeamVault
     public class GetTeamVaultReturn
     {
 
+        public string TeamVaultId { get; set; }
         public string TeamVaultName { get; set; }
 
         public string TeamVaultDescription { get; set; }

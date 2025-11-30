@@ -1,14 +1,18 @@
 
-using Microsoft.EntityFrameworkCore;
-using TeamInviteAPI.DataContext;
-using TeamInviteAPI.Interfaces.Repos;
-using TeamInviteAPI.Services;
-using TeamInviteAPI.Repos;
-using KeyForgedShared.SharedDataModels;
 using gRPCIntercommunicationService;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
+using KeyForgedShared.SharedDataModels;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 using TeamInviteAPI.BackgroundConsumers.Accounts;
 using TeamInviteAPI.BackgroundConsumers.TeamConsumer;
 using TeamInviteAPI.BackgroundConsumers.TeamVaults;
+using TeamInviteAPI.DataContext;
+using TeamInviteAPI.Interfaces.Repos;
+using TeamInviteAPI.Interfaces.Services;
+using TeamInviteAPI.Repos;
+using TeamInviteAPI.Services;
 
 namespace TeamInviteAPI
 {
@@ -52,6 +56,11 @@ namespace TeamInviteAPI
                 options.UseSqlServer(connectionString);
             });
 
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
+
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
             builder.Services.AddScoped<ITeamRepo, TeamRepo>();
             builder.Services.AddScoped<ITeamInviteRepo, TeamInviteRepo>();
@@ -67,6 +76,9 @@ namespace TeamInviteAPI
             builder.Services.AddHostedService<CreateTeamVault>();
             builder.Services.AddHostedService<DeleteTeamVault>();
             builder.Services.AddHostedService<UpdateTeamVault>();
+
+            builder.Services.AddScoped<ITeamInviteService, TeamInviteService>();
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
 
             var app = builder.Build();
 

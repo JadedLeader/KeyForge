@@ -50,10 +50,11 @@ interface UpdateTeamVaultResponse {
 }
 
 interface GetTeamVaultRequest { 
-    teamVaultId: string; 
+    teamId: string; 
 }
 
 interface GetTeamVaultResponse { 
+    teamVaultId: string;
     teamVaultName: string; 
     teamVaultDescription: string; 
     currentStatus: string; 
@@ -260,18 +261,19 @@ export async function UpdateTeamVault(teamVaultId: string, teamVaultName: string
 
 }
 
-function BuildGetTeamVaultRequest(teamVaultId: string): GetTeamVaultRequest { 
+function BuildGetTeamVaultRequest(teamId: string): GetTeamVaultRequest { 
 
     const newRequest: GetTeamVaultRequest = {
-        teamVaultId: teamVaultId
+        teamId: teamId
     }; 
 
     return newRequest;
 
 }
 
-function BuildGetTeamVaultResponse(teamVaultName: string,teamVaultDescription: string,currentStatus: string, success: boolean): GetTeamVaultResponse { 
+function BuildGetTeamVaultResponse(teamVaultId: string, teamVaultName: string,teamVaultDescription: string,currentStatus: string, success: boolean): GetTeamVaultResponse { 
     const newResponse: GetTeamVaultResponse = {
+        teamVaultId: teamVaultId,
         teamVaultName: teamVaultName,
         teamVaultDescription: teamVaultDescription,
         currentStatus: currentStatus,
@@ -281,9 +283,9 @@ function BuildGetTeamVaultResponse(teamVaultName: string,teamVaultDescription: s
     return newResponse;
 }
 
-export async function GetTeamVault(teamVaultId: string): Promise<GetTeamVaultResponse> { 
+export async function GetTeamVault(teamId: string): Promise<GetTeamVaultResponse> { 
 
-    const requestBody = BuildGetTeamVaultRequest(teamVaultId);
+    const requestBody = BuildGetTeamVaultRequest(teamId);
 
     const fetchTeamVault = await fetch("/TeamVault/GetTeamVault", {
         method: "POST",
@@ -302,7 +304,7 @@ export async function GetTeamVault(teamVaultId: string): Promise<GetTeamVaultRes
 
     const jsonBody = await fetchTeamVault.json();
 
-    const response = BuildGetTeamVaultResponse(jsonBody.teamVaultName, jsonBody.teamVaultDescription, jsonBody.currentStatus, jsonBody.success);
+    const response = BuildGetTeamVaultResponse(jsonBody.teamVaultId, jsonBody.teamVaultName, jsonBody.teamVaultDescription, jsonBody.currentStatus, jsonBody.success);
 
     return response;
 

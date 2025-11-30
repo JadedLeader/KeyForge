@@ -294,6 +294,7 @@ export function VaultDashboard({ vaults, reloadVaults }: VaultDashboardProps) {
     const [isExpandOpen, setIsExpandOpen] = useState<string | null>();
     const [editOpen, setEditOpen] = useState<string | null>();
 
+
     const handleRevealKey = async (encryptedKey: string, vaultId: string, vaultKeyId: string) => {
 
 
@@ -592,9 +593,13 @@ export function HomePage() {
     const [teamsWithNoVaults, setTeamsWithNoVaults] = useState<Team[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [teamDropDownOpen, setTeamDropDownOpen] = useState(false);
-    const [vaultOverviewOpen, setVaultOverviewOpen] = useState(true);
-    const [teamViewOpen, setTeamViewOpen] = useState(false);
+    const [selectTeamVaultId, setSelectedTeamVaultId] = useState<string | null>(null);
+    const [selectedTeamName, setSelectedTeamName] = useState<string | null>(null);
 
+    const handleTeamClick = (team :Team) => { 
+        setSelectedTeamVaultId(team.id);
+        setSelectedTeamName(team.teamName);
+    }
    
     useEffect(() => {
 
@@ -654,6 +659,7 @@ export function HomePage() {
 
                                         <DropdownMenuItem
                                             className="bg-transparent normal-text hover:underline"
+                                            onClick={() => setSelectedTeamVaultId(null)}
                                         >
                                             Vault Overview
                                         </DropdownMenuItem>
@@ -704,7 +710,7 @@ export function HomePage() {
                             <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
 
                             <div>
-                                <Label className="title-text mb-6 px-2">Team Vaults:</Label>
+                                <Label className="title-text mb-6 px-2">Team Names:</Label>
 
                                 <ItemGroup className="flex flex-col p-1 ">
                                     {teams.map((team) => (
@@ -714,6 +720,7 @@ export function HomePage() {
                                             key={team.id}
                                             asChild
                                             className="normal-text bg-transparent hover:underline"
+                                            onClick={() => handleTeamClick(team)}
                                         >
 
                                             <Button onClick={() => console.log("Team id clicked", team.id)} className="justify-start text-left normal-text">{team.teamName}</Button>
@@ -776,22 +783,24 @@ export function HomePage() {
 
                     <div className="top-0 z-20 p-4 h-24 justify-between">
                         <h1 className="font-semibold text-neutral-50 text-xl p-2 transition hover:[text-shadow:0_0_15px_#48abe0]">
-                            Dashboard
+                            {selectTeamVaultId ? `${selectedTeamName}'s Team Vault` : "Dashboard"}
                         </h1>
                     </div>
 
                     <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
 
-                        {vaultOverviewOpen ? (
-                            <VaultDashboard
-                                vaults={vaults}
-                                reloadVaults={async () => {
-                                    const reload = await GetVaultsAndKeys();
-                                    setVaults(reload);
-                                }}
-                            />
+                        {selectTeamVaultId ? (
+
+                            <TeamVaultDashboard teamId={selectTeamVaultId}/>
+                            
                         ) : (
-                            <TeamVaultDashboard />
+                                <VaultDashboard
+                                    vaults={vaults}
+                                    reloadVaults={async () => {
+                                        const reload = await GetVaultsAndKeys();
+                                        setVaults(reload);
+                                    }}
+                                />
                         )}
 
                     </div>

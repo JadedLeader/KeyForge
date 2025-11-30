@@ -31,16 +31,14 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
     }
 }
 
-
-
-
 const apiTargets = {
     account: 'https://localhost:7003',
     auth: 'https://localhost:7010',
     vault: 'https://localhost:7149',
     vaultKeys: 'https://localhost:7130',
     Team: 'https://localhost:7285', 
-    TeamVault: 'https://localhost:7040'
+    TeamVault: 'https://localhost:7040', 
+    TeamInvite: 'https://localhost:7088'
 };
 
 
@@ -78,6 +76,11 @@ export default defineConfig({
                 target: apiTargets.vault,
                 changeOrigin: true,
                 secure: false,
+            },
+            '/TeamInvite': {
+                target: apiTargets.TeamInvite,
+                changeOrigin: true,
+                secure: false
             },
             '/TeamVault': { 
                 target: apiTargets.TeamVault, 

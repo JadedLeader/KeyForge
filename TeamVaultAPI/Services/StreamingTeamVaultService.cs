@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using gRPCIntercommunicationService;
+using Serilog;
 using System.Collections.Immutable;
 using TeamVaultAPI.Interfaces.Services;
 using TeamVaultAPI.Storage;
@@ -21,16 +22,22 @@ namespace TeamVaultAPI.Services
             while (!context.CancellationToken.IsCancellationRequested)
             {
 
+                Log.Information("Client connected to vault creation stream");
+
                 ImmutableList<StreamTeamVaultCreationResponse> vaultCreations = _streamingStorage.ReturnSteamTeamVaultCreations();
 
                 foreach (StreamTeamVaultCreationResponse createdVault in vaultCreations)
                 {
+
+                    Log.Information($"Sending team vault to be created {createdVault.TeamVaultName}");
 
                     await responseStream.WriteAsync(createdVault);
 
                 }
 
                 _streamingStorage.ClearStreamTeamVaultCreations();
+
+                await Task.Delay(250, context.CancellationToken);
 
             }
         }

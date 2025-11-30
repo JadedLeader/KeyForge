@@ -205,7 +205,7 @@ namespace TeamVaultAPI.Services
         {
             GetTeamVaultReturn getTeamVaultResponse = new GetTeamVaultReturn();
 
-            if (string.IsNullOrWhiteSpace(getTeamVault.TeamVaultId))
+            if (string.IsNullOrWhiteSpace(getTeamVault.TeamId))
             {
                 getTeamVaultResponse.Success = false; 
 
@@ -214,7 +214,7 @@ namespace TeamVaultAPI.Services
 
             Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
 
-            TeamVaultDataModel? teamVault = await _teamVaultRepo.FindSingleRecordViaId<TeamVaultDataModel>(Guid.Parse(getTeamVault.TeamVaultId));
+            TeamVaultDataModel? teamVault = await _teamVaultRepo.FindTeamVaultViaTeamId(Guid.Parse(getTeamVault.TeamId));
 
             if (teamVault == null)
             {
@@ -223,6 +223,7 @@ namespace TeamVaultAPI.Services
                 return getTeamVaultResponse;
             }
 
+            getTeamVaultResponse.TeamVaultId = teamVault.Id.ToString();
             getTeamVaultResponse.TeamVaultName = teamVault.TeamVaultName; 
             getTeamVaultResponse.TeamVaultDescription = teamVault.TeamVaultDescription;
             getTeamVaultResponse.CurrentStatus = teamVault.CurrentStatus;
