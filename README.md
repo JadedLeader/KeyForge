@@ -64,6 +64,13 @@ Each API has its own database connection string. These **must be added locally**
 }
 ```
 
+### **Team Invite API**
+```json
+"ConnectionStrings": {
+  "TeamInviteAPIConnection": ""
+}
+```
+
 # Applying Entity Framework Core Migrations (Per API via .NET CLI)
 
 Each API in the solution maintains its own database.  
@@ -119,6 +126,7 @@ dotnet ef database update --project TeamVaultAPI
 10. Under "Action" select "Start" on the "ReactClient"
 11. Under "Action" select "Start" on the "TeamAPI"
 12. Under "Action" select "Start" on the "TeamVaultAPI"
+13. 12. Under "Action" select "Start" on the "TeamInviteAPI"
    
 
 
