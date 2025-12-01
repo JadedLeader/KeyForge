@@ -7,6 +7,9 @@ namespace TeamInviteAPI.Interfaces.Services
     {
         Task<CreateTeamInviteReturn> CreateTeamInvite(CreateTeamInviteDto teamInvite, string shortLivedToken);
         Task RejectAllTeamInvites(string shortLivedToken);
-        Task RejectTeamInvite(string shortLivedToken);
+
+        Task<GetCurrentPendingTeamInvitesReturn> GetCurrentPendingTeamInvites(GetCurrentPendingTeamInvitesDto getCurrentPendingInvites, string shortLivedToken);
+
+        Task<RejectTeamInviteReturn> RejectTeamInvite(RejectTeamInviteDto rejectTeamInvite, string shortLivedToken);
     }
 }

@@ -14,5 +14,7 @@ namespace TeamInviteAPI.Interfaces.Repos
         Task<TeamDataModel> UpdateAsync(TeamDataModel databaseModel);
 
         Task<bool> HasTeamVaultAndTeamInvitesOpen(Guid teamVaultId);
+
+        Task<bool> OwnerOfTeam(Guid accountId);
     }
 }

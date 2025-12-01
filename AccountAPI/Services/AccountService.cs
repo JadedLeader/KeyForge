@@ -12,6 +12,8 @@ using KeyForgedShared.ReturnTypes.Accounts;
 using System.Data.SqlTypes;
 using KeyForgedShared.DTO_s.AccountDTO_s;
 using System.Collections.Immutable;
+using AccountAPI.DomainServices;
+using AccountAPI.Interfaces.DomainServices;
 
 namespace AccountAPI.Services
 {
@@ -24,11 +26,14 @@ namespace AccountAPI.Services
 
         private readonly IJwtHelper _jwtHelper;
 
-        public AccountService(IAccountRepo accountRepo, Channel<StreamAccountResponse> streamAccountResponseChannel, StreamStorage streamStorage, IJwtHelper jtwHelper)
+        private readonly IAccountDomainService _accountDomain;
+
+        public AccountService(IAccountRepo accountRepo, Channel<StreamAccountResponse> streamAccountResponseChannel, StreamStorage streamStorage, IJwtHelper jtwHelper, IAccountDomainService accountDomain)
         {
             _accountRepo = accountRepo;
             _streamStorage = streamStorage;
             _jwtHelper = jtwHelper;
+            _accountDomain = accountDomain;
             
         }
 
@@ -40,32 +45,29 @@ namespace AccountAPI.Services
         /// <returns>A create account response, returning the username added and the password</returns>
         public async Task<CreateAccountReturn> CreateAccount(CreateAccountDto request)
         {
+            CreateAccountReturn createdAccount = new();
 
-            AccountDataModel mappingRequestToAccount = MapRequestToAccount(request);
-
-            CreateAccountReturn createdAccount = new CreateAccountReturn();
-
-            if(mappingRequestToAccount.Username == string.Empty || request.Password == string.Empty)
+            if (!await _accountDomain.ValidateCreateAccount(request))
             {
-                createdAccount.Username = "";
-                createdAccount.Password = "";
                 createdAccount.Success = false;
+
+                return createdAccount;
             }
 
             string passwordEncrypted = EncryptPassword(request.Password);
 
-            mappingRequestToAccount.Password = passwordEncrypted;
+            AccountDataModel mapToAccount = MapToAccount(request, passwordEncrypted);
 
-            await _accountRepo.CreateAccount(mappingRequestToAccount);
+            await _accountRepo.CreateAccount(mapToAccount);
 
-            createdAccount.Username = mappingRequestToAccount.Username;
+            StreamAccountResponse addingToChannel = MapAccountModelToStream(mapToAccount);
+
+            _streamStorage.AddToAccountCreationStream(addingToChannel);
+
+            createdAccount.Username = request.Username;
             createdAccount.Password = passwordEncrypted;
             createdAccount.Success = true;
 
-            StreamAccountResponse addingToChannel = MapAccountModelToStream(mappingRequestToAccount);
-
-            _streamStorage.AddToAccountCreationStream(addingToChannel);
-     
             return createdAccount;
 
         }
@@ -90,29 +92,28 @@ namespace AccountAPI.Services
                 }
 
                 _streamStorage.ClearAccountCreationStream();
+
+                await Task.Delay(250, context.CancellationToken);
             }
             
         }
 
         public async Task<DeleteAccountReturn> RemoveAccount(DeleteAccountDto request)
         {
-            AccountDataModel checkForExistingAccount = await _accountRepo.CheckForExistingAccount(Guid.Parse(request.AccountId));
-
             DeleteAccountReturn serverResponse = new DeleteAccountReturn();
 
-            if (checkForExistingAccount.Id == Guid.Empty)
+            if (!await _accountDomain.ValidateDeleteAccount(request))
             {
-                Log.Error($"No Account with ID {request.AccountId} could be found"); 
-                serverResponse.Success = false; 
-                
+                serverResponse.Success = false;
+
                 return serverResponse;
             }
 
-            _streamStorage.AddToAccountDeletionStream(checkForExistingAccount.Id);
+            _streamStorage.AddToAccountDeletionStream(Guid.Parse(request.AccountId));
 
-            await _accountRepo.DeleteAccount(checkForExistingAccount);
+            await _accountDomain.DeleteAccount(Guid.Parse(request.AccountId));
 
-            serverResponse.AccountId = checkForExistingAccount.Id.ToString();
+            serverResponse.AccountId = request.AccountId;
             serverResponse.Success = true;
 
             return serverResponse;
@@ -266,6 +267,21 @@ namespace AccountAPI.Services
             };
 
             return response;
+        }
+
+        private AccountDataModel MapToAccount(CreateAccountDto createAccount, string encryptedPassword)
+        {
+            AccountDataModel newModel = new AccountDataModel
+            {
+                Id = Guid.NewGuid(),
+                Username = createAccount.Username,
+                Password = encryptedPassword,
+                AccountCreated = DateTime.Now,
+                AuthorisationLevel = AuthRoles.User,
+                Email = createAccount.Email,
+            };
+
+            return newModel;
         }
 
 

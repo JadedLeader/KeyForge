@@ -61,7 +61,8 @@ namespace TeamInviteAPI.Repos
                 {
                     InviteRecipient = x.InviteRecipient,
                     InviteSentBy = x.InviteSentBy,
-                    InviteCreatedAt = x.InviteCreatedAt
+                    InviteCreatedAt = x.InviteCreatedAt, 
+                    TeamInviteId = x.Id.ToString(),
                 }).ToListAsync();
 
             if(pendingInvites == null)
@@ -73,6 +74,20 @@ namespace TeamInviteAPI.Repos
 
 
 
+        }
+
+        public async Task<TeamInviteDataModel> GetTeamInviteViateamVautAndRecipient(string recipientEmail, Guid TeamVaultId)
+        {
+
+            TeamInviteDataModel? teamInviteRecord = await _teamInviteRepo.TeamInvite.Where(x => x.TeamVaultId == TeamVaultId && x.InviteRecipient == recipientEmail).FirstOrDefaultAsync();
+
+            if(teamInviteRecord == null)
+            {
+
+                return null;
+            }
+
+            return teamInviteRecord;
         }
     }
 }

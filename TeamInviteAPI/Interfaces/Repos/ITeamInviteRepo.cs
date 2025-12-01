@@ -1,4 +1,5 @@
 ﻿using KeyForgedShared.Interfaces;
+using KeyForgedShared.Projections.TeamInviteProjections;
 using KeyForgedShared.SharedDataModels;
 
 namespace TeamInviteAPI.Interfaces.Repos
@@ -12,5 +13,9 @@ namespace TeamInviteAPI.Interfaces.Repos
         Task<T?> FindSingleRecordViaId<T>(Guid id) where T : IEntity;
         Task<bool> HasModel<T>(Guid id) where T : IEntity;
         Task<TeamInviteDataModel> UpdateAsync(TeamInviteDataModel databaseModel);
+
+        Task<List<PendingTeamInvitesProjection>> GetTeamVaultPendingInvites(Guid teamVaultId);
+        Task<TeamInviteDataModel> GetTeamInviteViateamVautAndRecipient(string recipientEmail, Guid TeamVaultId);
+
     }
 }

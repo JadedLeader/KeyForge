@@ -68,7 +68,7 @@ import {
     ItemGroup
 } from "@/components/ui/item"
 import { Separator } from "../src/components/ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { EditVaultModal } from "@/components/Vaults/EditVaultModal"
 import { GetUserAccountDetails } from "@/components/api/Account"
@@ -544,27 +544,12 @@ export function BuildCeateVaultModal({dialogOpen, setDialogOpen, reloadVaults, t
 
 }
 
-export function BuildAvatarAndUsernameSideBarSegment() { 
 
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-
-    useEffect(() => {
-
-        const buildAvatarData = async () => {
-
-            
-            const response = await GetUserAccountDetails();
-
-            setUsername(response.username);
-            setEmail(response.email);
-        };
-
-        buildAvatarData();
-
-    }, []);
-
-   
+interface BuildAvatarAndUsernameProps { 
+    username: string; 
+    email: string;
+}
+export function BuildAvatarAndUsernameSideBarSegment({username, email } : BuildAvatarAndUsernameProps) { 
 
     return (
 
@@ -595,6 +580,8 @@ export function HomePage() {
     const [teamDropDownOpen, setTeamDropDownOpen] = useState(false);
     const [selectTeamVaultId, setSelectedTeamVaultId] = useState<string | null>(null);
     const [selectedTeamName, setSelectedTeamName] = useState<string | null>(null);
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
 
     const handleTeamClick = (team :Team) => { 
         setSelectedTeamVaultId(team.id);
@@ -616,6 +603,12 @@ export function HomePage() {
             const teamResponse = await GetTeams();
 
             setTeams(teamResponse);
+
+            const usernameAndEmail = await GetUserAccountDetails();
+
+            setUsername(usernameAndEmail.username); 
+            setEmail(usernameAndEmail.email);
+
         }; 
 
         fetchToken();
@@ -635,7 +628,7 @@ export function HomePage() {
 
                         <div className="flex flex-col">
 
-                            <BuildAvatarAndUsernameSideBarSegment />
+                            <BuildAvatarAndUsernameSideBarSegment username={username} email={email} />
 
                             <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
 

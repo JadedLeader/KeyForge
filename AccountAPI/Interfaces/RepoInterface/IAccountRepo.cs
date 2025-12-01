@@ -1,4 +1,5 @@
-﻿using KeyForgedShared.ReturnTypes.Accounts;
+﻿using KeyForgedShared.Interfaces;
+using KeyForgedShared.ReturnTypes.Accounts;
 using KeyForgedShared.SharedDataModels;
 
 namespace AccountAPI.Interfaces.RepoInterface
@@ -15,6 +16,12 @@ namespace AccountAPI.Interfaces.RepoInterface
         public Task<GetAccountDetailsReturn> GetUserAccount(Guid accountId);
 
         public Task<string> GetHashedPassword(Guid accountId);
+
+        Task<bool> EmailAlreadyExists(string email);
+
+        Task<T?> FindSingleRecordViaId<T>(Guid id) where T : IEntity;
+
+        Task<T> DeleteRecordViaId<T>(Guid id) where T : IEntity;
 
 
 

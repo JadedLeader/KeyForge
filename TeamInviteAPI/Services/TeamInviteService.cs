@@ -1,29 +1,34 @@
-﻿using KeyForgedShared.DTO_s.TeamInviteDTO_s;
+﻿using Google.Protobuf.WellKnownTypes;
+using gRPCIntercommunicationService;
+using KeyForgedShared.DTO_s.TeamInviteDTO_s;
 using KeyForgedShared.Enums;
 using KeyForgedShared.Interfaces;
+using KeyForgedShared.Projections.TeamInviteProjections;
 using KeyForgedShared.ReturnTypes.TeamInvite;
 using KeyForgedShared.SharedDataModels;
+using KeyForgedShared.ValidationType;
+using System.ComponentModel.DataAnnotations;
+using TeamInviteAPI.DomainServices;
+using TeamInviteAPI.Interfaces.DomainServices;
 using TeamInviteAPI.Interfaces.Repos;
 using TeamInviteAPI.Interfaces.Services;
+using TeamInviteAPI.StreamingStorage;
+
 
 namespace TeamInviteAPI.Services
 {
     public class TeamInviteService : ITeamInviteService
     {
 
-        private readonly IAccountRepo _accountRepo;
-        private readonly ITeamRepo _teamRepo;
-        private readonly ITeamVaultRepo _teamVaultRepo;
-        private readonly ITeamInviteRepo _inviteRepo;
+        private readonly ITeamInviteDomainService _teamInviteDomain;
         private readonly IJwtHelper _jwtHelper;
+        private readonly TeamInviteStreamingStorage _streamingStorage;
 
-        public TeamInviteService(IAccountRepo accountRepo, ITeamRepo teamRepo, ITeamVaultRepo teamVaultRepo, ITeamInviteRepo inviteRepo, IJwtHelper jwtHelper)
+        public TeamInviteService(ITeamInviteDomainService teamInviteDomain, IJwtHelper jwtHelper, TeamInviteStreamingStorage streamingStorage)
         {
-            _accountRepo = accountRepo;
-            _teamRepo = teamRepo;
-            _teamVaultRepo = teamVaultRepo;
-            _inviteRepo = inviteRepo;
+            _teamInviteDomain = teamInviteDomain;
             _jwtHelper = jwtHelper;
+            _streamingStorage = streamingStorage;
         }
 
         public async Task<CreateTeamInviteReturn> CreateTeamInvite(CreateTeamInviteDto teamInvite, string shortLivedToken)
@@ -32,36 +37,20 @@ namespace TeamInviteAPI.Services
 
             Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
 
-            if (string.IsNullOrWhiteSpace(teamInvite.InviteRecipient) || accountId == Guid.Empty || string.IsNullOrWhiteSpace(teamInvite.TeamVaultId))
+            CreateInviteValidationResult validationResult = await _teamInviteDomain.ValidateInviteCreation(teamInvite, accountId);
+
+            if(!validationResult.ValidationSucess)
             {
                 teamInviteReturn.Success = false;
 
                 return teamInviteReturn;
             }
 
-            bool hasModel = await _teamRepo.HasTeamVaultAndTeamInvitesOpen(Guid.Parse(teamInvite.TeamVaultId));
+            TeamInviteDataModel teamInviteCreated = CreatedTeamInvite(accountId, Guid.Parse(teamInvite.TeamVaultId), validationResult.senderAccountEmail, teamInvite.InviteRecipient);
 
-            if (!hasModel)
-            {
-                teamInviteReturn.Success = false;
+            _streamingStorage.AddToTeamInviteCreations(MapTeamInviteToStreamResponse(teamInviteCreated));
 
-                return teamInviteReturn;
-            }
-
-            AccountDataModel? inviteRecipientAccount = await _accountRepo.FindAccountByEmailAddress(teamInvite.InviteRecipient);
-
-            AccountDataModel? inviteSenderAccount = await _accountRepo.FindSingleRecordViaId<AccountDataModel>(accountId);
-
-            if (inviteRecipientAccount == null || inviteSenderAccount == null )
-            {
-                teamInviteReturn.Success = false;
-
-                return teamInviteReturn;
-            }
-
-            TeamInviteDataModel teamInviteCreated = CreatedTeamInvite(accountId, Guid.Parse(teamInvite.TeamVaultId), inviteSenderAccount.Username, inviteRecipientAccount.Username);
-
-            await _inviteRepo.AddAsync(teamInviteCreated);
+            await _teamInviteDomain.CreateTeamInvite(teamInviteCreated);
 
             teamInviteReturn.Success = true;
             teamInviteReturn.InviteRecipient = teamInviteCreated.InviteRecipient;
@@ -72,24 +61,50 @@ namespace TeamInviteAPI.Services
 
         public async Task<GetCurrentPendingTeamInvitesReturn> GetCurrentPendingTeamInvites(GetCurrentPendingTeamInvitesDto getCurrentPendingInvites, string shortLivedToken)
         {
-            GetCurrentPendingTeamInvitesReturn getPendingInvitesResponse = new GetCurrentPendingTeamInvitesReturn();
+            GetCurrentPendingTeamInvitesReturn getPendingInvitesResponse = new();
 
             Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
 
-            if(string.IsNullOrWhiteSpace(getCurrentPendingInvites.TeamVaultId) || accountId == Guid.Empty)
+            GetPendingInvitesValidationResult pendingInvitesValidation = await _teamInviteDomain.ValidatePendingInvites(getCurrentPendingInvites, accountId);
+
+            if (!pendingInvitesValidation.PendingInvitesSuccess)
             {
-                getPendingInvitesResponse.Success = false;
+                getPendingInvitesResponse.Success = false; 
 
                 return getPendingInvitesResponse;
             }
 
-            throw new NotImplementedException();
+            getPendingInvitesResponse.PendingTeamInvites = pendingInvitesValidation.PendingTeamInvites;
+            getPendingInvitesResponse.Success = true; 
+
+            return getPendingInvitesResponse;
 
         }
 
-        public async Task RejectTeamInvite(string shortLivedToken)
+        public async Task<RejectTeamInviteReturn> RejectTeamInvite(RejectTeamInviteDto rejectTeamInvite, string shortLivedToken)
         {
-            throw new NotImplementedException();
+            RejectTeamInviteReturn rejectTeamInviteResponse = new();
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            bool rejectTeamInviteValidation = await _teamInviteDomain.ValidateTeamInviteRejection(rejectTeamInvite, accountId);
+
+            if (!rejectTeamInviteValidation)
+            {
+                rejectTeamInviteResponse.Success = false;
+
+                return rejectTeamInviteResponse;
+            }
+
+            _streamingStorage.AddToTeamInviteDeletions(new StreamTeamInviteDeletionResponse { TeamInviteId = rejectTeamInvite.TeamInviteId });
+
+            TeamInviteDataModel deletedTeamInvite = await _teamInviteDomain.DeleteTeamInvite(Guid.Parse(rejectTeamInvite.TeamInviteId));
+
+            rejectTeamInviteResponse.TeamInviteId = deletedTeamInvite.Id.ToString();
+            rejectTeamInviteResponse.Success = true;
+
+            return rejectTeamInviteResponse;
+
         }
 
         public async Task RejectAllTeamInvites(string shortLivedToken)
@@ -112,5 +127,23 @@ namespace TeamInviteAPI.Services
 
             return teamInvite;
         }
+
+        private StreamTeamInviteCreationsResponse MapTeamInviteToStreamResponse(TeamInviteDataModel teamInvite)
+        {
+            StreamTeamInviteCreationsResponse teamInviteCreation = new StreamTeamInviteCreationsResponse
+            {
+                TeamInviteId = teamInvite.Id.ToString(),
+                TeamVaultId = teamInvite.TeamVaultId.ToString(),
+                AccountId = teamInvite.AccountId.ToString(),
+                InviteSentBy = teamInvite.InviteSentBy,
+                InviteStatus = teamInvite.InviteStatus,
+                InviteCreatedAt = teamInvite.InviteCreatedAt,
+                InviteRecipient = teamInvite.InviteRecipient,
+            };
+
+            return teamInviteCreation;
+        }
+
+    
     }
 }

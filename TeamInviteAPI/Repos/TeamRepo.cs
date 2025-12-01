@@ -64,5 +64,17 @@ namespace TeamInviteAPI.Repos
 
         }
 
+        public async Task<bool> OwnerOfTeam(Guid accountId)
+        {
+            TeamDataModel? isOwnerOfTeam = await _teamRepo.Team.Where(x => x.CreatedBy == accountId.ToString()).FirstOrDefaultAsync();
+
+            if (isOwnerOfTeam == null)
+            {
+                return false; 
+            }
+
+            return true;
+        }
+
     }
 }

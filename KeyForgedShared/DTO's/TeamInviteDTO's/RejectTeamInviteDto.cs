@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace KeyForgedShared.DTO_s.TeamInviteDTO_s
 {
-    public class GetCurrentPendingTeamInvitesDto
+    public class RejectTeamInviteDto
     {
-        public string TeamVaultId { get; set; }
+
+        public string TeamInviteId { get; set; }
+
     }
 }

@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCIntercommunicationService";
+
+
+service TeamInvite{ 
+
+	rpc StreamTeamInviteCreations(StreamTeamInviteCreationsRequest) returns (stream StreamTeamInviteCreationsResponse); 
+	rpc StreamTeamInviteRejections(StreamTeamInviteDeletionRequest) returns (stream StreamTeamInviteDeletionResponse);
+
+}
+
+message StreamTeamInviteCreationsRequest{ 
+
+}
+
+message StreamTeamInviteCreationsResponse{ 
+
+	string teamInviteId = 1; 
+	string accountId = 2; 
+	string teamVaultId = 3; 
+	string inviteSentBy = 4; 
+	string inviteRecipient = 5; 
+	string inviteStatus = 6; 
+	string inviteCreatedAt = 7;
+
+}
+
+message StreamTeamInviteDeletionRequest{ 
+
+}
+
+message StreamTeamInviteDeletionResponse { 
+
+	string teamInviteId = 1;
+
+}

@@ -23,14 +23,11 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="StreamingStorage\" />
-  </ItemGroup>
-
 	<ItemGroup>
 		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Account.proto" GrpcServices="Client" />
 		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Team.proto" GrpcServices="Client" />
 		<Protobuf Include="..\gRPCIntercommunicationService\Protos\TeamVault.proto" GrpcServices="Client" />
+		<Protobuf Include="..\gRPCIntercommunicationService\Protos\TeamInvite.proto" GrpcServices="Server" />
 
 	</ItemGroup>
 

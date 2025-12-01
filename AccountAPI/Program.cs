@@ -1,5 +1,7 @@
 
 using AccountAPI.DataContext;
+using AccountAPI.DomainServices;
+using AccountAPI.Interfaces.DomainServices;
 using AccountAPI.Interfaces.RepoInterface;
 using AccountAPI.Interfaces.ServiceInterface;
 using AccountAPI.Repos;
@@ -29,6 +31,7 @@ namespace AccountAPI.Server
             builder.Services.AddScoped<IAccountService, AccountService>();
             builder.Services.AddSingleton<StreamStorage>();
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
+            builder.Services.AddScoped<IAccountDomainService, AccountDomainService>();
 
             builder.Services.AddSingleton(Channel.CreateUnbounded<StreamAccountResponse>());
 

@@ -9,10 +9,13 @@ using TeamInviteAPI.BackgroundConsumers.Accounts;
 using TeamInviteAPI.BackgroundConsumers.TeamConsumer;
 using TeamInviteAPI.BackgroundConsumers.TeamVaults;
 using TeamInviteAPI.DataContext;
+using TeamInviteAPI.DomainServices;
+using TeamInviteAPI.Interfaces.DomainServices;
 using TeamInviteAPI.Interfaces.Repos;
 using TeamInviteAPI.Interfaces.Services;
 using TeamInviteAPI.Repos;
 using TeamInviteAPI.Services;
+using TeamInviteAPI.StreamingStorage;
 
 namespace TeamInviteAPI
 {
@@ -28,6 +31,7 @@ namespace TeamInviteAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGrpc();
 
             builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {
@@ -65,6 +69,7 @@ namespace TeamInviteAPI
             builder.Services.AddScoped<ITeamRepo, TeamRepo>();
             builder.Services.AddScoped<ITeamInviteRepo, TeamInviteRepo>();
             builder.Services.AddScoped<ITeamVaultRepo, TeamVaultRepo>();
+            builder.Services.AddScoped<ITeamInviteDomainService, TeamInviteDomainService>();
 
             builder.Services.AddHostedService<CreateAccount>(); 
             builder.Services.AddHostedService<DeleteAccount>();
@@ -80,6 +85,8 @@ namespace TeamInviteAPI
             builder.Services.AddScoped<ITeamInviteService, TeamInviteService>();
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
 
+            builder.Services.AddSingleton<TeamInviteStreamingStorage>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -93,6 +100,7 @@ namespace TeamInviteAPI
 
             app.UseAuthorization();
 
+            app.MapGrpcService<TeamInviteStreamingService>();
 
             app.MapControllers();
 

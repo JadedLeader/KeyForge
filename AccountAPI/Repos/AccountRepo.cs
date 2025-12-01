@@ -5,14 +5,15 @@ using AccountAPI.Interfaces.RepoInterface;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using KeyForgedShared.ReturnTypes.Accounts;
+using KeyForgedShared.Generics;
 
 namespace AccountAPI.Repos
 {
-    public class AccountRepo : IAccountRepo
+    public class AccountRepo : GenericRepository<AccountDataContext>, IAccountRepo
     {
 
         private readonly AccountDataContext _accountDataContext;
-        public AccountRepo(AccountDataContext accountDataContext)
+        public AccountRepo(AccountDataContext accountDataContext) : base(accountDataContext)
         {
             _accountDataContext = accountDataContext;
         }
@@ -86,6 +87,29 @@ namespace AccountAPI.Repos
             return getPasswordForUser;
 
         }
+
+        public async Task<bool> EmailAlreadyExists(string email)
+        {
+            bool doesEmailAlreadyExist = await _accountDataContext.Account.AnyAsync(x => x.Email == email);
+
+            if (!doesEmailAlreadyExist)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override Task<T?> FindSingleRecordViaId<T>(Guid id) where T : class
+        {
+            return base.FindSingleRecordViaId<T>(id);
+        }
+
+        public override Task<T> DeleteRecordViaId<T>(Guid id) where T: class
+        {
+            return base.DeleteRecordViaId<T>(id);
+        }
+
 
     }
 }
