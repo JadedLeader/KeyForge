@@ -78,6 +78,7 @@ import { DeleteAllKeysFromVault, DecryptVaultKey, CreateNewVaultKey, GetVaultsAn
 import { CreateTeamModal } from "@/components/Team/CreateTeamModal"
 import {GetTeams } from "@/components/api/Team"
 import TeamVaultDashboard from "../src/components/Team/TeamVaultDashboard"
+import {UseTeamInvites } from "@/components/Hubs/TeamInvitesHub"
 
 
 interface CreateVaultWithKeysResponse { 
@@ -618,6 +619,19 @@ export function HomePage() {
 
     }, []);
 
+    const teamInvites = UseTeamInvites(email);
+
+    useEffect(() => { 
+
+        if (teamInvites.length === 0) { 
+            return;
+        }
+
+        const latestNotification = teamInvites[teamInvites.length - 1];
+
+        toast.success(`${latestNotification.inviteSentBy} has invited you to join a team!`);
+
+    }, [teamInvites])
 
     return (
         <div className="flex relative h-screen">

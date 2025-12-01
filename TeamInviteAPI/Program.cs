@@ -3,6 +3,7 @@ using gRPCIntercommunicationService;
 using KeyForgedShared.Helpers;
 using KeyForgedShared.Interfaces;
 using KeyForgedShared.SharedDataModels;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using TeamInviteAPI.BackgroundConsumers.Accounts;
@@ -10,6 +11,7 @@ using TeamInviteAPI.BackgroundConsumers.TeamConsumer;
 using TeamInviteAPI.BackgroundConsumers.TeamVaults;
 using TeamInviteAPI.DataContext;
 using TeamInviteAPI.DomainServices;
+using TeamInviteAPI.Hubs;
 using TeamInviteAPI.Interfaces.DomainServices;
 using TeamInviteAPI.Interfaces.Repos;
 using TeamInviteAPI.Interfaces.Services;
@@ -32,6 +34,7 @@ namespace TeamInviteAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddGrpc();
+            
 
             builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {
@@ -60,6 +63,18 @@ namespace TeamInviteAPI
                 options.UseSqlServer(connectionString);
             });
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactDev",
+                    policy => policy
+                        .WithOrigins("https://localhost:5173") 
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials()); 
+            });
+
+            builder.Services.AddSignalR();
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
@@ -86,6 +101,8 @@ namespace TeamInviteAPI
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
 
             builder.Services.AddSingleton<TeamInviteStreamingStorage>();
+            builder.Services.AddSingleton<ISignalRInviteService, SignalRInviteService>();
+          
 
             var app = builder.Build();
 
@@ -98,9 +115,12 @@ namespace TeamInviteAPI
 
             app.UseHttpsRedirection();
 
+            app.UseCors("AllowReactDev");
+
             app.UseAuthorization();
 
             app.MapGrpcService<TeamInviteStreamingService>();
+            app.MapHub<InviteHub>("/inviteHub");
 
             app.MapControllers();
 

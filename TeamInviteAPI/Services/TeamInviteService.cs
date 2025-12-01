@@ -23,12 +23,14 @@ namespace TeamInviteAPI.Services
         private readonly ITeamInviteDomainService _teamInviteDomain;
         private readonly IJwtHelper _jwtHelper;
         private readonly TeamInviteStreamingStorage _streamingStorage;
+        private readonly ISignalRInviteService _signalRInviteService;
 
-        public TeamInviteService(ITeamInviteDomainService teamInviteDomain, IJwtHelper jwtHelper, TeamInviteStreamingStorage streamingStorage)
+        public TeamInviteService(ITeamInviteDomainService teamInviteDomain, IJwtHelper jwtHelper, TeamInviteStreamingStorage streamingStorage, ISignalRInviteService signalRInviteService)
         {
             _teamInviteDomain = teamInviteDomain;
             _jwtHelper = jwtHelper;
             _streamingStorage = streamingStorage;
+            _signalRInviteService = signalRInviteService;
         }
 
         public async Task<CreateTeamInviteReturn> CreateTeamInvite(CreateTeamInviteDto teamInvite, string shortLivedToken)
@@ -51,6 +53,8 @@ namespace TeamInviteAPI.Services
             _streamingStorage.AddToTeamInviteCreations(MapTeamInviteToStreamResponse(teamInviteCreated));
 
             await _teamInviteDomain.CreateTeamInvite(teamInviteCreated);
+
+            await _signalRInviteService.PushInviteToHub(teamInviteCreated);
 
             teamInviteReturn.Success = true;
             teamInviteReturn.InviteRecipient = teamInviteCreated.InviteRecipient;
