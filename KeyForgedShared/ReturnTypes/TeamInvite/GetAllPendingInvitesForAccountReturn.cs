@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KeyForgedShared.ValidationType
+namespace KeyForgedShared.ReturnTypes.TeamInvite
 {
-    public class GetPendingInvitesValidationResult
+    public class GetAllPendingInvitesForAccountReturn
     {
 
-
         public List<PendingTeamInvitesProjection> PendingTeamInvites = new();
-        public bool isValidated { get;set; }
+
+        public bool Success { get; set; }
 
     }
 }

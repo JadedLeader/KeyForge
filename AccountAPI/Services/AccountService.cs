@@ -14,6 +14,7 @@ using KeyForgedShared.DTO_s.AccountDTO_s;
 using System.Collections.Immutable;
 using AccountAPI.DomainServices;
 using AccountAPI.Interfaces.DomainServices;
+using KeyForgedShared.ValidationType;
 
 namespace AccountAPI.Services
 {
@@ -151,36 +152,22 @@ namespace AccountAPI.Services
 
         public async Task<GetAccountDetailsReturn> GetAccountDetails(string shortLivedToken)
         {
+            GetAccountDetailsReturn getAccountResponse = new();
 
-            GetAccountDetailsReturn getAccountResponse = new GetAccountDetailsReturn();
+            Guid accountIdFromToken = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
 
-            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+            GetAccountValidationResult validated = await _accountDomain.ValidateGetAccountDetails(accountIdFromToken);
 
-            if(accountIdFromToken == string.Empty)
+            if (!validated.IsValidated)
             {
-                getAccountResponse.Username = "";
-                getAccountResponse.AccountCreated = "";
-                getAccountResponse.Email = "";
-                getAccountResponse.Success = false;
+                getAccountResponse.Success = false; 
 
                 return getAccountResponse;
             }
 
-            GetAccountDetailsReturn getAccountDetails = await _accountRepo.GetUserAccount(Guid.Parse(accountIdFromToken));
-
-            if(getAccountDetails == null)
-            {
-                getAccountResponse.Username = "";
-                getAccountResponse.AccountCreated = "";
-                getAccountResponse.Email = "";
-                getAccountResponse.Success = false;
-
-                return getAccountResponse;
-            }
-
-            getAccountResponse.Username = getAccountDetails.Username; 
-            getAccountResponse.Email = getAccountDetails.Email;
-            getAccountResponse.AccountCreated = getAccountDetails.AccountCreated;
+            getAccountResponse.Username = validated.AccountModel.Username; 
+            getAccountResponse.Email = validated.AccountModel.Email;
+            getAccountResponse.AccountCreated = validated.AccountModel.AccountCreated.ToString();
             getAccountResponse.Success = true;
 
             return getAccountResponse;
@@ -189,34 +176,13 @@ namespace AccountAPI.Services
 
         public async Task<CheckPasswordMatchReturn> CheckPasswordMatch(PasswordMatchDto passwordMatchRequest, string shortLivedToken)
         {
-            CheckPasswordMatchReturn checkPasswordMatchResponse = new CheckPasswordMatchReturn();
+            CheckPasswordMatchReturn checkPasswordMatchResponse = new();
 
-            string? accountIdFromToken = _jwtHelper.ReturnAccountIdFromToken(shortLivedToken);
+            Guid accountIdFromToken = Guid.Parse( _jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
 
-            if(accountIdFromToken == string.Empty)
+            if (!await _accountDomain.ValidatePasswordMatch(passwordMatchRequest, accountIdFromToken))
             {
-                checkPasswordMatchResponse.IsMatch = false;
-                checkPasswordMatchResponse.IsMatch = false;
-
-                return checkPasswordMatchResponse;
-            }
-
-            string? hashedPassword = await _accountRepo.GetHashedPassword(Guid.Parse(accountIdFromToken));
-
-            if(hashedPassword == string.Empty)
-            {
-                checkPasswordMatchResponse.IsMatch = false;
-                checkPasswordMatchResponse.IsMatch = false;
-
-                return checkPasswordMatchResponse;
-            }
-
-            bool isPasswordMatch = CheckPasswordMatchesHash(passwordMatchRequest.Password, hashedPassword);
-
-            if (!isPasswordMatch)
-            {
-                checkPasswordMatchResponse.IsMatch = false;
-                checkPasswordMatchResponse.IsMatch = false;
+                checkPasswordMatchResponse.Success = false; 
 
                 return checkPasswordMatchResponse;
             }
@@ -231,26 +197,6 @@ namespace AccountAPI.Services
         private string EncryptPassword(string userPassword)
         {
             return BCrypt.Net.BCrypt.EnhancedHashPassword(userPassword, 10);
-        }
-
-        private bool CheckPasswordMatchesHash(string passwordToCheck, string hashToCheck)
-        {
-            return BCrypt.Net.BCrypt.EnhancedVerify(passwordToCheck, hashToCheck);
-        }
-
-        private AccountDataModel MapRequestToAccount(CreateAccountDto createAccountRequest)
-        {
-            AccountDataModel newModel = new AccountDataModel
-            {
-                Id = Guid.NewGuid(),
-                Username = createAccountRequest.Username,
-                Password = createAccountRequest.Password,
-                AccountCreated = DateTime.Now,
-                AuthorisationLevel = AuthRoles.User,
-                Email = createAccountRequest.Email,
-            }; 
-
-            return newModel;
         }
 
         private StreamAccountResponse MapAccountModelToStream(AccountDataModel model)

@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>c51de909-6eaf-4425-9699-a95f88348c88</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+
+	<ItemGroup>
+		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Account.proto" GrpcServices="Client" />
+		<Protobuf Include="..\gRPCIntercommunicationService\Protos\Team.proto" GrpcServices="Client" />
+		<Protobuf Include="..\gRPCIntercommunicationService\Protos\TeamVault.proto" GrpcServices="Client" />
+		<Protobuf Include="..\gRPCIntercommunicationService\Protos\TeamInvite.proto" GrpcServices="Client" />
+
+	</ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="DomainService\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\gRPCIntercommunicationService\gRPCIntercommunicationService.csproj" />
+    <ProjectReference Include="..\KeyForgedShared\KeyForgedShared.csproj" />
+  </ItemGroup>
+
+</Project>

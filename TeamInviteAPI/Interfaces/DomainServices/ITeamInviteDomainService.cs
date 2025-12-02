@@ -14,5 +14,11 @@ namespace TeamInviteAPI.Interfaces.DomainServices
         Task<bool> ValidateTeamInviteRejection(RejectTeamInviteDto rejectTeamInvite, Guid accountId);
 
         Task<TeamInviteDataModel> DeleteTeamInvite(Guid teamInviteId);
+
+        Task<TeamInviteDataModel> UpdateTeamInvite(TeamInviteDataModel updateTeamInvite);
+
+        Task<UpdateTeamInviteValidationResult> ValidateUpdateTeamInvite(UpdateTeamInviteDto updateTeamInvite);
+
+        Task<GetPendingInvitesValidationResult> ValidateGetAllPendingInvitesForAccount(GetAllPendingInvitesForAccountDto pendingInvites, Guid accountId);
     }
 }

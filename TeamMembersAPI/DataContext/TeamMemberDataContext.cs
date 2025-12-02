@@ -1,12 +1,15 @@
 ﻿using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer;
 
-namespace TeamInviteAPI.DataContext
+namespace TeamMembersAPI.DataContext
 {
-    public class TeamInviteDataContext : DbContext
+    public class TeamMemberDataContext : DbContext
     {
+
         private readonly IConfiguration _config;
-        public TeamInviteDataContext(IConfiguration config)
+
+        public TeamMemberDataContext(IConfiguration config)
         {
             _config = config;
         }
@@ -17,7 +20,7 @@ namespace TeamInviteAPI.DataContext
 
             if(connectionString == null)
             {
-                throw new Exception($"Connection string for Team Invite API doesn't exist");
+                throw new Exception("Team member API connection string is not set");
             }
 
             optionsBuilder.UseSqlServer(connectionString);
@@ -50,5 +53,6 @@ namespace TeamInviteAPI.DataContext
 
         public DbSet<TeamInviteDataModel> TeamInvite { get; set; }
 
+        public DbSet<TeamMemberDataModel> TeamMember { get; set; }
     }
 }

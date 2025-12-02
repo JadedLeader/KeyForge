@@ -1,5 +1,6 @@
 ﻿using KeyForgedShared.DTO_s.AccountDTO_s;
 using KeyForgedShared.SharedDataModels;
+using KeyForgedShared.ValidationType;
 
 namespace AccountAPI.Interfaces.DomainServices
 {
@@ -8,5 +9,7 @@ namespace AccountAPI.Interfaces.DomainServices
         Task<AccountDataModel> DeleteAccount(Guid accountId);
         Task<bool> ValidateCreateAccount(CreateAccountDto createAccount);
         Task<bool> ValidateDeleteAccount(DeleteAccountDto deleteAccount);
+        Task<GetAccountValidationResult> ValidateGetAccountDetails(Guid accountId);
+        Task<bool> ValidatePasswordMatch(PasswordMatchDto passwordMatch, Guid accountId);
     }
 }

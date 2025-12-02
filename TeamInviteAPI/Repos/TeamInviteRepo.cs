@@ -3,6 +3,7 @@ using KeyForgedShared.Generics;
 using KeyForgedShared.Projections.TeamInviteProjections;
 using KeyForgedShared.SharedDataModels;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime;
 using TeamInviteAPI.DataContext;
 using TeamInviteAPI.Interfaces.Repos;
 
@@ -89,5 +90,20 @@ namespace TeamInviteAPI.Repos
 
             return teamInviteRecord;
         }
+
+        public async Task<List<PendingTeamInvitesProjection>> GetPendingInvitesForAccount(string recipeintEmail)
+        {
+            List<PendingTeamInvitesProjection> listOfPendingInvites = await _teamInviteRepo.TeamInvite.Where(x => x.InviteRecipient == recipeintEmail && x.InviteStatus == InviteStatus.Pending.ToString())
+                .Select(x => new PendingTeamInvitesProjection
+                {
+                    InviteSentBy = x.InviteSentBy,
+                    InviteCreatedAt = x.InviteCreatedAt,
+                    InviteRecipient = x.InviteRecipient,
+                    TeamInviteId = x.Id.ToString()
+                }).ToListAsync();
+
+            return listOfPendingInvites;
+        }
+
     }
 }

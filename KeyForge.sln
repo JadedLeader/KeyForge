@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyForgedShared", "KeyForge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamVaultAPI", "TeamVaultAPI\TeamVaultAPI.csproj", "{0C724BC2-96A6-4D77-B63B-78D46BB1570D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamMembersAPI", "TeamMembersAPI\TeamMembersAPI.csproj", "{B81FD1A9-83E8-4EFF-B9FF-4DD47342C0E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{0C724BC2-96A6-4D77-B63B-78D46BB1570D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C724BC2-96A6-4D77-B63B-78D46BB1570D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C724BC2-96A6-4D77-B63B-78D46BB1570D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B81FD1A9-83E8-4EFF-B9FF-4DD47342C0E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B81FD1A9-83E8-4EFF-B9FF-4DD47342C0E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B81FD1A9-83E8-4EFF-B9FF-4DD47342C0E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B81FD1A9-83E8-4EFF-B9FF-4DD47342C0E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,6 +3,7 @@ using KeyForgedShared.ReturnTypes.TeamInvite;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.InteropServices;
 using TeamInviteAPI.Interfaces.Services;
 
 namespace TeamInviteAPI.Controllers
@@ -72,6 +73,43 @@ namespace TeamInviteAPI.Controllers
 
             return Ok(rejectedTeaminvite); 
         }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateTeamInvite([FromBody] UpdateTeamInviteDto updateTeamInvite)
+        {
+            if(!Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                return Unauthorized();
+            }
+
+            UpdateTeamInviteReturn updatedTeamInvite = await _teamInviteService.UpdateTeamInvite(updateTeamInvite, cookie);
+
+            if (!updatedTeamInvite.Success)
+            {
+                return BadRequest(updatedTeamInvite);
+            }
+
+            return Ok(updatedTeamInvite);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetAllPendingInvitesForAccount([FromBody] GetAllPendingInvitesForAccountDto pendingInvites)
+        {
+            if(!Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
+            {
+                return Unauthorized();
+            }
+
+            GetAllPendingInvitesForAccountReturn getPendingInvites = await _teamInviteService.GetAllPendingInvitesForAccount(pendingInvites, cookie);
+
+            if (!getPendingInvites.Success)
+            {
+                return BadRequest(getPendingInvites);
+            }
+
+            return Ok(getPendingInvites);
+        }
+
 
     }
 }

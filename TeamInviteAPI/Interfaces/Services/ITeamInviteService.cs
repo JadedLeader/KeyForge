@@ -11,5 +11,9 @@ namespace TeamInviteAPI.Interfaces.Services
         Task<GetCurrentPendingTeamInvitesReturn> GetCurrentPendingTeamInvites(GetCurrentPendingTeamInvitesDto getCurrentPendingInvites, string shortLivedToken);
 
         Task<RejectTeamInviteReturn> RejectTeamInvite(RejectTeamInviteDto rejectTeamInvite, string shortLivedToken);
+
+        Task<UpdateTeamInviteReturn> UpdateTeamInvite(UpdateTeamInviteDto updateTeamInvite, string shortLivedToken);
+
+        Task<GetAllPendingInvitesForAccountReturn> GetAllPendingInvitesForAccount(GetAllPendingInvitesForAccountDto getPendingInvites, string shortLivedToken);
     }
 }

@@ -8,6 +8,7 @@ using KeyForgedShared.ReturnTypes.TeamInvite;
 using KeyForgedShared.SharedDataModels;
 using KeyForgedShared.ValidationType;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.Contracts;
 using TeamInviteAPI.DomainServices;
 using TeamInviteAPI.Interfaces.DomainServices;
 using TeamInviteAPI.Interfaces.Repos;
@@ -71,7 +72,7 @@ namespace TeamInviteAPI.Services
 
             GetPendingInvitesValidationResult pendingInvitesValidation = await _teamInviteDomain.ValidatePendingInvites(getCurrentPendingInvites, accountId);
 
-            if (!pendingInvitesValidation.PendingInvitesSuccess)
+            if (!pendingInvitesValidation.isValidated)
             {
                 getPendingInvitesResponse.Success = false; 
 
@@ -82,6 +83,28 @@ namespace TeamInviteAPI.Services
             getPendingInvitesResponse.Success = true; 
 
             return getPendingInvitesResponse;
+
+        }
+
+        public async Task<GetAllPendingInvitesForAccountReturn> GetAllPendingInvitesForAccount(GetAllPendingInvitesForAccountDto getPendingInvites, string shortLivedToken)
+        {
+            GetAllPendingInvitesForAccountReturn allPendingInvites = new();
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            GetPendingInvitesValidationResult isValidated = await _teamInviteDomain.ValidateGetAllPendingInvitesForAccount(getPendingInvites, accountId);
+
+            if (!isValidated.isValidated)
+            {
+                allPendingInvites.Success = false;
+
+                return allPendingInvites;
+            }
+
+            allPendingInvites.Success = true;
+            allPendingInvites.PendingTeamInvites = isValidated.PendingTeamInvites;
+
+            return allPendingInvites;
 
         }
 
@@ -114,6 +137,33 @@ namespace TeamInviteAPI.Services
         public async Task RejectAllTeamInvites(string shortLivedToken)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<UpdateTeamInviteReturn> UpdateTeamInvite(UpdateTeamInviteDto updateTeamInvite, string shortLivedToken)
+        {
+            UpdateTeamInviteReturn updateTeamInviteResponse = new();
+
+            Guid accountId = Guid.Parse(_jwtHelper.ReturnAccountIdFromToken(shortLivedToken));
+
+            UpdateTeamInviteValidationResult updateTeamInviteResult = await _teamInviteDomain.ValidateUpdateTeamInvite(updateTeamInvite);
+
+            if (!updateTeamInviteResult.IsValidated)
+            {
+                updateTeamInviteResponse.Success = false;
+
+                return updateTeamInviteResponse;
+            }
+
+            updateTeamInviteResult.TeamInvite.InviteStatus = updateTeamInvite.InviteStatus;
+
+            TeamInviteDataModel updatedTeamInvite = await _teamInviteDomain.UpdateTeamInvite(updateTeamInviteResult.TeamInvite);
+
+            updateTeamInviteResponse.Success = true;
+            updateTeamInviteResponse.InviteStatus = updatedTeamInvite.InviteStatus;
+
+            return updateTeamInviteResponse;
+
+
         }
 
         private TeamInviteDataModel CreatedTeamInvite(Guid accountId, Guid teamVaultId, string inviteSentBy, string inviteRecipient)
