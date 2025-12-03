@@ -55,18 +55,70 @@ namespace VaultAPI
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7003");
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
+                    {
+                        if (sslPolicyErrors != System.Net.Security.SslPolicyErrors.None)
+                        {
+                            Log.Information($"=== SSL Certificate Error ===");
+                            Log.Information($"Errors: {sslPolicyErrors}");
+                            Log.Information($"Certificate Subject: {cert?.Subject}");
+                            Log.Information($"Certificate Issuer: {cert?.Issuer}");
+                            if (chain != null)
+                            {
+                                foreach (var status in chain.ChainStatus)
+                                {
+                                    Log.Information($"Chain Status: {status.Status} - {status.StatusInformation}");
+                                }
+                            }
+                        }
+                        return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
+                    }
+                };
+                return handler;
             });
 
             builder.Services.AddGrpcClient<Auth.AuthClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7010");
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            {
+                var handler = new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
+                    {
+                        if (sslPolicyErrors != System.Net.Security.SslPolicyErrors.None)
+                        {
+                            Log.Information($"=== SSL Certificate Error ===");
+                            Log.Information($"Errors: {sslPolicyErrors}");
+                            Log.Information($"Certificate Subject: {cert?.Subject}");
+                            Log.Information($"Certificate Issuer: {cert?.Issuer}");
+                            if (chain != null)
+                            {
+                                foreach (var status in chain.ChainStatus)
+                                {
+                                    Log.Information($"Chain Status: {status.Status} - {status.StatusInformation}");
+                                }
+                            }
+                        }
+                        return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
+                    }
+                };
+                return handler;
             });
+
 
             builder.Services.AddDbContext<VaultDataContext>(options =>
             {
                 string? vaultConnectionString = builder.Configuration.GetConnectionString("VaultApiConnectionString");
                 options.UseSqlServer(vaultConnectionString);
             });
+
 
             //this line helps inject the dependency of the DbContext for the GenericRepository located in KeyForgedShared
             builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<VaultDataContext>());

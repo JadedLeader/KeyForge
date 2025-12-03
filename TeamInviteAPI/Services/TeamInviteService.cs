@@ -158,6 +158,8 @@ namespace TeamInviteAPI.Services
 
             TeamInviteDataModel updatedTeamInvite = await _teamInviteDomain.UpdateTeamInvite(updateTeamInviteResult.TeamInvite);
 
+            _streamingStorage.AddToTeamInviteUpdates(MapTeamInviteToUpdateResponse(updatedTeamInvite));
+
             updateTeamInviteResponse.Success = true;
             updateTeamInviteResponse.InviteStatus = updatedTeamInvite.InviteStatus;
 
@@ -196,6 +198,17 @@ namespace TeamInviteAPI.Services
             };
 
             return teamInviteCreation;
+        }
+
+        private StreamTeamInviteUpdateResponse MapTeamInviteToUpdateResponse(TeamInviteDataModel teamInvite)
+        {
+            StreamTeamInviteUpdateResponse teamUpdates = new StreamTeamInviteUpdateResponse
+            {
+                InviteStatus = teamInvite.InviteStatus,
+                TeamInviteId = teamInvite.Id.ToString()
+            };
+
+            return teamUpdates;
         }
 
     

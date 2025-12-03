@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using gRPCIntercommunicationService;
+using Serilog;
 using System.Collections.Immutable;
 using TeamInviteAPI.StreamingStorage;
 
@@ -47,6 +48,25 @@ namespace TeamInviteAPI.Services
                 }
 
                 _streamingStorage.ClearTeamInviteDeletion();
+
+                await Task.Delay(250, context.CancellationToken);
+            }
+        }
+
+        public override async Task StreamTeamInviteUpdate(StreamTeamInviteUpdateRequest request, IServerStreamWriter<StreamTeamInviteUpdateResponse> responseStream, ServerCallContext context)
+        {
+            while (!context.CancellationToken.IsCancellationRequested)
+            {
+                ImmutableList<StreamTeamInviteUpdateResponse> teamInviteUpdates = _streamingStorage.ReturnTeamInviteUpdates();
+
+                foreach(StreamTeamInviteUpdateResponse teamInviteUpdate in teamInviteUpdates)
+                {
+
+                    Log.Information($"Sending {teamInviteUpdate.TeamInviteId} : {teamInviteUpdate.InviteStatus} to be updated");
+                    await responseStream.WriteAsync(teamInviteUpdate);
+                }
+
+                _streamingStorage.ClearTeamInviteUpdates();
 
                 await Task.Delay(250, context.CancellationToken);
             }

@@ -10,7 +10,7 @@ namespace KeyForgedShared.ReturnTypes.TeamInvite
     public class GetAllPendingInvitesForAccountReturn
     {
 
-        public List<PendingTeamInvitesProjection> PendingTeamInvites = new();
+        public List<PendingTeamInvitesProjection> PendingTeamInvites { get; set; }
 
         public bool Success { get; set; }
 

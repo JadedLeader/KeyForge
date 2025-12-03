@@ -25,6 +25,25 @@ interface GetPendingTeamInvitesResponse {
     success: boolean;
 }
 
+interface GetAllPendingInvitesForAccountRequest { 
+    email: string;
+}
+
+interface GetAllPendingInvitesForAccountResponse { 
+    pendingTeamInvites: TeamInvites[]; 
+    success: boolean;
+}
+
+interface UpdateTeamInviteRequest { 
+    teamInviteId: string; 
+    inviteStatus: string;
+}
+
+interface UpdateTeamInviteResponse { 
+    inviteStatus: string; 
+    success: boolean;
+}
+
 function BuildCreateTeamInviteRequest(teamVaultId: string, inviteRecipient: string): CreateTeamInviteRequest { 
 
     const teamInvite: CreateTeamInviteRequest = {
@@ -125,3 +144,96 @@ export async function GetPendingTeamInvites(teamVaultId: string): Promise<GetPen
 
 }
 
+function BuildGetAllPendingInvitesForAccountRequest(email: string): GetAllPendingInvitesForAccountRequest { 
+
+    const request: GetAllPendingInvitesForAccountRequest = {
+        email: email
+    };
+
+    return request;
+
+}
+
+function BuildGetAllPendingInvitesForAccountResponse(pendingTeamInvites: TeamInvites[], success: boolean): GetAllPendingInvitesForAccountResponse { 
+    const response: GetAllPendingInvitesForAccountResponse = {
+        pendingTeamInvites: pendingTeamInvites,
+        success: success
+    }; 
+
+    return response;
+}
+
+export async function GetPendingInvitesForAccount(email: string) { 
+
+    const requestBody = BuildGetAllPendingInvitesForAccountRequest(email); 
+
+    const request = await fetch("/TeamInvite/GetAllPendingInvitesForAccount", {
+        method: "POST",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(requestBody)
+    }); 
+
+    if (!request.ok) { 
+
+        const errorText = await request.text(); 
+
+        throw new Error(errorText);
+
+    }
+
+    const jsonBody = await request.json(); 
+
+    const response = BuildGetAllPendingInvitesForAccountResponse(jsonBody.pendingTeamInvites, jsonBody.success);
+
+    return response;
+
+
+}
+
+function BuildUpdateTeamInviteRequest(teamInviteId: string, inviteStatus: string): UpdateTeamInviteRequest { 
+    const request: UpdateTeamInviteRequest = {
+        teamInviteId: teamInviteId,
+        inviteStatus: inviteStatus
+    }; 
+
+    return request;
+}
+
+function BuildUpdateTeamInviteResponse(inviteStatus: string, success: boolean): UpdateTeamInviteResponse { 
+    const response: UpdateTeamInviteResponse = {
+        inviteStatus: inviteStatus,
+        success: success
+    }; 
+
+    return response;
+}
+
+export async function UpdateTeamInvite(teamInviteId: string, inviteStatus: string): Promise<UpdateTeamInviteResponse> { 
+
+    const requestBody = BuildUpdateTeamInviteRequest(teamInviteId, inviteStatus); 
+
+    const request = await fetch("/TeamInvite/UpdateTeamInvite", {
+        method: "PUT",
+        headers: {
+            "content-type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(requestBody)
+
+    });
+
+    if (!request.ok) { 
+        const errorText = await request.text(); 
+
+        throw new Error(errorText);
+    }
+
+    const jsonBody = await request.json(); 
+
+    const response = BuildUpdateTeamInviteResponse(jsonBody.inviteStatus, jsonBody.success);
+
+    return response;
+}

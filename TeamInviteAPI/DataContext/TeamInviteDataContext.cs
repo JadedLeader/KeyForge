@@ -13,7 +13,7 @@ namespace TeamInviteAPI.DataContext
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string? connectionString = _config["ConnectionStrings:TeamMembersAPIConnection"];
+            string? connectionString = _config["ConnectionStrings:TeamInviteAPIConnection"];
 
             if(connectionString == null)
             {

@@ -8,7 +8,9 @@ namespace TeamInviteAPI.StreamingStorage
 
         private List<StreamTeamInviteCreationsResponse> _teamInviteCreations = new();
 
-        private List<StreamTeamInviteDeletionResponse> _teamInviteDeletions = new(); 
+        private List<StreamTeamInviteDeletionResponse> _teamInviteDeletions = new();
+
+        private List<StreamTeamInviteUpdateResponse> _teamInviteUpdates = new();
 
         public void AddToTeamInviteCreations(StreamTeamInviteCreationsResponse teamInviteCreations)
         {
@@ -20,6 +22,11 @@ namespace TeamInviteAPI.StreamingStorage
             _teamInviteDeletions.Add(teamInviteDeletion);
         }
 
+        public void AddToTeamInviteUpdates(StreamTeamInviteUpdateResponse teamInviteUpdates)
+        {
+            _teamInviteUpdates.Add(teamInviteUpdates);
+        } 
+
         public ImmutableList<StreamTeamInviteCreationsResponse> ReturnTeamInviteCreations()
         {
             return _teamInviteCreations.ToImmutableList();
@@ -30,6 +37,11 @@ namespace TeamInviteAPI.StreamingStorage
             return _teamInviteDeletions.ToImmutableList();
         }
 
+        public ImmutableList<StreamTeamInviteUpdateResponse> ReturnTeamInviteUpdates()
+        {
+            return _teamInviteUpdates.ToImmutableList();
+        }
+
         public void ClearTeamInviteCreation()
         {
             _teamInviteCreations.Clear();
@@ -38,6 +50,11 @@ namespace TeamInviteAPI.StreamingStorage
         public void ClearTeamInviteDeletion()
         {
             _teamInviteDeletions.Clear();
+        }
+
+        public void ClearTeamInviteUpdates()
+        {
+            _teamInviteUpdates.Clear(); 
         }
 
     }

@@ -79,6 +79,7 @@ import { CreateTeamModal } from "@/components/Team/CreateTeamModal"
 import {GetTeams } from "@/components/api/Team"
 import TeamVaultDashboard from "../src/components/Team/TeamVaultDashboard"
 import {UseTeamInvites } from "@/components/Hubs/TeamInvitesHub"
+import AccountPendingInvitesSegment from "@/components/TeamInvite/AccountPendingInvitesSegment"
 
 
 interface CreateVaultWithKeysResponse { 
@@ -583,10 +584,12 @@ export function HomePage() {
     const [selectedTeamName, setSelectedTeamName] = useState<string | null>(null);
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
+    const [inviteOverview, setInviteOverview] = useState(false);
 
     const handleTeamClick = (team :Team) => { 
         setSelectedTeamVaultId(team.id);
         setSelectedTeamName(team.teamName);
+        setInviteOverview(false);
     }
    
     useEffect(() => {
@@ -666,7 +669,12 @@ export function HomePage() {
 
                                         <DropdownMenuItem
                                             className="bg-transparent normal-text hover:underline"
-                                            onClick={() => setSelectedTeamVaultId(null)}
+                                            onClick={() =>
+                                            {
+                                                setSelectedTeamVaultId(null);
+                                                setInviteOverview(false);
+
+                                            } }
                                         >
                                             Vault Overview
                                         </DropdownMenuItem>
@@ -738,6 +746,17 @@ export function HomePage() {
 
                             </div>
 
+                            <Separator className="my-4 bg-[hsl(210,12%,12%)]" />
+
+                            <div>
+
+                                <Label className="title-text mb-6 px-2">Invites</Label>
+
+                                <Button className="justify-start text-left normal-text" onClick={() => setInviteOverview(true)} >Pending Invites</Button>
+
+                            </div>
+
+
                         </div>
 
                         <div className="mt-auto px-2 pb-4">
@@ -796,19 +815,20 @@ export function HomePage() {
 
                     <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
 
-                        {selectTeamVaultId ? (
-
-                            <TeamVaultDashboard teamId={selectTeamVaultId}/>
-                            
+                        {inviteOverview ? (
+                            <AccountPendingInvitesSegment email={email} />
+                        ) : selectTeamVaultId ? (
+                            <TeamVaultDashboard teamId={selectTeamVaultId} />
                         ) : (
-                                <VaultDashboard
-                                    vaults={vaults}
-                                    reloadVaults={async () => {
-                                        const reload = await GetVaultsAndKeys();
-                                        setVaults(reload);
-                                    }}
-                                />
+                            <VaultDashboard
+                                vaults={vaults}
+                                reloadVaults={async () => {
+                                    const reload = await GetVaultsAndKeys();
+                                    setVaults(reload);
+                                }}
+                            />
                         )}
+
 
                     </div>
 

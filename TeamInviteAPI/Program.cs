@@ -34,7 +34,7 @@ namespace TeamInviteAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddGrpc();
-            
+            builder.Services.AddSignalR();
 
             builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {
