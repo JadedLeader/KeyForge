@@ -2,7 +2,15 @@
 
 using gRPCIntercommunicationService;
 using Microsoft.EntityFrameworkCore;
+using TeamMembersAPI.BackgroundConsumers.Accounts;
+using TeamMembersAPI.BackgroundConsumers.TeamConsumer;
+using TeamMembersAPI.BackgroundConsumers.TeamInvites;
+using TeamMembersAPI.BackgroundConsumers.TeamVaults;
 using TeamMembersAPI.DataContext;
+using TeamMembersAPI.DomainService;
+using TeamMembersAPI.Interfaces.DomainService;
+using TeamMembersAPI.Interfaces.Services;
+using TeamMembersAPI.Services;
 
 namespace TeamMembersAPI
 {
@@ -51,6 +59,24 @@ namespace TeamMembersAPI
 
                 options.UseSqlServer(connectionString);
             });
+
+            builder.Services.AddHostedService<CreateAccount>();
+            builder.Services.AddHostedService<DeleteAccount>();
+
+            builder.Services.AddHostedService<CreateTeam>();
+            builder.Services.AddHostedService<DeleteTeam>();
+            builder.Services.AddHostedService<UpdateTeam>();
+
+            builder.Services.AddHostedService<CreateTeamVault>();
+            builder.Services.AddHostedService<DeleteTeamVault>();
+            builder.Services.AddHostedService<UpdateTeamVault>();
+
+            builder.Services.AddHostedService<CreateTeamInvite>();
+            builder.Services.AddHostedService<DeleteTeamInvite>();
+            builder.Services.AddHostedService<UpdateTeamInvite>();
+
+            builder.Services.AddScoped<ITeamMemberDomainService, TeamMemberDomainService>();
+            builder.Services.AddScoped<ITeamMembersService, TeamMembersService>();
 
             var app = builder.Build();
 
