@@ -111,6 +111,11 @@ dotnet ef database update --project TeamAPI
 dotnet ef database update --project TeamVaultAPI
 ```
 
+### **Team Invite API**
+```bash
+dotnet ef database update --project TeamInviteAPI
+```
+
 # Current Working Build Projects
 
 ## **Steps to setup current build**
