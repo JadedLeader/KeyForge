@@ -1,5 +1,5 @@
 interface CreateTeamMemberRequest { 
-    teamVaultId: string; 
+    teamVaultId: string | null; 
     teamInviteId: string;
 }
 
@@ -28,7 +28,7 @@ function BuildCreateTeamMemberResponse(username: string, email: string, success:
     return response;
 }
 
-async function CreateTeamMember(teamVaultId: string, teamInviteId: string): Promise<CreateTeamMemberResponse> { 
+export async function CreateTeamMember(teamVaultId: string, teamInviteId: string): Promise<CreateTeamMemberResponse> { 
 
     const buildRequest = BuildCreateTeamMemberRequest(teamVaultId, teamInviteId); 
 

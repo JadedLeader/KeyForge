@@ -29,8 +29,8 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { toast } from "sonner"
-import { GetPendingInvitesForAccount, UpdateTeamInvite}  from "@/components/api/TeamInvite"
-import { Console } from "node:console";
+import { GetPendingInvitesForAccount, UpdateTeamInvite } from "@/components/api/TeamInvite"
+import {CreateTeamMember } from "@/components/api/TeamMember"
 
 
 type TeamInvites = {
@@ -38,6 +38,7 @@ type TeamInvites = {
     inviteRecipient: string;
     inviteCreatedAt: string;
     teamInviteId: string;
+    teamVaultId: string;
 }
 interface AccountPendingInvitesSegmentProps { 
     email: string;
@@ -99,7 +100,17 @@ function AccountPendingInvitesSegment({email } : AccountPendingInvitesSegmentPro
                             <TableCell>{invites.inviteRecipient}</TableCell>
                             <TableCell>{invites.inviteCreatedAt}</TableCell>
                             <TableCell>
-                                <Button onClick={() => UpdateTeamInvite(invites.teamInviteId, "Accepted") } variant="outline">Accept</Button>
+                                <Button onClick={ async () =>
+                                {
+
+                                    const teamInviteUpdate = await UpdateTeamInvite(invites.teamInviteId, "Accepted"); 
+
+                                    console.log("team vault id:", invites.teamVaultId);
+
+                                    const createTeamMember = await CreateTeamMember(invites.teamVaultId , invites.teamInviteId);
+
+
+                                }} variant="outline">Accept</Button>
                                 <Button onClick={ () => UpdateTeamInvite(invites.teamInviteId, "Declined")} variant="outline" className="ml-2">
                                     Decline
                                 </Button>

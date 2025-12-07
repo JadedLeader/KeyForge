@@ -816,7 +816,7 @@ export function HomePage() {
                     <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
 
                         {inviteOverview ? (
-                            <AccountPendingInvitesSegment email={email} />
+                            <AccountPendingInvitesSegment email={email} teamVaultId={selectTeamVaultId} />
                         ) : selectTeamVaultId ? (
                             <TeamVaultDashboard teamId={selectTeamVaultId} />
                         ) : (

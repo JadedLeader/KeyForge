@@ -99,7 +99,8 @@ namespace TeamInviteAPI.Repos
                     InviteSentBy = x.InviteSentBy,
                     InviteCreatedAt = x.InviteCreatedAt,
                     InviteRecipient = x.InviteRecipient,
-                    TeamInviteId = x.Id.ToString()
+                    TeamInviteId = x.Id.ToString(), 
+                    TeamVaultId = x.TeamVaultId.ToString(),
                 }).ToListAsync();
 
             return listOfPendingInvites;

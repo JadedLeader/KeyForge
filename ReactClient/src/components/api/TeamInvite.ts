@@ -19,6 +19,7 @@ type TeamInvites = {
     inviteRecipient: string; 
     inviteCreatedAt: string;
     teamInviteId: string;
+    teamVaultId: string;
 }
 interface GetPendingTeamInvitesResponse { 
     pendingTeamInvites: TeamInvites[]; 

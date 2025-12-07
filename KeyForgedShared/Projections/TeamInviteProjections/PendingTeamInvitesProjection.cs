@@ -17,5 +17,7 @@ namespace KeyForgedShared.Projections.TeamInviteProjections
 
         public string InviteCreatedAt { get; set; }
 
+        public string TeamVaultId { get; set; }
+
     }
 }
