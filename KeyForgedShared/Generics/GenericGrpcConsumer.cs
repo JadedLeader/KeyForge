@@ -35,6 +35,11 @@ namespace KeyForgedShared.Generics
 
                 var model = MapToType(response);
 
+                if(model == null)
+                {
+                    continue;
+                }
+
                 await HandleMessage(services, model);
             }
         }

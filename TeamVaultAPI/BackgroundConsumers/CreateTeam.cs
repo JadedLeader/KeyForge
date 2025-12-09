@@ -12,6 +12,8 @@ namespace TeamVaultAPI.BackgroundConsumers
 
         private readonly Team.TeamClient _teamClient;
 
+        private readonly HashSet<string> _seenTeamCreations = new();
+
         public CreateTeam(Team.TeamClient teamClient, IServiceScopeFactory scopeFactory) : base(scopeFactory) 
         {
             _teamClient = teamClient;
@@ -26,6 +28,14 @@ namespace TeamVaultAPI.BackgroundConsumers
 
         protected override TeamDataModel MapToType(StreamTeamCreationResponse responseType)
         {
+
+            if (_seenTeamCreations.Contains(responseType.TeamCreationId))
+            {
+                return null;
+            }
+
+            _seenTeamCreations.Add(responseType.TeamCreationId);
+
             return MapStreamToTeam(responseType);
         }
 

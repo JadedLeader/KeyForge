@@ -24,6 +24,7 @@ message StreamTeamInviteCreationsResponse{
 	string inviteRecipient = 5; 
 	string inviteStatus = 6; 
 	string inviteCreatedAt = 7;
+	string teamInviteCreationId = 8;
 
 }
 

@@ -15,6 +15,7 @@ message StreamTeamVaultCreationRequest{
 
 message StreamTeamVaultCreationResponse{ 
 
+
 	string teamVaultId = 1; 
 	string teamId = 2; 
 	string teamVaultDescription = 3; 
@@ -22,6 +23,7 @@ message StreamTeamVaultCreationResponse{
 	string createdAt = 5;
 	string lastTeamUpdate = 6; 
 	string currentStatus = 7;
+	string teamVaultCreationId = 8;
 
 }
 

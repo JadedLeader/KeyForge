@@ -22,6 +22,7 @@ message StreamTeamCreationResponse{
 	string CreatedBy = 5; 
 	string CreatedAt = 6; 
 	int32 MemberCap = 7;
+	string teamCreationId = 8;
 }
 
 message StreamTeamDeletionRequest{ 

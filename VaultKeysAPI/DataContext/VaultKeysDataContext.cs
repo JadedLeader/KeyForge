@@ -38,8 +38,6 @@ namespace VaultKeysAPI.DataContext
 
         public DbSet<AccountDataModel> Account { get; set; }
 
-        public DbSet<AuthDataModel> Auth { get; set; }
-
         public DbSet<VaultDataModel> Vault { get; set;  }
 
         public DbSet<VaultKeysDataModel> VaultKeys { get; set; }

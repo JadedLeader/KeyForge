@@ -358,6 +358,8 @@ namespace AuthAPI.Services
                 }
 
                 _transportationStorage.ClearAuthCreations();
+
+                await Task.Delay(250, context.CancellationToken);
             }
 
         }
@@ -389,6 +391,8 @@ namespace AuthAPI.Services
                 }
 
                 _transportationStorage.ClearAuthUpdates();
+
+                await Task.Delay(250, context.CancellationToken);
             }
             
         }

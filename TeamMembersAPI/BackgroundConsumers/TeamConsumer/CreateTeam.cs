@@ -10,6 +10,9 @@ namespace TeamMembersAPI.BackgroundConsumers.TeamConsumer
     public class CreateTeam : GenericGrpcConsumer<StreamTeamCreationResponse, TeamDataModel>
     {
         private readonly Team.TeamClient _teamClient;
+
+        private readonly HashSet<string> _seenTeamCreations = new();
+
         public CreateTeam(Team.TeamClient teamClient, IServiceScopeFactory scopeFactory) : base(scopeFactory)
         {
           _teamClient = teamClient;
@@ -24,6 +27,14 @@ namespace TeamMembersAPI.BackgroundConsumers.TeamConsumer
 
         protected override TeamDataModel MapToType(StreamTeamCreationResponse responseType)
         {
+
+            if (_seenTeamCreations.Contains(responseType.TeamCreationId))
+            {
+                return null;
+            }
+
+            _seenTeamCreations.Add(responseType.TeamCreationId);
+
             return MapStreamToTeam(responseType);
         }
 

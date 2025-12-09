@@ -25,12 +25,11 @@ namespace TeamInviteAPI.Services
 
                 foreach(StreamTeamInviteCreationsResponse teamInvite in teamInvitesCreated)
                 {
-
+                    Log.Information($"sending team invite: {teamInvite.TeamInviteCreationId}");
                     await responseStream.WriteAsync(teamInvite);
 
                 }
 
-                _streamingStorage.ClearTeamInviteCreation();
                 await Task.Delay(250, context.CancellationToken);
 
             }

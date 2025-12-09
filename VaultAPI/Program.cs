@@ -35,15 +35,12 @@ namespace VaultAPI
 
             builder.Services.AddHostedService<AddAccountBackgroundConsumer>();
             builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
-            builder.Services.AddHostedService<AddAuthBackgroundConsumer>();
-            builder.Services.AddHostedService<UpdateAuthBackgroundConsumer>();
 
             builder.Services.AddScoped<GenericRepository<AccountDataModel>>();
             builder.Services.AddScoped<GenericRepository<AuthDataModel>>();
             builder.Services.AddScoped<GenericRepository<VaultDataModel>>();
 
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
-            builder.Services.AddScoped<IAuthRepo, AuthRepo>();
             builder.Services.AddScoped<IVaultRepo, VaultRepo>();
 
             builder.Services.AddScoped<IJwtHelper, JwtHelper>();
@@ -55,63 +52,13 @@ namespace VaultAPI
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7003");
-            })
-            .ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
-                    {
-                        if (sslPolicyErrors != System.Net.Security.SslPolicyErrors.None)
-                        {
-                            Log.Information($"=== SSL Certificate Error ===");
-                            Log.Information($"Errors: {sslPolicyErrors}");
-                            Log.Information($"Certificate Subject: {cert?.Subject}");
-                            Log.Information($"Certificate Issuer: {cert?.Issuer}");
-                            if (chain != null)
-                            {
-                                foreach (var status in chain.ChainStatus)
-                                {
-                                    Log.Information($"Chain Status: {status.Status} - {status.StatusInformation}");
-                                }
-                            }
-                        }
-                        return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
-                    }
-                };
-                return handler;
             });
 
             builder.Services.AddGrpcClient<Auth.AuthClient>(options =>
             {
                 options.Address = new Uri("https://localhost:7010");
-            })
-            .ConfigurePrimaryHttpMessageHandler(() =>
-            {
-                var handler = new HttpClientHandler
-                {
-                    ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
-                    {
-                        if (sslPolicyErrors != System.Net.Security.SslPolicyErrors.None)
-                        {
-                            Log.Information($"=== SSL Certificate Error ===");
-                            Log.Information($"Errors: {sslPolicyErrors}");
-                            Log.Information($"Certificate Subject: {cert?.Subject}");
-                            Log.Information($"Certificate Issuer: {cert?.Issuer}");
-                            if (chain != null)
-                            {
-                                foreach (var status in chain.ChainStatus)
-                                {
-                                    Log.Information($"Chain Status: {status.Status} - {status.StatusInformation}");
-                                }
-                            }
-                        }
-                        return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
-                    }
-                };
-                return handler;
             });
-
+            
 
             builder.Services.AddDbContext<VaultDataContext>(options =>
             {

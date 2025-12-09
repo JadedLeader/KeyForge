@@ -35,7 +35,7 @@ namespace TeamVaultAPI.Services
 
                 }
 
-                _streamingStorage.ClearStreamTeamVaultCreations();
+               // _streamingStorage.ClearStreamTeamVaultCreations();
 
                 await Task.Delay(250, context.CancellationToken);
 
@@ -56,6 +56,8 @@ namespace TeamVaultAPI.Services
                 }
 
                 _streamingStorage.ClearStreamTeamVaultDeletions();
+
+                await Task.Delay(250, context.CancellationToken);
             }
         }
 
@@ -73,6 +75,8 @@ namespace TeamVaultAPI.Services
                 }
 
                 _streamingStorage.ClearStreamTeamVaultUpdates();
+
+                await Task.Delay(250, context.CancellationToken);
             }
         }
 

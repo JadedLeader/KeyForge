@@ -22,11 +22,17 @@ import {
 import { toast } from "sonner"
 import { CreateTeamInvite } from "@/components/api/TeamInvite"
 import { GetTeamVault } from "@/components/api/TeamVault"
+import { UseTeamMembers } from "@/components/Hubs/TeamMemberHub"
 
 interface TeamVaultDashboardProps { 
 
     teamId: string;
 
+}
+
+interface TeamMemberAdded {
+    username: string;
+    email: string;
 }
 
 function TeamVaultDashboard({teamId } : TeamVaultDashboardProps) {
@@ -50,6 +56,8 @@ function TeamVaultDashboard({teamId } : TeamVaultDashboardProps) {
         loadTeamVault();
 
     }, [])
+
+    const teamMembersAdded = UseTeamMembers(teamVaultId);
 
     function RecipientEmailOnChange(e: React.ChangeEvent<HTMLInputElement>) { 
         setRecipientEmail(e.target.value);

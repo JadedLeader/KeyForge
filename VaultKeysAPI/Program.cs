@@ -28,6 +28,7 @@ namespace VaultKeysAPI
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddSignalR();
 
             builder.Services.AddGrpcClient<gRPCIntercommunicationService.Account.AccountClient>(options =>
             {
@@ -54,15 +55,12 @@ namespace VaultKeysAPI
             });
 
             builder.Services.AddHostedService<AddAccountBackgroundConsumer>();
-            builder.Services.AddHostedService<AddAuthBackgroundConsumer>();
             builder.Services.AddHostedService<AddVaultBackgroundConsumer>();
             builder.Services.AddHostedService<DeleteAccountBackgroundConsumer>();
-            builder.Services.AddHostedService<UpdateAuthBackgroundConsumer>();
             builder.Services.AddHostedService<DeleteVaultBackgroundConsumer>();
             builder.Services.AddHostedService<UpdateVaultBackgroundConsumer>();
 
             builder.Services.AddScoped<IAccountRepo, AccountRepo>();
-            builder.Services.AddScoped<IAuthRepo, AuthRepo>();
             builder.Services.AddScoped<IVaultRepo, VaultRepo>();
             builder.Services.AddScoped<IVaultKeysRepo, VaultKeysRepo>();
             builder.Services.AddScoped<IVaultKeysService, VaultKeysService>();
@@ -83,8 +81,6 @@ namespace VaultKeysAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            
 
             app.UseHttpsRedirection();
 

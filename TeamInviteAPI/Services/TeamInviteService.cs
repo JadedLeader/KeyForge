@@ -195,6 +195,7 @@ namespace TeamInviteAPI.Services
                 InviteStatus = teamInvite.InviteStatus,
                 InviteCreatedAt = teamInvite.InviteCreatedAt,
                 InviteRecipient = teamInvite.InviteRecipient,
+                TeamInviteCreationId = Guid.NewGuid().ToString(),
             };
 
             return teamInviteCreation;

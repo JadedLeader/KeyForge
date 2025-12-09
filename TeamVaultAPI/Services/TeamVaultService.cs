@@ -262,6 +262,7 @@ namespace TeamVaultAPI.Services
                 TeamVaultDescription = teamVault.TeamVaultDescription,
                 TeamVaultId = teamVault.Id.ToString(),
                 TeamVaultName = teamVault.TeamVaultName,
+                TeamVaultCreationId = Guid.NewGuid().ToString(),
 
             };
 

@@ -3,21 +3,24 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using VaultKeysAPI.DataContext;
+using VaultAPI.DataContext;
 
 #nullable disable
 
-namespace VaultKeysAPI.Migrations
+namespace VaultAPI.Migrations
 {
-    [DbContext(typeof(VaultKeysDataContext))]
-    partial class VaultKeysDataContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(VaultDataContext))]
+    [Migration("20251208174424_RemovedNavigationProperty")]
+    partial class RemovedNavigationProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.7")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -79,35 +82,6 @@ namespace VaultKeysAPI.Migrations
                     b.ToTable("Vault");
                 });
 
-            modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultKeysDataModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("VaultKeyId");
-
-                    b.Property<string>("DateTimeVaultKeyCreated")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("HashedVaultKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("KeyName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("VaultId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VaultId");
-
-                    b.ToTable("VaultKeys");
-                });
-
             modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultDataModel", b =>
                 {
                     b.HasOne("KeyForgedShared.SharedDataModels.AccountDataModel", "Account")
@@ -117,22 +91,6 @@ namespace VaultKeysAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultKeysDataModel", b =>
-                {
-                    b.HasOne("KeyForgedShared.SharedDataModels.VaultDataModel", "Vault")
-                        .WithMany("VaultKeys")
-                        .HasForeignKey("VaultId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Vault");
-                });
-
-            modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultDataModel", b =>
-                {
-                    b.Navigation("VaultKeys");
                 });
 #pragma warning restore 612, 618
         }

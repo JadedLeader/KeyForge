@@ -33,7 +33,7 @@ namespace TeamAPI.Services
 
                 }
 
-                _streamingStorage.ClearTeamCreations();
+                await Task.Delay(250, context.CancellationToken);
 
             }
         }

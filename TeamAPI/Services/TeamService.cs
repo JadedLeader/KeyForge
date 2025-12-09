@@ -234,6 +234,7 @@ namespace TeamAPI.Services
                 MemberCap = team.MemberCap,
                 TeamId = team.Id.ToString(),
                 TeamName = team.TeamName,
+                TeamCreationId = Guid.NewGuid().ToString()
             };
 
             return stream;

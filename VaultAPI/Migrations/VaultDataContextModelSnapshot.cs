@@ -22,11 +22,12 @@ namespace VaultAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AccountAPI.DataModel.AccountDataModel", b =>
+            modelBuilder.Entity("KeyForgedShared.SharedDataModels.AccountDataModel", b =>
                 {
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("AccountId");
 
                     b.Property<DateTime>("AccountCreated")
                         .HasColumnType("datetime2");
@@ -46,40 +47,17 @@ namespace VaultAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("AccountId");
+                    b.HasKey("Id");
 
                     b.ToTable("Account");
                 });
 
-            modelBuilder.Entity("AuthAPI.DataModel.AuthDataModel", b =>
+            modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultDataModel", b =>
                 {
-                    b.Property<Guid>("AuthKey")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("LongLivedKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShortLivedKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AuthKey");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("Auth");
-                });
-
-            modelBuilder.Entity("VaultAPI.DataModel.VaultDataModel", b =>
-                {
-                    b.Property<Guid>("VaultId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("VaultId");
 
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
@@ -94,27 +72,16 @@ namespace VaultAPI.Migrations
                     b.Property<int>("VaultType")
                         .HasColumnType("int");
 
-                    b.HasKey("VaultId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.ToTable("Vault");
                 });
 
-            modelBuilder.Entity("AuthAPI.DataModel.AuthDataModel", b =>
+            modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultDataModel", b =>
                 {
-                    b.HasOne("AccountAPI.DataModel.AccountDataModel", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("VaultAPI.DataModel.VaultDataModel", b =>
-                {
-                    b.HasOne("AccountAPI.DataModel.AccountDataModel", "Account")
+                    b.HasOne("KeyForgedShared.SharedDataModels.AccountDataModel", "Account")
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)

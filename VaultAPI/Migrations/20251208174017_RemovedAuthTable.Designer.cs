@@ -3,21 +3,24 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using VaultKeysAPI.DataContext;
+using VaultAPI.DataContext;
 
 #nullable disable
 
-namespace VaultKeysAPI.Migrations
+namespace VaultAPI.Migrations
 {
-    [DbContext(typeof(VaultKeysDataContext))]
-    partial class VaultKeysDataContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(VaultDataContext))]
+    [Migration("20251208174017_RemovedAuthTable")]
+    partial class RemovedAuthTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.7")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -105,7 +108,7 @@ namespace VaultKeysAPI.Migrations
 
                     b.HasIndex("VaultId");
 
-                    b.ToTable("VaultKeys");
+                    b.ToTable("VaultKeysDataModel");
                 });
 
             modelBuilder.Entity("KeyForgedShared.SharedDataModels.VaultDataModel", b =>

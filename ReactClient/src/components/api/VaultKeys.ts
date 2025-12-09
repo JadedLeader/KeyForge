@@ -258,7 +258,7 @@ export async function GetVaultsAndKeys(): Promise<Vault[]> {
 
         });
 
-        if (!getVaults) {
+        if (!getVaults.ok) {
 
             throw new Error("Failed To Fetch Vaults")
 

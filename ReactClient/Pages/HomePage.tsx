@@ -1,5 +1,5 @@
 ﻿import React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import "./HomePage.css"
 import {
@@ -585,6 +585,8 @@ export function HomePage() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [inviteOverview, setInviteOverview] = useState(false);
+    const hasInitialized = useRef(false);
+
 
     const handleTeamClick = (team :Team) => { 
         setSelectedTeamVaultId(team.id);
@@ -593,6 +595,10 @@ export function HomePage() {
     }
    
     useEffect(() => {
+
+
+        if (hasInitialized.current) return;
+        hasInitialized.current = true;
 
         const fetchToken = async () => {
 
@@ -816,7 +822,7 @@ export function HomePage() {
                     <div className="flex-1 p-4 max-h-[80vh] overflow-y-auto">
 
                         {inviteOverview ? (
-                            <AccountPendingInvitesSegment email={email} teamVaultId={selectTeamVaultId} />
+                            <AccountPendingInvitesSegment email={email} />
                         ) : selectTeamVaultId ? (
                             <TeamVaultDashboard teamId={selectTeamVaultId} />
                         ) : (

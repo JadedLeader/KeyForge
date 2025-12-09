@@ -2,6 +2,7 @@
 using gRPCIntercommunicationService;
 using KeyForgedShared.Generics;
 using KeyForgedShared.SharedDataModels;
+using Serilog;
 using TeamMembersAPI.Interfaces.Repo;
 
 namespace TeamMembersAPI.BackgroundConsumers.TeamInvites
@@ -10,6 +11,8 @@ namespace TeamMembersAPI.BackgroundConsumers.TeamInvites
     {
 
         private readonly TeamInvite.TeamInviteClient _teamInviteClient;
+
+        private readonly HashSet<string> _seenTeamInvites = new();
 
         public CreateTeamInvite(TeamInvite.TeamInviteClient teamInviteClient, IServiceScopeFactory scopeFactory) : base(scopeFactory)
         {
@@ -25,6 +28,16 @@ namespace TeamMembersAPI.BackgroundConsumers.TeamInvites
 
         protected override TeamInviteDataModel MapToType(StreamTeamInviteCreationsResponse responseType)
         {
+
+            Log.Information($"Received team invite: {responseType.TeamInviteCreationId}");
+
+            if (_seenTeamInvites.Contains(responseType.TeamInviteId))
+            {
+                return null;
+            }
+
+            _seenTeamInvites.Add(responseType.TeamInviteId);
+
             return MapStreamToModel(responseType);
         }
 

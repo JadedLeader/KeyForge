@@ -6,6 +6,7 @@ using KeyForgedShared.ValidationType;
 using Microsoft.EntityFrameworkCore.Metadata;
 using TeamMembersAPI.Interfaces.DomainService;
 using TeamMembersAPI.Interfaces.Services;
+using KeyForgedShared.HubProjection.TeamMember;
 
 namespace TeamMembersAPI.Services
 {
@@ -13,6 +14,7 @@ namespace TeamMembersAPI.Services
     {
 
         private readonly ITeamMemberDomainService _teamMemberDomainService;
+        private readonly ITeamMemberHubService _teamMemberHubService;
 
         public TeamMembersService(ITeamMemberDomainService teamMemberDomainService)
         {
@@ -36,6 +38,8 @@ namespace TeamMembersAPI.Services
             TeamMemberDataModel teamMember = CreateTeamMemberModel(createTeamMember.TeamVaultId, teamMemberValidated.Email, teamMemberValidated.Username);
 
             await _teamMemberDomainService.AddTeamMember(teamMember);
+
+            await _teamMemberHubService.NotifyTeamMemberAdded(teamMember.TeamVaultId.ToString(), new TeamMemberAddedProjection { Email = teamMember.Email, Username = teamMemberValidated.Username} );
 
             newTeamMember.Username = teamMember.Username;
             newTeamMember.Email = teamMember.Email;

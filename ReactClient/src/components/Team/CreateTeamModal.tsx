@@ -150,6 +150,9 @@ export function CreateTeamModal({isOpen, setIsOpen, reloadTeams } : CreateTeamPr
 
                       const teamVaultCreated = await CreateTeamVault(teamCreated.teamId, teamVaultDescription, teamVaultName, currentState);
                       
+                      console.log(teamCreated); 
+
+                      console.log("team vault created", teamVaultCreated);
 
                       if (teamCreated.success && teamVaultCreated.success) {
                           toast.success("Team created successfully!");

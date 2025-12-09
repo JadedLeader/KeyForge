@@ -12,6 +12,8 @@ namespace TeamMembersAPI.BackgroundConsumers.TeamVaults
 
         private readonly TeamVault.TeamVaultClient _teamVaultClient;
 
+        private readonly HashSet<string> _alreadySeenResponses = new();
+
         public CreateTeamVault(TeamVault.TeamVaultClient teamVaultClient, IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
         {
             _teamVaultClient = teamVaultClient;
@@ -28,6 +30,14 @@ namespace TeamMembersAPI.BackgroundConsumers.TeamVaults
 
         protected override TeamVaultDataModel MapToType(StreamTeamVaultCreationResponse responseType)
         {
+
+            if (_alreadySeenResponses.Contains(responseType.TeamVaultCreationId))
+            {
+                return null;
+            }
+
+            _alreadySeenResponses.Add(responseType.TeamVaultCreationId);
+
             return MapCreateTeamStreamToTeamVault(responseType);
         }
 

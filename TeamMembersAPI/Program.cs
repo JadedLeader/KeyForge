@@ -1,15 +1,21 @@
 
 
 using gRPCIntercommunicationService;
+using KeyForgedShared.Helpers;
+using KeyForgedShared.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using TeamMembersAPI.BackgroundConsumers.Accounts;
 using TeamMembersAPI.BackgroundConsumers.TeamConsumer;
 using TeamMembersAPI.BackgroundConsumers.TeamInvites;
 using TeamMembersAPI.BackgroundConsumers.TeamVaults;
 using TeamMembersAPI.DataContext;
 using TeamMembersAPI.DomainService;
+using TeamMembersAPI.Hubs;
 using TeamMembersAPI.Interfaces.DomainService;
+using TeamMembersAPI.Interfaces.Repo;
 using TeamMembersAPI.Interfaces.Services;
+using TeamMembersAPI.Repos;
 using TeamMembersAPI.Services;
 
 namespace TeamMembersAPI
@@ -27,6 +33,7 @@ namespace TeamMembersAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddGrpc();
+            builder.Services.AddSignalR();
 
             builder.Services.AddGrpcClient<Account.AccountClient>(options =>
             {
@@ -78,6 +85,21 @@ namespace TeamMembersAPI
             builder.Services.AddScoped<ITeamMemberDomainService, TeamMemberDomainService>();
             builder.Services.AddScoped<ITeamMembersService, TeamMembersService>();
 
+
+            builder.Services.AddScoped<IAccountRepo, AccountRepo>(); 
+            builder.Services.AddScoped<ITeamInviteRepo, TeamInviteRepo>();
+            builder.Services.AddScoped<ITeamMemberRepo, TeamMemberRepo>();
+            builder.Services.AddScoped<ITeamRepo, TeamRepo>(); 
+            builder.Services.AddScoped<ITeamVaultRepo, TeamVaultRepo>();
+            builder.Services.AddScoped<ITeamMemberHubService, TeamMemberHubService>();
+
+            builder.Services.AddScoped<IJwtHelper, JwtHelper>();
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.Console()
+                .CreateLogger();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -91,6 +113,7 @@ namespace TeamMembersAPI
 
             app.UseAuthorization();
 
+            app.MapHub<TeamMemberHub>("/TeamMemberHub");
 
             app.MapControllers();
 

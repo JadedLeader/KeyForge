@@ -133,8 +133,6 @@ export async function CreateNewVault(vaultName: string): Promise<CreateVaultResp
         throw new Error(errorText);
     }
 
-
-
     const returnJson = await createNewVaultResponse.json();
 
     console.log("Submitting vault:", vaultName,  returnJson.vaultId);

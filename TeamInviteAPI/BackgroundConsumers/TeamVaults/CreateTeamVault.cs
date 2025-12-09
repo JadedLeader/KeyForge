@@ -11,6 +11,7 @@ namespace TeamInviteAPI.BackgroundConsumers.TeamVaults
     {
 
         private readonly TeamVault.TeamVaultClient _teamVaultClient;
+        private readonly HashSet<string> _seenTeamVaults = new();
 
         public CreateTeamVault(TeamVault.TeamVaultClient teamVaultClient, IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
         {
@@ -28,6 +29,13 @@ namespace TeamInviteAPI.BackgroundConsumers.TeamVaults
 
         protected override TeamVaultDataModel MapToType(StreamTeamVaultCreationResponse responseType)
         {
+            if (_seenTeamVaults.Contains(responseType.TeamVaultCreationId))
+            {
+                return null;
+            }
+
+            _seenTeamVaults.Add(responseType.TeamVaultCreationId);
+
             return MapCreateTeamStreamToTeamVault(responseType);
         }
 

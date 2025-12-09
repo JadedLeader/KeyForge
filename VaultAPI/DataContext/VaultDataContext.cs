@@ -24,10 +24,17 @@ namespace VaultAPI.DataContext
             optionsBuilder.UseSqlServer(connectionString);
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+
+            modelBuilder.Entity<VaultDataModel>()
+                .Ignore(v => v.VaultKeys);
+
+            base.OnModelCreating(modelBuilder);
+        }
+
 
         public DbSet<AccountDataModel> Account { get; set; }
-
-        public DbSet<AuthDataModel> Auth { get; set; }
 
         public DbSet<VaultDataModel> Vault { get; set; }
 

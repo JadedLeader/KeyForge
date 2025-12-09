@@ -7,7 +7,7 @@ using TeamMembersAPI.Interfaces.Services;
 
 namespace TeamMembersAPI.Controllers
 {
-    [Route("[controller/Action]")]
+    [Route("[controller]/[Action]")]
     [ApiController]
     public class TeamMemberController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace TeamMembersAPI.Controllers
             _teamMembersService = teamMembersService;
         }
 
-        [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> CreateTeamMember([FromBody] CreateTeamMemberDto createTeamMember)
         {
             if(!Request.Cookies.TryGetValue("ShortLivedToken", out string? cookie))
